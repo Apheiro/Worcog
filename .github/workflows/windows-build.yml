@@ -8,6 +8,11 @@ on:
         required: false
         type: string
         default: ''
+      source_ref:
+        description: Optional branch or commit to build instead of the release tag (for release repair)
+        required: false
+        type: string
+        default: ''
   workflow_call:
     inputs:
       release_tag:
@@ -38,7 +43,7 @@ jobs:
       - name: Check out the selected tag or ref
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+          ref: ${{ inputs.source_ref || (inputs.release_tag && format('refs/tags/{0}', inputs.release_tag)) || github.ref }}
           persist-credentials: false
       - name: Install pnpm from packageManager
         uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
@@ -90,6 +95,7 @@ jobs:
         env:
           APP_VERSION: ${{ steps.versions.outputs.version }}
           BINARY_NAME: ${{ steps.versions.outputs.binary_name }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           $release = Join-Path $env:GITHUB_WORKSPACE "src-tauri/target/x86_64-pc-windows-msvc/release"
           $exe = Join-Path $release "$($env:BINARY_NAME).exe"
@@ -100,6 +106,15 @@ jobs:
           if ($installers.Count -ne 1) { throw "Expected exactly one NSIS installer." }
           $assets = Join-Path $env:RUNNER_TEMP "worklog-assets"
           New-Item -ItemType Directory -Path $assets -Force | Out-Null
+          $sourceCommit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw "Unable to identify the source commit." }
+          @(
+            "repository=$env:GITHUB_REPOSITORY"
+            "source_commit=$sourceCommit"
+            "version=$env:APP_VERSION"
+            "release_tag=$env:RELEASE_TAG"
+            "run=https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          ) | Set-Content -LiteralPath (Join-Path $assets "BUILD-INFO.txt") -Encoding utf8
           $prefix = "worklog-v$($env:APP_VERSION)-windows-x64"
           Copy-Item -LiteralPath $exe -Destination (Join-Path $assets "$prefix.exe")
           Copy-Item -LiteralPath $installers[0].FullName -Destination (Join-Path $assets "$prefix-setup.exe")
@@ -140,4 +155,4 @@ jobs:
         run: |
           sha256sum --check SHA256SUMS.txt
           gh release view "$RELEASE_TAG" --json tagName
-          gh release upload "$RELEASE_TAG" ./*.exe SHA256SUMS.txt --clobber
+          gh release upload "$RELEASE_TAG" ./*.exe SHA256SUMS.txt BUILD-INFO.txt --clobber

@@ -21,6 +21,11 @@ validate against a particular tag. The lockfile extra-file selector uses
 `@.name.value` because Release Please's TOML parser wraps scalar values with
 position metadata; the generic TOML updater was exercised with the actual files.
 
+Release Please formats `CHANGELOG.md` and `src-tauri/tauri.conf.json` itself.
+These two files are excluded from Prettier so generated release commits do not
+fail lint solely because of formatting. Tauri configuration parsing and version
+validation remain enforced; this exclusion does not disable application checks.
+
 The reusable workflow call avoids relying on tag events created by
 `GITHUB_TOKEN`, which do not start another workflow. No personal access token
 is required. Enable **Settings → Actions → General → Allow GitHub Actions to
@@ -37,6 +42,11 @@ Open **Actions → Windows build → Run workflow**:
 - Enter an existing tag, for example `v0.1.0`, to check out
   `refs/tags/v0.1.0`, validate its versions and attach assets to its existing
   GitHub release. The selected tag must contain this build pipeline's scripts.
+- To repair an existing release without moving its tag, select workflow branch
+  `main`, set `release_tag` to `v0.2.0` and `source_ref` to `main` (or a specific
+  corrected commit). The source must still declare version `0.2.0` in all
+  version files; mismatches fail validation. Leave `source_ref` empty for normal
+  builds from the release tag. This does not create a release or move a tag.
 - Pushes of tags matching `v*` also build artifacts only. Automatic release
   publication comes from the explicit reusable workflow call, avoiding duplicate
   uploads from tag events.
@@ -56,6 +66,7 @@ committed Cargo lockfile. The build requires exactly one installer and creates:
 - `worklog-v<version>-windows-x64.exe`: application executable.
 - `worklog-v<version>-windows-x64-setup.exe`: NSIS installer.
 - `SHA256SUMS.txt`: SHA-256 hashes of both executables.
+- `BUILD-INFO.txt`: exact source commit, version, target release and workflow run.
 
 Download the `worklog-windows-x64-v<version>` artifact from the run's
 **Artifacts** section; it expires after 14 days. Publication failure leaves

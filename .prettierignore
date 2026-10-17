@@ -10,3 +10,6 @@ src-tauri/target/
 src-tauri/gen/
 pnpm-lock.yaml
 next-env.d.ts
+# Release Please rewrites these files using its own formatting.
+CHANGELOG.md
+src-tauri/tauri.conf.json
