@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+src-tauri/target/
+src-tauri/gen/
+.env*
+!.env.example
+*.db
+*.db-*
+*.sqlite*
+*.worklog
+*.zip
+.DS_Store
+playwright-report/
+test-results/

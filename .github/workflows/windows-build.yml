@@ -1,0 +1,143 @@
+name: Windows build
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to build and attach assets to (empty = artifacts only)
+        required: false
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      release_tag:
+        description: Existing release tag to build and attach assets to
+        required: true
+        type: string
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    outputs:
+      artifact_name: worklog-windows-x64-v${{ steps.versions.outputs.version }}
+    steps:
+      - name: Check out the selected tag or ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+          persist-credentials: false
+      - name: Install pnpm from packageManager
+        uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Select stable Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup component add rustfmt
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate application versions and release tag
+        id: versions
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
+        run: pnpm release:validate
+      - name: Check that the target release already exists
+        if: inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          gh release view "$env:RELEASE_TAG" --json tagName
+          if ($LASTEXITCODE -ne 0) { throw "The target GitHub release does not exist." }
+      - name: Lint
+        run: pnpm lint
+      - name: Check TypeScript
+        run: pnpm typecheck
+      - name: Test domain and release behavior
+        run: pnpm test
+      - name: Test native persistence
+        run: pnpm test:native
+      - name: Export frontend
+        run: pnpm build
+      - name: Install UI test browser
+        run: pnpm exec playwright install chromium
+      - name: Test UI workflows against the static bundle
+        run: pnpm test:ui
+      - name: Build unsigned Windows x64 executable and NSIS installer
+        run: pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis -- --locked
+      - name: Prepare executable, installer and checksums
+        id: assets
+        shell: pwsh
+        env:
+          APP_VERSION: ${{ steps.versions.outputs.version }}
+          BINARY_NAME: ${{ steps.versions.outputs.binary_name }}
+        run: |
+          $release = Join-Path $env:GITHUB_WORKSPACE "src-tauri/target/x86_64-pc-windows-msvc/release"
+          $exe = Join-Path $release "$($env:BINARY_NAME).exe"
+          if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
+            throw "Application executable was not found: $exe"
+          }
+          $installers = @(Get-ChildItem -Path (Join-Path $release "bundle/nsis") -Filter "*.exe" -File)
+          if ($installers.Count -ne 1) { throw "Expected exactly one NSIS installer." }
+          $assets = Join-Path $env:RUNNER_TEMP "worklog-assets"
+          New-Item -ItemType Directory -Path $assets -Force | Out-Null
+          $prefix = "worklog-v$($env:APP_VERSION)-windows-x64"
+          Copy-Item -LiteralPath $exe -Destination (Join-Path $assets "$prefix.exe")
+          Copy-Item -LiteralPath $installers[0].FullName -Destination (Join-Path $assets "$prefix-setup.exe")
+          $checksums = Get-ChildItem -LiteralPath $assets -Filter "*.exe" -File | Sort-Object Name | ForEach-Object {
+            $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          }
+          $checksums | Set-Content -LiteralPath (Join-Path $assets "SHA256SUMS.txt") -Encoding utf8
+          "directory=$assets" >> $env:GITHUB_OUTPUT
+      - name: Upload Windows assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: worklog-windows-x64-v${{ steps.versions.outputs.version }}
+          path: ${{ steps.assets.outputs.directory }}/*
+          if-no-files-found: error
+          retention-days: 14
+          overwrite: true
+
+  publish:
+    needs: package
+    if: inputs.release_tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download validated Windows assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ${{ needs.package.outputs.artifact_name }}
+          path: windows-assets
+      - name: Verify checksums and attach assets to the existing release
+        working-directory: windows-assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          sha256sum --check SHA256SUMS.txt
+          gh release view "$RELEASE_TAG" --json tagName
+          gh release upload "$RELEASE_TAG" ./*.exe SHA256SUMS.txt --clobber

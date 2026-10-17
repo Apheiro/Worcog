@@ -1,0 +1,49 @@
+{
+  "name": "worklog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "dev": "next dev --webpack --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "lint": "prettier --check . && eslint src tests scripts/release-versions.ts && cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:native": "cargo test --manifest-path src-tauri/Cargo.toml --no-default-features",
+    "tauri": "tauri",
+    "test:ui": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "release:validate": "node --experimental-strip-types scripts/release-versions.ts"
+  },
+  "dependencies": {
+    "@mantine/hooks": "^8.3.0",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@tabler/icons-react": "^3.36.0",
+    "@tauri-apps/api": "^2.10.0",
+    "cva": "1.0.0-beta.12",
+    "dayjs": "^1.11.13",
+    "next": "16.4.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-toastify": "11.1.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tauri-apps/cli": "^2.10.0",
+    "@types/node": "^22.19.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@unocss/postcss": "^66.6.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.2",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.0",
+    "unocss": "^66.6.0",
+    "vitest": "^4.0.0"
+  }
+}
