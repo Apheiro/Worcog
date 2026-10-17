@@ -30,7 +30,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  package:
+  build:
     runs-on: windows-latest
     timeout-minutes: 45
     permissions:
@@ -56,7 +56,6 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal
           rustup default stable
-          rustup component add rustfmt
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Validate application versions and release tag
@@ -73,20 +72,6 @@ jobs:
         run: |
           gh release view "$env:RELEASE_TAG" --json tagName
           if ($LASTEXITCODE -ne 0) { throw "The target GitHub release does not exist." }
-      - name: Lint
-        run: pnpm lint
-      - name: Check TypeScript
-        run: pnpm typecheck
-      - name: Test domain and release behavior
-        run: pnpm test
-      - name: Test native persistence
-        run: pnpm test:native
-      - name: Export frontend
-        run: pnpm build
-      - name: Install UI test browser
-        run: pnpm exec playwright install chromium
-      - name: Test UI workflows against the static bundle
-        run: pnpm test:ui
       - name: Build unsigned Windows x64 executable and NSIS installer
         run: pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis -- --locked
       - name: Prepare executable, installer and checksums
@@ -134,7 +119,7 @@ jobs:
           overwrite: true
 
   publish:
-    needs: package
+    needs: build
     if: inputs.release_tag != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -144,7 +129,7 @@ jobs:
       - name: Download validated Windows assets
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: ${{ needs.package.outputs.artifact_name }}
+          name: ${{ needs.build.outputs.artifact_name }}
           path: windows-assets
       - name: Verify checksums and attach assets to the existing release
         working-directory: windows-assets

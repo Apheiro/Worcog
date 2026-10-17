@@ -9,7 +9,7 @@ Use Conventional Commits on `main`, for example
    and GitHub release.
 3. Only when `release_created` is true, the same workflow invokes
    `windows-build.yml` with that exact tag.
-4. Windows validates, tests and builds the tagged application. The assets are
+4. Windows validates release versions and builds the selected application. The assets are
    saved as an Actions artifact. A separate publication job verifies checksums
    and attaches the assets to the existing release.
 
@@ -52,9 +52,10 @@ Open **Actions → Windows build → Run workflow**:
   uploads from tag events.
 
 The build installs the exact pnpm version from `packageManager`, Node.js 22,
-stable Rust and rustfmt on `windows-latest`. It runs the frozen dependency
-install, version validation, lint, strict types, application/release unit tests,
-native tests, static frontend export and Chromium UI tests before invoking:
+stable Rust on `windows-latest`. It runs the frozen dependency install and
+release version validation before invoking the build below. This workflow does
+not run lint, standalone type checks, unit tests or UI tests. Tauri exports the
+frontend through its configured `beforeBuildCommand` during compilation:
 
 ```sh
 pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis -- --locked
