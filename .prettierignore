@@ -1,0 +1,12 @@
+AGENTS.md
+AGENT.md
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+src-tauri/target/
+src-tauri/gen/
+pnpm-lock.yaml
+next-env.d.ts
