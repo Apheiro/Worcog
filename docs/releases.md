@@ -9,7 +9,7 @@ Use Conventional Commits on `main`, for example
    and GitHub release.
 3. Only when `release_created` is true, the same workflow invokes
    `windows-build.yml` with that exact tag.
-4. Windows validates, tests and builds the tagged application. The assets are
+4. Windows validates release versions and builds the selected application. The assets are
    saved as an Actions artifact. A separate publication job verifies checksums
    and attaches the assets to the existing release.
 
@@ -20,6 +20,11 @@ names and mismatched tags before packaging. Set `RELEASE_TAG=v<version>` to
 validate against a particular tag. The lockfile extra-file selector uses
 `@.name.value` because Release Please's TOML parser wraps scalar values with
 position metadata; the generic TOML updater was exercised with the actual files.
+
+Release Please formats `CHANGELOG.md` and `src-tauri/tauri.conf.json` itself.
+These two files are excluded from Prettier so generated release commits do not
+fail lint solely because of formatting. Tauri configuration parsing and version
+validation remain enforced; this exclusion does not disable application checks.
 
 The reusable workflow call avoids relying on tag events created by
 `GITHUB_TOKEN`, which do not start another workflow. No personal access token
@@ -37,14 +42,20 @@ Open **Actions → Windows build → Run workflow**:
 - Enter an existing tag, for example `v0.1.0`, to check out
   `refs/tags/v0.1.0`, validate its versions and attach assets to its existing
   GitHub release. The selected tag must contain this build pipeline's scripts.
+- To repair an existing release without moving its tag, select workflow branch
+  `main`, set `release_tag` to `v0.2.0` and `source_ref` to `main` (or a specific
+  corrected commit). The source must still declare version `0.2.0` in all
+  version files; mismatches fail validation. Leave `source_ref` empty for normal
+  builds from the release tag. This does not create a release or move a tag.
 - Pushes of tags matching `v*` also build artifacts only. Automatic release
   publication comes from the explicit reusable workflow call, avoiding duplicate
   uploads from tag events.
 
 The build installs the exact pnpm version from `packageManager`, Node.js 22,
-stable Rust and rustfmt on `windows-latest`. It runs the frozen dependency
-install, version validation, lint, strict types, application/release unit tests,
-native tests, static frontend export and Chromium UI tests before invoking:
+stable Rust on `windows-latest`. It runs the frozen dependency install and
+release version validation before invoking the build below. This workflow does
+not run lint, standalone type checks, unit tests or UI tests. Tauri exports the
+frontend through its configured `beforeBuildCommand` during compilation:
 
 ```sh
 pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis -- --locked
@@ -56,6 +67,7 @@ committed Cargo lockfile. The build requires exactly one installer and creates:
 - `worklog-v<version>-windows-x64.exe`: application executable.
 - `worklog-v<version>-windows-x64-setup.exe`: NSIS installer.
 - `SHA256SUMS.txt`: SHA-256 hashes of both executables.
+- `BUILD-INFO.txt`: exact source commit, version, target release and workflow run.
 
 Download the `worklog-windows-x64-v<version>` artifact from the run's
 **Artifacts** section; it expires after 14 days. Publication failure leaves
@@ -83,3 +95,12 @@ References:
 [reusable workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows),
 [release asset upload](https://cli.github.com/manual/gh_release_upload),
 [Tauri Windows prerequisites](https://v2.tauri.app/start/prerequisites/#windows).
+
+## In-app update availability
+
+The application selects the versioned standalone Windows x64 executable only
+after GitHub reports it as uploaded with valid size and SHA-256 digest metadata.
+A release created before its build completes is therefore not announced yet.
+Do not rename that asset or substitute the NSIS installer for it. No workflow or
+versioning change is needed. See [application updates](updates.md) for complete
+publication, private-access and manual replacement requirements.
