@@ -3,7 +3,16 @@ import { IconChevronDown, IconFilter, IconSearch } from '@tabler/icons-react';
 import { useId, useState } from 'react';
 import type { SearchFilter } from '../application/queries';
 import type { Priority, SourceKind, Status, Workspace } from '../domain/model';
-import { Button, Field, Input, Options, priorities, Select, sourceKinds, statuses } from './ui';
+import {
+  Button,
+  Field,
+  Input,
+  selectOptions,
+  priorities,
+  Select,
+  sourceKinds,
+  statuses,
+} from './ui';
 export function WorkspaceFilters({
   page,
   workspace: w,
@@ -54,43 +63,39 @@ export function WorkspaceFilters({
           <Field label="Entity">
             <Select
               value={filter.type ?? ''}
-              onChange={(e) => setFilter({ type: e.target.value as SearchFilter['type'] })}
-            >
-              <option value="">All entities</option>
-              <Options values={['topic', 'task', 'activity', 'source']} />
-            </Select>
+              onValueChange={(e) => setFilter({ type: e as SearchFilter['type'] })}
+              options={[
+                { value: '', label: 'All entities' },
+                ...selectOptions(['topic', 'task', 'activity', 'source']),
+              ]}
+            />
           </Field>
         )}
         <Field label="Category">
           <Select
             value={filter.category ?? ''}
-            onChange={(e) => setFilter({ category: e.target.value })}
-          >
-            <option value="">All categories</option>
-            {[...new Set(w.topics.map((t) => t.category))].map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </Select>
+            onValueChange={(e) => setFilter({ category: e })}
+            options={[
+              { value: '', label: 'All categories' },
+              ...[...new Set(w.topics.map((t) => t.category))].map((c) => ({ value: c, label: c })),
+            ]}
+          />
         </Field>
         {page !== 'sources' && (
           <>
             <Field label="Status">
               <Select
                 value={filter.status ?? ''}
-                onChange={(e) => setFilter({ status: e.target.value as Status | '' })}
-              >
-                <option value="">All statuses</option>
-                <Options values={statuses} />
-              </Select>
+                onValueChange={(e) => setFilter({ status: e as Status | '' })}
+                options={[{ value: '', label: 'All statuses' }, ...selectOptions(statuses)]}
+              />
             </Field>
             <Field label="Priority">
               <Select
                 value={filter.priority ?? ''}
-                onChange={(e) => setFilter({ priority: e.target.value as Priority | '' })}
-              >
-                <option value="">All priorities</option>
-                <Options values={priorities} />
-              </Select>
+                onValueChange={(e) => setFilter({ priority: e as Priority | '' })}
+                options={[{ value: '', label: 'All priorities' }, ...selectOptions(priorities)]}
+              />
             </Field>
             <Field label="Owner">
               <Input
@@ -105,26 +110,21 @@ export function WorkspaceFilters({
           <Field label="Topic">
             <Select
               value={filter.topicId ?? ''}
-              onChange={(e) => setFilter({ topicId: e.target.value })}
-            >
-              <option value="">All topics</option>
-              {w.topics.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.title}
-                </option>
-              ))}
-            </Select>
+              onValueChange={(e) => setFilter({ topicId: e })}
+              options={[
+                { value: '', label: 'All topics' },
+                ...w.topics.map((t) => ({ value: t.id, label: t.title })),
+              ]}
+            />
           </Field>
         )}
         {page === 'sources' && (
           <Field label="Source type">
             <Select
               value={filter.sourceKind ?? ''}
-              onChange={(e) => setFilter({ sourceKind: e.target.value as SourceKind | '' })}
-            >
-              <option value="">All types</option>
-              <Options values={sourceKinds} />
-            </Select>
+              onValueChange={(e) => setFilter({ sourceKind: e as SourceKind | '' })}
+              options={[{ value: '', label: 'All types' }, ...selectOptions(sourceKinds)]}
+            />
           </Field>
         )}
         <Field

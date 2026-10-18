@@ -4,6 +4,8 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { IconX } from '@tabler/icons-react';
 import { cva } from 'cva';
 import { Checkbox } from './checkbox';
+import { Select } from './select';
+export { Select } from './select';
 import {
   Children,
   cloneElement,
@@ -12,7 +14,6 @@ import {
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
-  type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
 
@@ -21,9 +22,6 @@ const input = cva({
 });
 export function Input({ className, type, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input type={type} className={input({ className })} {...props} />;
-}
-export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={input({ className: 'select-control ' + className })} {...props} />;
 }
 export function Textarea({
   className = '',
@@ -237,14 +235,5 @@ export const sourceKinds = [
   'other',
 ] as const;
 export const human = (s: string) => s.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase());
-export function Options({ values }: { values: readonly string[] }) {
-  return (
-    <>
-      {values.map((s) => (
-        <option key={s} value={s}>
-          {human(s)}
-        </option>
-      ))}
-    </>
-  );
-}
+export const selectOptions = (values: readonly string[]) =>
+  values.map((value) => ({ value, label: human(value) }));

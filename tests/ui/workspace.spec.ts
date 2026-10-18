@@ -1,6 +1,14 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Locator } from '@playwright/test';
 import type { Workspace } from '../../src/domain/model';
 import { emptyWorkspace } from '../../src/domain/model';
+async function chooseOption(control: Locator, choice: string | { label: string }) {
+  const label =
+    typeof choice === 'string'
+      ? choice.replaceAll('_', ' ').replace(/^./, (letter) => letter.toUpperCase())
+      : choice.label;
+  await control.click();
+  await control.page().getByRole('option', { name: label, exact: true }).click();
+}
 async function mockDesktop(page: Page) {
   await page.clock.setFixedTime(new Date('2026-10-17T12:00:00Z'));
   await page.addInitScript(() => {
@@ -179,7 +187,7 @@ test('manual reference, dated annotation, task, attachment, search and restore',
   await page.getByRole('button', { name: 'Source', exact: true }).click();
   let dialog = page.getByRole('dialog');
   await dialog.getByLabel('Title', { exact: true }).fill('InvGate investigation');
-  await dialog.getByLabel('Type', { exact: true }).selectOption('invgate');
+  await chooseOption(dialog.getByLabel('Type', { exact: true }), 'invgate');
   await dialog.getByLabel('External identifier').fill('INC-42');
   await dialog.getByLabel('System / platform').fill('InvGate');
   await dialog.getByLabel('Event date and time (local)').fill('2026-01-02T09:00');
@@ -190,7 +198,7 @@ test('manual reference, dated annotation, task, attachment, search and restore',
   await dialog
     .getByLabel('Annotation', { exact: true })
     .fill('Confirmed root cause with the support team.');
-  await dialog.getByLabel('Type', { exact: true }).selectOption('decision');
+  await chooseOption(dialog.getByLabel('Type', { exact: true }), 'decision');
   await dialog.getByLabel('Event date and time (local)').fill('2026-01-01T09:00');
   await dialog.getByRole('checkbox', { name: /InvGate investigation/ }).check();
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
@@ -202,7 +210,7 @@ test('manual reference, dated annotation, task, attachment, search and restore',
   await dialog.getByLabel('Title', { exact: true }).fill('Review mitigation');
   await dialog.getByLabel('Owner', { exact: true }).fill('Test operator');
   await dialog.getByLabel('Due date', { exact: true }).fill('2026-12-31');
-  await dialog.getByLabel('Priority', { exact: true }).selectOption('high');
+  await chooseOption(dialog.getByLabel('Priority', { exact: true }), 'high');
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await page.getByRole('button', { name: 'File', exact: true }).click();
@@ -268,7 +276,7 @@ test('reuse sources across topics, preserve corrections, subtasks and archive hi
   await page.getByRole('button', { name: 'Second topic', exact: true }).click();
   await page.getByRole('button', { name: 'Source', exact: true }).click();
   dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Reuse an existing reference').selectOption({ label: 'Shared email' });
+  await chooseOption(dialog.getByLabel('Reuse an existing reference'), { label: 'Shared email' });
   await dialog.getByRole('button', { name: 'Link source', exact: true }).click();
   await expect(dialog).toHaveCount(0);
   const sources = await page.evaluate(
@@ -302,11 +310,7 @@ test('reuse sources across topics, preserve corrections, subtasks and archive hi
   dialog = page.getByRole('dialog');
   await dialog.getByLabel('Title', { exact: true }).fill('Child work');
   await dialog.getByLabel('Due date', { exact: true }).fill('2026-01-01');
-  await expect(dialog.getByLabel('Parent task')).toHaveValue(
-    await page.evaluate(
-      () => (JSON.parse(sessionStorage.getItem('test.workspace') ?? '{}') as Workspace).tasks[0].id,
-    ),
-  );
+  await expect(dialog.getByLabel('Parent task')).toHaveText('Parent work');
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.locator('.task-child')).toContainText('Child work');
   const titles = page.locator('.task-row .title-link');
@@ -324,7 +328,7 @@ test('reuse sources across topics, preserve corrections, subtasks and archive hi
   // The native load order may differ from insertion order after a restart.
   await expect(titles).toHaveText(['Parent work', 'Child work']);
   await page.getByRole('checkbox', { name: 'Mark Child work completed' }).click();
-  await expect(page.getByLabel('Status of Child work')).toHaveValue('completed');
+  await expect(page.getByLabel('Status of Child work')).toHaveText('Completed');
   await page.getByRole('main').getByRole('button', { name: 'Archive', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Unarchive', exact: true })).toBeVisible();
@@ -341,7 +345,7 @@ test('dark theme persists across reloads and applies to dialogs and form fields'
   await mockDesktop(page);
   await page.goto('/');
   const theme = page.getByRole('combobox', { name: 'Color theme' });
-  await theme.selectOption('dark');
+  await chooseOption(theme, 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(18, 18, 18)');
   // Check the entire active dark palette, including warning/error colors.
@@ -374,7 +378,7 @@ test('dark theme persists across reloads and applies to dialogs and form fields'
   });
   expect(tintedColors).toEqual([]);
   await page.reload();
-  await expect(theme).toHaveValue('dark');
+  await expect(theme).toHaveText('Dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.getByRole('button', { name: 'New topic', exact: true }).click();
   const dialog = page.getByRole('dialog');
@@ -386,7 +390,7 @@ test('dark theme persists across reloads and applies to dialogs and form fields'
   await page.screenshot({ path: 'test-results/worklog-dark-dialog.png' });
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.screenshot({ path: 'test-results/worklog-dark.png', fullPage: true });
-  await theme.selectOption('light');
+  await chooseOption(theme, 'light');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(250, 250, 250)');
   expect(errors).toEqual([]);
@@ -399,15 +403,15 @@ test('system theme follows OS changes while an explicit selection takes preceden
   await page.addInitScript(() => localStorage.setItem('worklog.theme.v1', 'invalid-preference'));
   await page.goto('/');
   const theme = page.getByRole('combobox', { name: 'Color theme' });
-  await expect(theme).toHaveValue('system');
+  await expect(theme).toHaveText('System');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await theme.selectOption('dark');
+  await chooseOption(theme, 'dark');
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await theme.selectOption('system');
+  await chooseOption(theme, 'system');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
@@ -417,7 +421,7 @@ async function addTask(page: Page, title: string, recurring = false) {
   await dialog.getByLabel('Title', { exact: true }).fill(title);
   if (recurring) {
     await dialog.getByLabel('Due date', { exact: true }).fill('2026-10-15');
-    await dialog.getByLabel('Repeat', { exact: true }).selectOption('daily');
+    await chooseOption(dialog.getByLabel('Repeat', { exact: true }), 'daily');
   }
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(dialog).toHaveCount(0);
@@ -443,8 +447,8 @@ test('permanent task deletion confirms its scope, cancels safely, retries errors
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await page.getByRole('tab', { name: /Tasks/ }).click();
-  await page.getByLabel('Status of Delete test parent').selectOption('in_progress');
-  await expect(page.getByLabel('Status of Delete test parent')).toHaveValue('in_progress');
+  await chooseOption(page.getByLabel('Status of Delete test parent'), 'in_progress');
+  await expect(page.getByLabel('Status of Delete test parent')).toHaveText('In progress');
   await page.getByRole('button', { name: 'Add subtask to Delete test parent' }).click();
   dialog = page.getByRole('dialog');
   await dialog.getByLabel('Title', { exact: true }).fill('Delete test child');
@@ -684,7 +688,7 @@ test('Toastify covers loading, success, information, warnings and errors with a 
   await mockDesktop(page);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await page.getByRole('combobox', { name: 'Color theme' }).selectOption('dark');
+  await chooseOption(page.getByRole('combobox', { name: 'Color theme' }), 'dark');
   await page.getByRole('button', { name: 'New topic', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Title', { exact: true }).fill('Notification fixture');
@@ -1139,7 +1143,7 @@ test('shared task checkboxes distinguish completion in both themes and recover f
   const row = page.getByRole('group', { name: 'Polished task', exact: true });
   const checkbox = row.getByRole('checkbox');
   for (const theme of ['light', 'dark']) {
-    await page.getByRole('combobox', { name: 'Color theme' }).selectOption(theme);
+    await chooseOption(page.getByRole('combobox', { name: 'Color theme' }), theme);
     await expect(checkbox).not.toBeChecked();
     await expect(checkbox.locator('.checkbox-indicator')).toHaveCount(0);
     const pendingColor = await checkbox.evaluate((el) => getComputedStyle(el).color);
@@ -1150,7 +1154,7 @@ test('shared task checkboxes distinguish completion in both themes and recover f
     await expect(checkbox.locator('.checkbox-check')).toBeVisible();
     await expect(checkbox.locator('.checkbox-mixed')).toBeHidden();
     await expect(checkbox).toBeEnabled();
-    await expect(row.getByLabel('Status of Polished task')).toHaveValue('completed');
+    await expect(row.getByLabel('Status of Polished task')).toHaveText('Completed');
     await expect(row.locator('.title-link')).toHaveCSS('text-decoration-line', 'line-through');
     await expect(checkbox).toHaveCSS('color', 'rgb(255, 255, 255)');
     expect(pendingColor).not.toBe('rgb(255, 255, 255)');
@@ -1169,7 +1173,7 @@ test('shared task checkboxes distinguish completion in both themes and recover f
     await expect(checkbox).not.toBeChecked();
     await expect(checkbox.locator('.checkbox-indicator')).toHaveCount(0);
     await expect(checkbox).toBeEnabled();
-    await expect(row.getByLabel('Status of Polished task')).toHaveValue('pending');
+    await expect(row.getByLabel('Status of Polished task')).toHaveText('Pending');
   }
   await page.evaluate(() => {
     sessionStorage.setItem('test.fail', 'yes');
@@ -1193,4 +1197,72 @@ test('shared task checkboxes distinguish completion in both themes and recover f
   await expect(checkbox).toBeInViewport();
   await expect(row.getByLabel('Status of Polished task')).toBeInViewport();
   await page.screenshot({ path: 'test-results/task-design.png' });
+});
+
+test('Radix selects support keyboard dismissal, empty filters and original form values inside dialogs', async ({
+  page,
+}) => {
+  await mockDesktop(page);
+  await page.goto('/');
+  const theme = page.getByRole('combobox', { name: 'Color theme' });
+  await theme.focus();
+  await page.keyboard.press('Space');
+  await expect(page.getByRole('listbox')).toBeVisible();
+  await page.keyboard.press('End');
+  await page.keyboard.press('Enter');
+  await expect(theme).toHaveText('System');
+  await expect(theme).toBeFocused();
+  await theme.click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('listbox')).toHaveCount(0);
+  await expect(theme).toBeFocused();
+  await createTopic(page, 'Select topic');
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: /^Topics/ })
+    .click();
+  await page.locator('.filters-toggle').click();
+  const category = page.getByRole('combobox', { name: 'Category', exact: true });
+  await chooseOption(category, { label: 'General' });
+  await expect(category).toHaveText('General');
+  await chooseOption(category, { label: 'All categories' });
+  await expect(category).toHaveText('All categories');
+  await expect(page.getByRole('button', { name: 'Select topic', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Select topic', exact: true }).click();
+  await addTask(page, 'Parent choice');
+  await page.getByRole('button', { name: 'Task', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Title', { exact: true }).fill('Independent task');
+  const parent = dialog.getByRole('combobox', { name: 'Parent task', exact: true });
+  await chooseOption(parent, { label: 'Parent choice' });
+  await expect(parent).toHaveText('Parent choice');
+  await chooseOption(parent, { label: 'No parent' });
+  await expect(parent).toHaveText('No parent');
+  await chooseOption(dialog.getByRole('combobox', { name: 'Priority', exact: true }), 'high');
+  const formValues = await dialog.locator('form').evaluate((form) => {
+    const data = new FormData(form as HTMLFormElement);
+    return {
+      parentId: data.get('parentId'),
+      priority: data.get('priority'),
+      topicId: data.get('topicId'),
+    };
+  });
+  expect(formValues.parentId).toBe('');
+  expect(formValues.priority).toBe('high');
+  expect(formValues.topicId).toBeTruthy();
+  await parent.click();
+  await expect(page.getByRole('listbox')).toBeVisible();
+  await page.screenshot({ path: 'test-results/select-dialog.png' });
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeVisible();
+  await expect(parent).toBeFocused();
+  await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  const saved = await page.evaluate(() =>
+    (JSON.parse(sessionStorage.getItem('test.workspace') ?? '{}') as Workspace).tasks.find(
+      (task) => task.title === 'Independent task',
+    ),
+  );
+  expect(saved?.parentId).toBeNull();
+  expect(saved?.priority).toBe('high');
 });

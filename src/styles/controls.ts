@@ -16,7 +16,21 @@ export const controlsStyles = {
     'flex items-center justify-center',
     '[&_.checkbox-mixed]:hidden [&[data-state=indeterminate]_.checkbox-mixed]:block [&[data-state=indeterminate]_.checkbox-check]:hidden',
   ],
-  'select-control': ['cursor-pointer'],
+  'select-trigger': [
+    'inline-flex items-center justify-between gap-2 text-left cursor-pointer [font-size:13px] [line-height:1.4]',
+    '[&:hover:not(:disabled)]:[border-color:var(--border-strong)] [&[data-state=open]]:[border-color:var(--focus)]',
+    'disabled:opacity-50 disabled:cursor-not-allowed [&_>_span:first-child]:truncate',
+  ],
+  'select-content': [
+    '[z-index:60] [min-width:var(--radix-select-trigger-width)] [max-width:calc(100vw_-_16px)] [max-height:min(320px,_var(--radix-select-content-available-height))] overflow-hidden',
+    '[background:var(--surface)] [color:var(--ink)] [border:1px_solid_var(--border)] rounded-md [box-shadow:0_4px_16px_#0002]',
+  ],
+  'select-item': [
+    'relative flex items-center gap-4 cursor-default select-none rounded [padding:7px_30px_7px_9px] [font-size:12px] [line-height:1.4] outline-none [overflow-wrap:anywhere]',
+    '[&[data-highlighted]]:[background:var(--selected)] [&[data-disabled]]:opacity-45 [&[data-disabled]]:pointer-events-none',
+  ],
+  'select-check': ['absolute right-2 flex items-center'],
+  'select-scroll': ['flex items-center justify-center py-1 [background:var(--surface)]'],
   button: [
     'inline-flex items-center justify-center [gap:7px] [padding:8px_12px] [min-height:36px] [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] [color:var(--ink)] [line-height:1.2] whitespace-nowrap [font-size:13px] [font-weight:550] [transition:background_0.12s]',
     '[&:hover:not(:disabled)]:[background:var(--hover)] [&:hover:not(:disabled)]:[border-color:var(--border-strong)]',
@@ -58,7 +72,7 @@ export const controlsStyles = {
     '[&_.field]:m-0 [&_.field]:[min-width:100px] [&_.field]:[max-width:170px] [&_.field]:flex-1',
     '[&_.field_>_span]:[font-size:10px] [&_.field_>_span]:uppercase [&_.field_>_span]:[letter-spacing:0.5px] [&_.field_>_span]:[color:var(--muted)]',
     '[&_input]:[font-size:12px] [&_input]:[min-height:34px] [&_input]:[padding:6px_7px] [&_input]:w-full',
-    '[&_select]:[font-size:12px] [&_select]:[min-height:34px] [&_select]:[padding:6px_7px] [&_select]:w-full',
+    '[&_.select-trigger]:[font-size:12px] [&_.select-trigger]:[min-height:34px] [&_.select-trigger]:[padding:6px_7px] [&_.select-trigger]:w-full',
     '[@media(max-width:1150px)]:[&_.field]:[min-width:110px]',
     '[@media(max-width:800px)]:[&_.field]:[min-width:120px] [@media(max-width:800px)]:[&_.field]:[max-width:none]',
   ],
@@ -67,7 +81,7 @@ export const controlsStyles = {
     '[&_>_span]:[font-weight:550] [&_>_span]:[color:var(--secondary)]',
     '[&_>_input]:w-full',
     '[&_>_textarea]:w-full',
-    '[&_>_select]:w-full',
+    '[&_>_.select-trigger]:w-full',
     '[&_small]:[font-size:11px] [&_small]:[line-height:1.5]',
   ],
   segmented: [
@@ -78,6 +92,6 @@ export const controlsStyles = {
   ],
   'theme-control': [
     'inline-flex items-center [gap:6px] [color:var(--muted)]',
-    '[&_select]:[padding:5px_8px] [&_select]:[font-size:12px] [&_select]:[min-height:30px]',
+    '[&_.select-trigger]:[padding:5px_8px] [&_.select-trigger]:[font-size:12px] [&_.select-trigger]:[min-height:30px]',
   ],
 };

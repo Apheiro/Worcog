@@ -17,8 +17,11 @@ live in `src/components/routes/`; dialogs are loaded dynamically.
 
 Component styles are UnoCSS shortcuts grouped by responsibility in `src/styles/`
 and registered in `uno.config.ts`. CVA defines shared button, badge, modal,
-navigation and form-control variants. `Input`, `Select` and `Textarea` in
-`ui.tsx` centralize native controls; `Field` associates labels and hints. Shared `Checkbox` controls use Radix UI
+navigation and form-control variants. `Input` and `Textarea` in `ui.tsx`
+centralize native controls; `Field` associates labels and hints. `Select` uses
+Radix UI with a simple options/value/onValueChange API, portaled theme-aware
+menus, keyboard navigation and native form participation. Empty choices retain
+their original empty form value and can be selected again to clear filters. Shared `Checkbox` controls use Radix UI
 with native form participation and checked/indeterminate/disabled states.
 `TaskRow` composes this checkbox with task details, linked resources and actions
 in both task views. Its checked mark stays white in both themes using dedicated

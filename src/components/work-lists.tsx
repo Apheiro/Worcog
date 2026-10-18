@@ -13,7 +13,7 @@ import { topicTimeline } from '../application/queries';
 import { orderTasksForDisplay } from '../application/task-order';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
 import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
-import { Badge, Button, Empty, Options, Select, activityKinds, human } from './ui';
+import { Badge, Button, Empty, selectOptions, Select, activityKinds, human } from './ui';
 import { TaskRow, type TaskRowProps } from './task-row';
 export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: string) => void }) {
   return topics.length ? (
@@ -178,22 +178,21 @@ export function Timeline({
         <Select
           id="timeline-kind"
           value={kind}
-          onChange={(e) => setKind(e.target.value as ActivityKind | '')}
-        >
-          <option value="">All event types</option>
-          <Options values={activityKinds} />
-        </Select>
+          onValueChange={(e) => setKind(e as ActivityKind | '')}
+          options={[{ value: '', label: 'All event types' }, ...selectOptions(activityKinds)]}
+        />
         <label className="sr-only" htmlFor="timeline-source">
           Source
         </label>
-        <Select id="timeline-source" value={sourceId} onChange={(e) => setSourceId(e.target.value)}>
-          <option value="">All sources</option>
-          {w.sources.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.title}
-            </option>
-          ))}
-        </Select>
+        <Select
+          id="timeline-source"
+          value={sourceId}
+          onValueChange={(e) => setSourceId(e)}
+          options={[
+            { value: '', label: 'All sources' },
+            ...w.sources.map((s) => ({ value: s.id, label: s.title })),
+          ]}
+        />
         <span className="muted text-sm ml-auto">Oldest first · event date</span>
       </div>
       {entries.length ? (

@@ -67,7 +67,7 @@ export const contentStyles = {
   ],
   toolbar: [
     'flex items-center [gap:10px] [margin:19px_0]',
-    '[&_select]:[font-size:12px] [&_select]:[padding:6px_9px] [&_select]:[max-width:240px]',
+    '[&_.select-trigger]:[font-size:12px] [&_.select-trigger]:[padding:6px_9px] [&_.select-trigger]:[max-width:240px]',
     '[@media(max-width:800px)]:flex-wrap',
   ],
   empty: [

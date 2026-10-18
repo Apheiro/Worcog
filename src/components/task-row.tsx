@@ -4,7 +4,7 @@ import { cva } from 'cva';
 import { formatDate, isOverdue } from '../domain/dates';
 import type { Status, Task, Workspace } from '../domain/model';
 import { Checkbox } from './checkbox';
-import { Button, Options, Select, human, statuses } from './ui';
+import { Button, selectOptions, Select, human, statuses } from './ui';
 
 const taskRow = cva({
   base: 'task-row',
@@ -124,10 +124,9 @@ export function TaskRow({
           aria-label={`Status of ${task.title}`}
           value={task.status}
           disabled={busy}
-          onChange={(e) => onStatus(task.id, e.target.value as Status)}
-        >
-          <Options values={statuses} />
-        </Select>
+          onValueChange={(e) => onStatus(task.id, e as Status)}
+          options={selectOptions(statuses)}
+        />
         <Button
           size="sm"
           className="task-action"

@@ -20,7 +20,7 @@ import {
   Field,
   Input,
   Modal,
-  Options,
+  selectOptions,
   Select,
   Textarea,
   activityKinds,
@@ -236,14 +236,17 @@ export function EntityEditor({
             label="Reuse an existing reference"
             hint="Select a saved source to associate it with these topics, without duplicating it."
           >
-            <Select value={reuse} onChange={(e) => setReuse(e.target.value)}>
-              <option value="">Create a new source</option>
-              {w.sources.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.title} {s.identifier && `· ${s.identifier}`}
-                </option>
-              ))}
-            </Select>
+            <Select
+              value={reuse}
+              onValueChange={setReuse}
+              options={[
+                { value: '', label: 'Create a new source' },
+                ...w.sources.map((s) => ({
+                  value: s.id,
+                  label: s.title + ' ' + (s.identifier && `· ${s.identifier}`),
+                })),
+              ]}
+            />
           </Field>
         )}
         {!reuse && (
@@ -267,17 +270,15 @@ export function EntityEditor({
                     <Select
                       name="status"
                       defaultValue={(item as Topic | Task | undefined)?.status ?? 'pending'}
-                    >
-                      <Options values={statuses} />
-                    </Select>
+                      options={selectOptions(statuses)}
+                    />
                   </Field>
                   <Field label="Priority">
                     <Select
                       name="priority"
                       defaultValue={(item as Topic | Task | undefined)?.priority ?? 'normal'}
-                    >
-                      <Options values={priorities} />
-                    </Select>
+                      options={selectOptions(priorities)}
+                    />
                   </Field>
                 </div>
                 <Field label="Owner">
@@ -338,30 +339,25 @@ export function EntityEditor({
                     <Select
                       name="topicId"
                       value={taskTopic}
-                      onChange={(e) => setTaskTopic(e.target.value)}
+                      onValueChange={setTaskTopic}
                       required
-                    >
-                      <option value="" disabled>
-                        Choose a topic
-                      </option>
-                      {w.topics.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.title}
-                        </option>
-                      ))}
-                    </Select>
+                      options={[
+                        { value: '', label: 'Choose a topic', disabled: true },
+                        ...w.topics.map((t) => ({ value: t.id, label: t.title })),
+                      ]}
+                    />
                   </Field>
                   <Field label="Parent task">
-                    <Select name="parentId" defaultValue={task?.parentId ?? editor.parentId ?? ''}>
-                      <option value="">No parent</option>
-                      {w.tasks
-                        .filter((t) => t.topicId === taskTopic && t.id !== task?.id)
-                        .map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.title}
-                          </option>
-                        ))}
-                    </Select>
+                    <Select
+                      name="parentId"
+                      defaultValue={task?.parentId ?? editor.parentId ?? ''}
+                      options={[
+                        { value: '', label: 'No parent' },
+                        ...w.tasks
+                          .filter((t) => t.topicId === taskTopic && t.id !== task?.id)
+                          .map((t) => ({ value: t.id, label: t.title })),
+                      ]}
+                    />
                   </Field>
                 </div>
                 <Field label="Description">
@@ -377,9 +373,11 @@ export function EntityEditor({
                 </div>
                 <div className="form-grid">
                   <Field label="Repeat">
-                    <Select name="recurrence" defaultValue={task?.recurrence ?? 'none'}>
-                      <Options values={['none', 'daily', 'weekly', 'monthly']} />
-                    </Select>
+                    <Select
+                      name="recurrence"
+                      defaultValue={task?.recurrence ?? 'none'}
+                      options={selectOptions(['none', 'daily', 'weekly', 'monthly'])}
+                    />
                   </Field>
                   <Field label="Next action">
                     <Input name="nextAction" defaultValue={task?.nextAction} />
@@ -407,9 +405,10 @@ export function EntityEditor({
                       (editor.kind === 'activity' ? activity?.kind : source?.kind) ??
                       (editor.kind === 'activity' ? 'note' : 'email')
                     }
-                  >
-                    <Options values={editor.kind === 'activity' ? activityKinds : sourceKinds} />
-                  </Select>
+                    options={[
+                      ...selectOptions(editor.kind === 'activity' ? activityKinds : sourceKinds),
+                    ]}
+                  />
                 </Field>
                 <Field label="Event date and time (local)">
                   <Input

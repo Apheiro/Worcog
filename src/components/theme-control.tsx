@@ -8,7 +8,7 @@ import {
   subscribeToTheme,
   themeOptions,
 } from '../infrastructure/theme';
-import { human, Select } from './ui';
+import { selectOptions, Select } from './ui';
 
 export function ThemeControl() {
   const preference = useSyncExternalStore(
@@ -23,17 +23,12 @@ export function ThemeControl() {
       <Select
         aria-label="Color theme"
         value={preference}
-        onChange={(event) => {
-          const selected = themeOptions.find((option) => option === event.target.value);
+        onValueChange={(event) => {
+          const selected = themeOptions.find((option) => option === event);
           if (selected) setThemePreference(selected);
         }}
-      >
-        {themeOptions.map((option) => (
-          <option key={option} value={option}>
-            {human(option)}
-          </option>
-        ))}
-      </Select>
+        options={selectOptions(themeOptions)}
+      />
     </label>
   );
 }

@@ -19,13 +19,14 @@ export default function Route() {
             <Select
               id="topic-sort"
               value={sort}
-              onChange={(e) => setSort(e.target.value as typeof sort)}
-            >
-              <option value="updated">Last updated</option>
-              <option value="due">Target date</option>
-              <option value="priority">Priority</option>
-              <option value="name">Name</option>
-            </Select>
+              onValueChange={(e) => setSort(e as typeof sort)}
+              options={[
+                { value: 'updated', label: 'Last updated' },
+                { value: 'due', label: 'Target date' },
+                { value: 'priority', label: 'Priority' },
+                { value: 'name', label: 'Name' },
+              ]}
+            />
           </div>
           <TopicTable topics={topics} open={openTopic} />
         </>
