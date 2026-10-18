@@ -91,6 +91,9 @@ export function TaskList({
   busy,
   onAddSubtask,
   onDelete,
+  onOpenSource,
+  onOpenFile,
+  showContext = true,
 }: {
   tasks: Task[];
   workspace: Workspace;
@@ -98,12 +101,17 @@ export function TaskList({
   onStatus: (id: string, status: Status) => void;
   onAddSubtask: (task: Task) => void;
   onDelete: (id: string) => void;
+  onOpenSource: (id: string) => void;
+  onOpenFile: (id: string) => void;
+  showContext?: boolean;
   busy: boolean;
 }) {
   return tasks.length ? (
     <div className="task-list">
       {orderTasksForDisplay(tasks).map((task) => {
         const parent = w.tasks.find((t) => t.id === task.parentId);
+        const sources = w.sources.filter((source) => task.sourceIds.includes(source.id));
+        const files = w.attachments.filter((file) => file.taskIds.includes(task.id));
         return (
           <div className={`task-row ${parent ? 'task-child' : ''}`} key={task.id}>
             <Button
@@ -123,18 +131,54 @@ export function TaskList({
               >
                 {task.title}
               </button>
-              <div className="row-subtitle">
-                {w.topics.find((t) => t.id === task.topicId)?.title}
-                {parent && ` / ${parent.title}`} · {task.owner || 'Unassigned'} ·{' '}
-                {human(task.priority)}
-                {task.recurrence !== 'none' && (
-                  <span className="inline-icon">
-                    <IconRepeat size={13} />
-                    {human(task.recurrence)}
-                  </span>
-                )}
-                {task.recurrenceRootId && ' · Recurring instance'}
-              </div>
+              {showContext && (
+                <div className="row-subtitle">
+                  {w.topics.find((t) => t.id === task.topicId)?.title}
+                  {parent && ` / ${parent.title}`} · {task.owner || 'Unassigned'} ·{' '}
+                  {human(task.priority)}
+                  {task.recurrence !== 'none' && (
+                    <span className="inline-icon">
+                      <IconRepeat size={13} />
+                      {human(task.recurrence)}
+                    </span>
+                  )}
+                  {task.recurrenceRootId && ' · Recurring instance'}
+                </div>
+              )}
+              {(sources.length > 0 || files.length > 0) && (
+                <ul className="task-resources" aria-label={`Resources for ${task.title}`}>
+                  {sources.map((source) => (
+                    <li key={source.id}>
+                      <button
+                        type="button"
+                        className="source-chip task-resource"
+                        aria-label={`View source ${source.title}${source.identifier ? ` · ${source.identifier}` : ''}`}
+                        onClick={() => onOpenSource(source.id)}
+                      >
+                        <IconLink size={13} aria-hidden="true" />
+                        <span>
+                          {source.title}
+                          {source.identifier && ` · ${source.identifier}`}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                  {files.map((file) => (
+                    <li key={file.id}>
+                      <button
+                        type="button"
+                        className="source-chip task-resource"
+                        aria-label={`Open file ${file.originalName}`}
+                        disabled={busy}
+                        onClick={() => onOpenFile(file.id)}
+                      >
+                        <IconPaperclip size={13} aria-hidden="true" />
+                        <span>{file.originalName}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {task.nextAction && <p className="row-action">Next: {task.nextAction}</p>}
             </div>
             <span className={isOverdue(task) ? 'overdue text-sm' : 'muted text-sm'}>

@@ -6,7 +6,17 @@ import { TaskList } from '../work-lists';
 import { useWorklog } from '../worklog';
 import { Section } from './section';
 export default function Route() {
-  const { wb, w, setEditor, taskView, setTaskView, effective, askDeleteTask } = useWorklog();
+  const {
+    wb,
+    w,
+    setEditor,
+    setSourceId,
+    openFile,
+    taskView,
+    setTaskView,
+    effective,
+    askDeleteTask,
+  } = useWorklog();
   const taskFilter = {
     ...effective,
     openOnly: taskView === 'open',
@@ -33,6 +43,8 @@ export default function Route() {
             <span className="muted text-sm ml-auto">{tasks.length} tasks · grouped by parent</span>
           </div>
           <TaskList
+            onOpenSource={setSourceId}
+            onOpenFile={openFile}
             onDelete={askDeleteTask}
             tasks={tasks}
             workspace={w}

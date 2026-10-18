@@ -41,6 +41,10 @@ export const contentStyles = {
   'row-subtitle': [
     'block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]',
   ],
+  'task-resources': ['flex flex-wrap gap-1.5 mt-1 list-none p-0 [&_li]:min-w-0 [&_li]:max-w-full'],
+  'task-resource': [
+    'max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed',
+  ],
   'row-action': [
     '[font-size:12px] [color:var(--muted)] [margin-top:5px] [max-width:520px] [overflow-wrap:anywhere]',
   ],

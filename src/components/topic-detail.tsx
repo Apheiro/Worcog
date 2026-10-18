@@ -165,6 +165,9 @@ export function TopicDetail({
             </Button>
           </div>
           <TaskList
+            showContext={false}
+            onOpenSource={openSource}
+            onOpenFile={openFile}
             onDelete={deleteTask}
             tasks={tasks}
             workspace={w}

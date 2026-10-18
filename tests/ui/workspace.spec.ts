@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { Workspace } from '../../src/domain/model';
+import { emptyWorkspace } from '../../src/domain/model';
 async function mockDesktop(page: Page) {
   await page.clock.setFixedTime(new Date('2026-10-17T12:00:00Z'));
   await page.addInitScript(() => {
@@ -974,4 +975,146 @@ test('routes support direct entry, topic links, reload and browser history', asy
   await expect(page.getByRole('heading', { name: 'Routed topic', exact: true })).toBeVisible();
   await page.goForward();
   await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible();
+});
+
+test('task resources replace topic paths and open linked sources and files without editing the task', async ({
+  page,
+}) => {
+  const now = '2026-10-17T12:00:00Z';
+  const workspace = emptyWorkspace();
+  const topicId = 'resource-topic';
+  const taskId = 'review-task';
+  const timestamps = { createdAt: now, updatedAt: now };
+  workspace.topics.push({
+    ...timestamps,
+    id: topicId,
+    title: 'Resource topic',
+    summary: '',
+    category: 'General',
+    status: 'pending',
+    priority: 'normal',
+    owner: '',
+    participants: '',
+    tags: [],
+    nextAction: '',
+    targetDate: null,
+    closedAt: null,
+    archived: false,
+    relatedTopicIds: [],
+  });
+  workspace.sources = ['Incident email', 'Manual reference', 'Unrelated source'].map(
+    (title, index) => ({
+      ...timestamps,
+      id: `source-${index}`,
+      title,
+      kind: 'email',
+      platform: '',
+      identifier: index === 0 ? 'MAIL-42' : '',
+      url: index === 0 ? 'https://example.invalid/incident' : '',
+      eventAt: now,
+      participants: '',
+      notes: '',
+      tags: [],
+      topicIds: [topicId],
+    }),
+  );
+  workspace.tasks.push({
+    ...timestamps,
+    id: taskId,
+    title: 'Review evidence',
+    description: '',
+    topicId,
+    parentId: null,
+    status: 'pending',
+    priority: 'normal',
+    owner: '',
+    startDate: null,
+    dueDate: null,
+    completedAt: null,
+    nextAction: '',
+    tags: [],
+    sourceIds: workspace.sources.slice(0, 2).map((source) => source.id),
+    recurrence: 'none',
+    recurrenceRootId: null,
+    occurrenceDate: null,
+  });
+  workspace.tasks.push({
+    ...workspace.tasks[0],
+    id: 'unlinked-child',
+    title: 'Unlinked child',
+    parentId: taskId,
+    sourceIds: [],
+  });
+  workspace.attachments.push({
+    id: 'evidence-file',
+    originalName: 'Evidence report with a long descriptive name.pdf',
+    managedName: 'evidence-file.pdf',
+    mime: 'application/pdf',
+    size: 100,
+    addedAt: now,
+    topicIds: [],
+    taskIds: [taskId],
+    activityIds: [],
+    sourceIds: [],
+  });
+  workspace.attachments.push({
+    ...workspace.attachments[0],
+    id: 'unrelated-file',
+    originalName: 'Unrelated file.pdf',
+    managedName: 'unrelated-file.pdf',
+    taskIds: [],
+    topicIds: [topicId],
+  });
+  await mockDesktop(page);
+  await page.addInitScript((value) => {
+    if (!sessionStorage.getItem('test.workspace'))
+      sessionStorage.setItem('test.workspace', JSON.stringify(value));
+  }, workspace);
+  await page.goto(`/topics/?topic=${topicId}`);
+  await page.getByRole('tab', { name: /Tasks/ }).click();
+  const row = page
+    .locator('.task-row')
+    .filter({ has: page.getByRole('button', { name: 'Review evidence', exact: true }) });
+  await expect(row.locator('.row-subtitle')).toHaveCount(0);
+  const resources = row.getByRole('list', { name: 'Resources for Review evidence' });
+  await expect(resources.getByRole('listitem')).toHaveCount(3);
+  await expect(resources).not.toContainText('Unrelated');
+  await expect(page.locator('.task-child').getByRole('list')).toHaveCount(0);
+  const source = resources.getByRole('button', {
+    name: 'View source Incident email · MAIL-42',
+    exact: true,
+  });
+  await source.focus();
+  await page.keyboard.press('Enter');
+  let dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: 'Incident email', exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Open original' }).click();
+  expect(await page.evaluate(() => sessionStorage.getItem('test.referenceOpened'))).toBe('yes');
+  await dialog.getByRole('button', { name: 'Close dialog' }).click();
+  await resources
+    .getByRole('button', { name: 'View source Manual reference', exact: true })
+    .click();
+  dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByRole('heading', { name: 'Manual reference', exact: true }),
+  ).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Open original' })).toHaveCount(0);
+  await dialog.getByRole('button', { name: 'Close dialog' }).click();
+  await page.evaluate(() => sessionStorage.removeItem('test.referenceOpened'));
+  const file = resources.getByRole('button', {
+    name: `Open file ${workspace.attachments[0].originalName}`,
+    exact: true,
+  });
+  await file.focus();
+  await page.keyboard.press('Enter');
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem('test.referenceOpened')))
+    .toBe('yes');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.reload();
+  await page.getByRole('tab', { name: /Tasks/ }).click();
+  await expect(resources.getByRole('listitem')).toHaveCount(3);
+  await page.getByRole('navigation').getByRole('link', { name: 'Tasks', exact: true }).click();
+  await expect(row.locator('.row-subtitle')).toContainText('Resource topic');
+  await expect(resources.getByRole('listitem')).toHaveCount(3);
 });
