@@ -1,6 +1,6 @@
 'use client';
-import { useSyncExternalStore } from 'react';
 import { IconMoon } from '@tabler/icons-react';
+import { useSyncExternalStore } from 'react';
 import {
   getServerThemePreference,
   getThemePreference,
@@ -8,7 +8,7 @@ import {
   subscribeToTheme,
   themeOptions,
 } from '../infrastructure/theme';
-import { human } from './ui';
+import { human, Select } from './ui';
 
 export function ThemeControl() {
   const preference = useSyncExternalStore(
@@ -20,7 +20,7 @@ export function ThemeControl() {
     <label className="theme-control">
       <IconMoon size={16} aria-hidden="true" />
       <span className="sr-only">Color theme</span>
-      <select
+      <Select
         aria-label="Color theme"
         value={preference}
         onChange={(event) => {
@@ -33,7 +33,7 @@ export function ThemeControl() {
             {human(option)}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

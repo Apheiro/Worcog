@@ -7,6 +7,22 @@ the utility styles, Radix supplies accessible interaction primitives, CVA keeps
 shared component variants together, and Tabler supplies icons. Native date inputs
 provide keyboard-accessible date selection.
 
+Each section has a statically exported App Router page (`/`, `/topics/`,
+`/tasks/`, `/sources/`, `/search/`, `/files/`, `/archive/`, `/settings/`).
+The root layout preserves the workspace controller and dialogs across navigation.
+Navigation uses Next.js links; topic details use `/topics/?topic=<id>` so local
+records do not require build-time dynamic routes. Direct entry, reload and
+browser history preserve the selected topic. Section queries and presentation
+live in `src/components/routes/`; dialogs are loaded dynamically.
+
+Component styles are UnoCSS shortcuts grouped by responsibility in `src/styles/`
+and registered in `uno.config.ts`. CVA defines shared button, badge, modal,
+navigation and form-control variants. `Input`, `Select` and `Textarea` in
+`ui.tsx` centralize native controls; `Field` associates labels and hints.
+`globals.css` contains only theme tokens, document defaults, accessibility
+rules and external Toastify overrides. Responsive and interactive component
+styles belong with the UnoCSS shortcuts rather than global CSS selectors.
+
 The requested CVA beta is published under the renamed `cva` package:
 `1.0.0-beta.12` (Apache-2.0). Its installed type definitions were checked and the
 app uses the actual `cva({ base, variants, defaultVariants })` API with TypeScript 6. `@kalyx/react` 1.4.7 was verified as MIT-licensed, React 19 compatible, with
@@ -174,3 +190,22 @@ success/info messages close after five seconds, pausing on hover or focus loss.
 Pending messages appear after 600 ms and disappear on completion, including
 failure and cancellation. The transition does not depend on animation events;
 with reduced motion the invisible progress clock still permits automatic close.
+
+## GitHub update boundary
+
+`src-tauri/src/updates/` owns release selection, semantic version comparison,
+the dedicated production credential service, direct HTTP/redirect policy,
+streamed verification, cache publication and rotating diagnostics. Blocking
+network/file work runs in Tauri's blocking worker pool; operation and filesystem
+locks prevent duplicate downloads. The frontend uses a validated typed IPC
+boundary in `src/infrastructure/updates.ts` and one update controller for settings,
+the existing Toastify container and the existing Radix modal. Release notes use
+markdown-to-jsx with raw HTML parsing disabled, image rendering removed and
+HTTPS-only native links; Radix ScrollArea bounds the notes.
+
+The debug profile explicitly selects a development-only localStorage credential
+adapter. Production never reads that storage or returns its Credential Manager
+secret through IPC, and Rust rejects development-token arguments in production.
+No general-purpose HTTP/filesystem capability, automatic updater plugin, shell
+command or executable-replacement privilege was added. The application version,
+identifier and release system remain unchanged. See [updates](updates.md).

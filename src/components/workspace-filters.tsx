@@ -1,8 +1,9 @@
 'use client';
-import { IconSearch } from '@tabler/icons-react';
-import type { Priority, SourceKind, Status, Workspace } from '../domain/model';
+import { IconChevronDown, IconFilter, IconSearch } from '@tabler/icons-react';
+import { useId, useState } from 'react';
 import type { SearchFilter } from '../application/queries';
-import { Button, Field, Options, priorities, sourceKinds, statuses } from './ui';
+import type { Priority, SourceKind, Status, Workspace } from '../domain/model';
+import { Button, Field, Input, Options, priorities, Select, sourceKinds, statuses } from './ui';
 export function WorkspaceFilters({
   page,
   workspace: w,
@@ -16,33 +17,52 @@ export function WorkspaceFilters({
   onChange: (patch: Partial<SearchFilter>) => void;
   onClear: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const controlsId = useId();
+  const activeCount = Object.entries(filter).filter(
+    ([key, value]) => key !== 'query' && value?.trim(),
+  ).length;
   return (
-    <section className="filters" aria-label="Filters">
-      <div className="search-field">
-        <IconSearch size={17} />
-        <input
-          aria-label="Search text"
-          placeholder={
-            page === 'sources' ? 'Search title, identifier, platform…' : 'Search your work…'
-          }
-          value={filter.query ?? ''}
-          onChange={(e) => setFilter({ query: e.target.value })}
-        />
+    <section className="filters" aria-label="Search and filters">
+      <div className="filters-header">
+        <div className="search-field">
+          <IconSearch size={17} />
+          <Input
+            aria-label="Search text"
+            placeholder={
+              page === 'sources' ? 'Search title, identifier, platform…' : 'Search your work…'
+            }
+            className="focus:outline-none"
+            value={filter.query ?? ''}
+            onChange={(e) => setFilter({ query: e.target.value })}
+          />
+        </div>
+        <Button
+          className="filters-toggle"
+          aria-expanded={expanded}
+          aria-controls={controlsId}
+          onClick={() => setExpanded((open) => !open)}
+        >
+          <IconFilter size={17} aria-hidden="true" />
+          <span>Filters</span>
+          {activeCount > 0 && <span className="badge">{activeCount} active</span>}
+          <IconChevronDown className="filters-chevron" size={17} aria-hidden="true" />
+        </Button>
       </div>
-      <div className="filter-controls">
+      <div className="filter-controls" id={controlsId} hidden={!expanded}>
         {page === 'search' && (
           <Field label="Entity">
-            <select
+            <Select
               value={filter.type ?? ''}
               onChange={(e) => setFilter({ type: e.target.value as SearchFilter['type'] })}
             >
               <option value="">All entities</option>
               <Options values={['topic', 'task', 'activity', 'source']} />
-            </select>
+            </Select>
           </Field>
         )}
         <Field label="Category">
-          <select
+          <Select
             value={filter.category ?? ''}
             onChange={(e) => setFilter({ category: e.target.value })}
           >
@@ -50,30 +70,30 @@ export function WorkspaceFilters({
             {[...new Set(w.topics.map((t) => t.category))].map((c) => (
               <option key={c}>{c}</option>
             ))}
-          </select>
+          </Select>
         </Field>
         {page !== 'sources' && (
           <>
             <Field label="Status">
-              <select
+              <Select
                 value={filter.status ?? ''}
                 onChange={(e) => setFilter({ status: e.target.value as Status | '' })}
               >
                 <option value="">All statuses</option>
                 <Options values={statuses} />
-              </select>
+              </Select>
             </Field>
             <Field label="Priority">
-              <select
+              <Select
                 value={filter.priority ?? ''}
                 onChange={(e) => setFilter({ priority: e.target.value as Priority | '' })}
               >
                 <option value="">All priorities</option>
                 <Options values={priorities} />
-              </select>
+              </Select>
             </Field>
             <Field label="Owner">
-              <input
+              <Input
                 value={filter.owner ?? ''}
                 onChange={(e) => setFilter({ owner: e.target.value })}
                 placeholder="Any owner"
@@ -83,7 +103,7 @@ export function WorkspaceFilters({
         )}
         {(page === 'sources' || page === 'tasks' || page === 'search') && (
           <Field label="Topic">
-            <select
+            <Select
               value={filter.topicId ?? ''}
               onChange={(e) => setFilter({ topicId: e.target.value })}
             >
@@ -93,18 +113,18 @@ export function WorkspaceFilters({
                   {t.title}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         )}
         {page === 'sources' && (
           <Field label="Source type">
-            <select
+            <Select
               value={filter.sourceKind ?? ''}
               onChange={(e) => setFilter({ sourceKind: e.target.value as SourceKind | '' })}
             >
               <option value="">All types</option>
               <Options values={sourceKinds} />
-            </select>
+            </Select>
           </Field>
         )}
         <Field
@@ -116,14 +136,14 @@ export function WorkspaceFilters({
                 : 'Date from'
           }
         >
-          <input
+          <Input
             type="date"
             value={filter.from ?? ''}
             onChange={(e) => setFilter({ from: e.target.value })}
           />
         </Field>
         <Field label="To">
-          <input
+          <Input
             type="date"
             value={filter.to ?? ''}
             onChange={(e) => setFilter({ to: e.target.value })}

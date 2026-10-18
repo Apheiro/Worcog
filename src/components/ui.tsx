@@ -1,16 +1,48 @@
 'use client';
-import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { cva } from 'cva';
+import * as Dialog from '@radix-ui/react-dialog';
 import { IconX } from '@tabler/icons-react';
+import { cva } from 'cva';
 import {
   Children,
   cloneElement,
   isValidElement,
   useId,
   type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
   type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from 'react';
+
+const input = cva({
+  variants: { kind: { text: 'control', checkbox: 'checkbox-control' } },
+  defaultVariants: { kind: 'text' },
+});
+export function Input({ className, type, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      type={type}
+      className={input({ kind: type === 'checkbox' ? 'checkbox' : 'text', className })}
+      {...props}
+    />
+  );
+}
+export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select className={input({ className: 'select-control ' + className })} {...props} />;
+}
+export function Textarea({
+  className = '',
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={input({ className: 'textarea-control ' + className })} {...props} />;
+}
+const modal = cva({
+  base: 'modal',
+  variants: { wide: { true: 'modal-wide', false: '' } },
+  defaultVariants: { wide: false },
+});
+
 const button = cva({
   base: 'button',
   variants: {
@@ -50,12 +82,14 @@ export function Modal({
   children,
   onClose,
   wide = false,
+  className = '',
 }: {
   title: string;
   description?: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  className?: string;
 }) {
   return (
     <Dialog.Root
@@ -67,7 +101,7 @@ export function Modal({
       <Dialog.Portal>
         <Dialog.Overlay className="overlay" />
         <Dialog.Content
-          className={`modal ${wide ? 'modal-wide' : ''}`}
+          className={modal({ wide, className })}
           aria-describedby={description ? 'modal-description' : undefined}
         >
           <div className="modal-header">
@@ -145,8 +179,10 @@ export function Field({
   const hintId = useId();
   const controls = Children.map(children, (child) =>
     isValidElement<{ 'aria-labelledby'?: string; 'aria-describedby'?: string }>(child) &&
-    typeof child.type === 'string' &&
-    ['input', 'textarea', 'select'].includes(child.type)
+    ((typeof child.type === 'string' && ['input', 'textarea', 'select'].includes(child.type)) ||
+      child.type === Input ||
+      child.type === Select ||
+      child.type === Textarea)
       ? cloneElement(child, {
           'aria-labelledby': labelId,
           'aria-describedby': hint ? hintId : undefined,

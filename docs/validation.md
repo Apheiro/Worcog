@@ -9,9 +9,9 @@ Rust 1.96.1, GTK 3.24.52 and WebKitGTK 2.54.1.
 | `pnpm lint`                            | Passed: Prettier, ESLint and Rust formatting                                     |
 | `pnpm typecheck`                       | Passed with strict TypeScript and generated Next route types                     |
 | `pnpm test`                            | 47 domain/application/release tests passed                                       |
-| `pnpm test:native`                     | 17 real SQLite/files/archive tests passed                                        |
+| `pnpm test:native`                     | 31 real SQLite/files/archive/update tests passed                                 |
 | `pnpm build`                           | Passed; static export produced in `out/`                                         |
-| `pnpm test:ui`                         | 11 Chromium UI workflow tests passed                                             |
+| `pnpm test:ui`                         | 14 Chromium UI workflow tests passed                                             |
 | `pnpm tauri build --debug --no-bundle` | Passed; Linux executable produced                                                |
 | `pnpm tauri dev`                       | Started Next.js and the desktop executable; webview fetched the app successfully |
 | Workflow YAML and release JSON         | Parsed; action pins checked against upstream tags                                |
@@ -130,3 +130,37 @@ Generated builds, databases, environment files and test artifacts are excluded
 from version control. HTTPS remains the origin fetch URL and the same repository's
 SSH URL is configured for authenticated pushes. Windows packaging and actual
 GitHub Actions execution remain unverified locally.
+
+## GitHub update download follow-up
+
+Added startup/manual release checks, an optional production Windows Credential
+Manager token and an independent development localStorage credential. Release
+selection requires a newer stable semantic version and a fully uploaded x64
+executable with GitHub SHA-256 metadata. Backend downloads are streamed, size/MZ/
+digest verified, published without overwrites and retained for manual replacement.
+No application version, Tauri identifier, permissions or release workflow changed.
+The canonical behavior and limits are in [updates](updates.md).
+
+Validation passed: frozen pnpm install, lint, strict types, release-version
+validation, 47 unit tests, 31 native tests, 14 Chromium workflows, Next static
+export and the Linux Tauri debug build. Fourteen new native tests use local HTTP
+servers/temporary files for metadata gates, semantic precedence, proxy bypass,
+auth headers, redirects, interrupted/corrupt streams, existing files, locks,
+cleanup, logging and profile isolation. Three new browser workflows cover
+persistent announcements, safe full Markdown, scroll and small-window actions,
+download retry, paths/folder opening, silent automatic errors, explicit manual
+errors and development/production credential separation. A small-window dark
+update modal was visually inspected. Success progress colors were also checked
+for grayscale under the dark theme.
+
+An isolated cross-target check of the actual Windows credential adapter succeeded
+for `x86_64-pc-windows-msvc`. The full application's cross-target check could not
+finish because bundled SQLite needs the MSVC toolchain's `lib.exe`, unavailable
+on this Linux host. Neither that adapter check nor Linux compilation is a Windows
+runtime/NSIS validation. Native Credential Manager save/read/delete, opening
+Explorer, real private-release transfers and manual EXE replacement still need a
+Windows run. Tests never used real tokens or fetched real releases.
+
+The pre-existing generated `next-env.d.ts` development references are preserved
+and excluded from this feature's changes. No push or release publication was
+performed for this follow-up.

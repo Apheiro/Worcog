@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 const root = resolve('out');
 const types = {
@@ -19,9 +19,10 @@ createServer(async (request, response) => {
       response.writeHead(403).end();
       return;
     }
-    const data = await readFile(target);
+    const file = (await stat(target)).isDirectory() ? resolve(target, 'index.html') : target;
+    const data = await readFile(file);
     response
-      .writeHead(200, { 'Content-Type': types[extname(target)] ?? 'application/octet-stream' })
+      .writeHead(200, { 'Content-Type': types[extname(file)] ?? 'application/octet-stream' })
       .end(data);
   } catch {
     response.writeHead(404).end('Not found');

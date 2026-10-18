@@ -1,7 +1,9 @@
 'use client';
-import dayjs from 'dayjs';
 import { IconTrash } from '@tabler/icons-react';
+import dayjs from 'dayjs';
 import { useState, type FormEvent } from 'react';
+import * as actions from '../application/workspace';
+import { toTimestamp } from '../domain/dates';
 import type {
   ActivityKind,
   Priority,
@@ -12,13 +14,14 @@ import type {
   Topic,
   Workspace,
 } from '../domain/model';
-import * as actions from '../application/workspace';
-import { toTimestamp } from '../domain/dates';
 import {
   Button,
   Field,
+  Input,
   Modal,
   Options,
+  Select,
+  Textarea,
   activityKinds,
   human,
   priorities,
@@ -68,7 +71,7 @@ function Checks({
         <div className="check-list">
           {options.map((option) => (
             <label key={option.id}>
-              <input
+              <Input
                 type="checkbox"
                 name={name}
                 value={option.id}
@@ -233,21 +236,21 @@ export function EntityEditor({
             label="Reuse an existing reference"
             hint="Select a saved source to associate it with these topics, without duplicating it."
           >
-            <select value={reuse} onChange={(e) => setReuse(e.target.value)}>
+            <Select value={reuse} onChange={(e) => setReuse(e.target.value)}>
               <option value="">Create a new source</option>
               {w.sources.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.title} {s.identifier && `· ${s.identifier}`}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         )}
         {!reuse && (
           <>
             {editor.kind !== 'activity' && (
               <Field label="Title">
-                <input
+                <Input
                   name="title"
                   required
                   maxLength={500}
@@ -261,31 +264,31 @@ export function EntityEditor({
               <>
                 <div className="form-grid">
                   <Field label="Status">
-                    <select
+                    <Select
                       name="status"
                       defaultValue={(item as Topic | Task | undefined)?.status ?? 'pending'}
                     >
                       <Options values={statuses} />
-                    </select>
+                    </Select>
                   </Field>
                   <Field label="Priority">
-                    <select
+                    <Select
                       name="priority"
                       defaultValue={(item as Topic | Task | undefined)?.priority ?? 'normal'}
                     >
                       <Options values={priorities} />
-                    </select>
+                    </Select>
                   </Field>
                 </div>
                 <Field label="Owner">
-                  <input name="owner" defaultValue={(item as Topic | Task | undefined)?.owner} />
+                  <Input name="owner" defaultValue={(item as Topic | Task | undefined)?.owner} />
                 </Field>
               </>
             )}
             {editor.kind === 'topic' && (
               <>
                 <Field label="Category">
-                  <input
+                  <Input
                     name="category"
                     defaultValue={topic?.category ?? 'General'}
                     list="categories"
@@ -307,17 +310,17 @@ export function EntityEditor({
                   </datalist>
                 </Field>
                 <Field label="Summary">
-                  <textarea name="summary" rows={4} defaultValue={topic?.summary} />
+                  <Textarea name="summary" rows={4} defaultValue={topic?.summary} />
                 </Field>
                 <Field label="Participants">
-                  <input name="participants" defaultValue={topic?.participants} />
+                  <Input name="participants" defaultValue={topic?.participants} />
                 </Field>
                 <div className="form-grid">
                   <Field label="Next action">
-                    <input name="nextAction" defaultValue={topic?.nextAction} />
+                    <Input name="nextAction" defaultValue={topic?.nextAction} />
                   </Field>
                   <Field label="Target date">
-                    <input type="date" name="targetDate" defaultValue={topic?.targetDate ?? ''} />
+                    <Input type="date" name="targetDate" defaultValue={topic?.targetDate ?? ''} />
                   </Field>
                 </div>
                 <Checks
@@ -332,7 +335,7 @@ export function EntityEditor({
               <>
                 <div className="form-grid">
                   <Field label="Topic">
-                    <select
+                    <Select
                       name="topicId"
                       value={taskTopic}
                       onChange={(e) => setTaskTopic(e.target.value)}
@@ -346,10 +349,10 @@ export function EntityEditor({
                           {t.title}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </Field>
                   <Field label="Parent task">
-                    <select name="parentId" defaultValue={task?.parentId ?? editor.parentId ?? ''}>
+                    <Select name="parentId" defaultValue={task?.parentId ?? editor.parentId ?? ''}>
                       <option value="">No parent</option>
                       {w.tasks
                         .filter((t) => t.topicId === taskTopic && t.id !== task?.id)
@@ -358,28 +361,28 @@ export function EntityEditor({
                             {t.title}
                           </option>
                         ))}
-                    </select>
+                    </Select>
                   </Field>
                 </div>
                 <Field label="Description">
-                  <textarea name="description" rows={3} defaultValue={task?.description} />
+                  <Textarea name="description" rows={3} defaultValue={task?.description} />
                 </Field>
                 <div className="form-grid">
                   <Field label="Start date">
-                    <input type="date" name="startDate" defaultValue={task?.startDate ?? ''} />
+                    <Input type="date" name="startDate" defaultValue={task?.startDate ?? ''} />
                   </Field>
                   <Field label="Due date">
-                    <input type="date" name="dueDate" defaultValue={task?.dueDate ?? ''} />
+                    <Input type="date" name="dueDate" defaultValue={task?.dueDate ?? ''} />
                   </Field>
                 </div>
                 <div className="form-grid">
                   <Field label="Repeat">
-                    <select name="recurrence" defaultValue={task?.recurrence ?? 'none'}>
+                    <Select name="recurrence" defaultValue={task?.recurrence ?? 'none'}>
                       <Options values={['none', 'daily', 'weekly', 'monthly']} />
-                    </select>
+                    </Select>
                   </Field>
                   <Field label="Next action">
-                    <input name="nextAction" defaultValue={task?.nextAction} />
+                    <Input name="nextAction" defaultValue={task?.nextAction} />
                   </Field>
                 </div>
                 <p className="muted text-sm mb-4">
@@ -398,7 +401,7 @@ export function EntityEditor({
             {(editor.kind === 'activity' || editor.kind === 'source') && (
               <div className="form-grid">
                 <Field label="Type">
-                  <select
+                  <Select
                     name="kind"
                     defaultValue={
                       (editor.kind === 'activity' ? activity?.kind : source?.kind) ??
@@ -406,10 +409,10 @@ export function EntityEditor({
                     }
                   >
                     <Options values={editor.kind === 'activity' ? activityKinds : sourceKinds} />
-                  </select>
+                  </Select>
                 </Field>
                 <Field label="Event date and time (local)">
-                  <input
+                  <Input
                     type="datetime-local"
                     name="eventAt"
                     required
@@ -426,7 +429,7 @@ export function EntityEditor({
                   label="Annotation"
                   hint="Plain text; line breaks are preserved. Corrections keep earlier text in history."
                 >
-                  <textarea name="text" rows={6} required autoFocus defaultValue={activity?.text} />
+                  <Textarea name="text" rows={6} required autoFocus defaultValue={activity?.text} />
                 </Field>
                 <Checks
                   title="Sources / origin"
@@ -455,14 +458,14 @@ export function EntityEditor({
               <>
                 <div className="form-grid">
                   <Field label="System / platform">
-                    <input
+                    <Input
                       name="platform"
                       defaultValue={source?.platform}
                       placeholder="Outlook, Teams, InvGate…"
                     />
                   </Field>
                   <Field label="External identifier">
-                    <input
+                    <Input
                       name="identifier"
                       defaultValue={source?.identifier}
                       onChange={(e) => setIdentifierText(e.target.value)}
@@ -474,13 +477,13 @@ export function EntityEditor({
                   label="Original link (optional)"
                   hint="HTTP, HTTPS or msteams link. No account connection is made."
                 >
-                  <input name="url" defaultValue={source?.url} placeholder="https://…" />
+                  <Input name="url" defaultValue={source?.url} placeholder="https://…" />
                 </Field>
                 <Field label="Participants / sender">
-                  <input name="participants" defaultValue={source?.participants} />
+                  <Input name="participants" defaultValue={source?.participants} />
                 </Field>
                 <Field label="Context">
-                  <textarea name="notes" rows={3} defaultValue={source?.notes} />
+                  <Textarea name="notes" rows={3} defaultValue={source?.notes} />
                 </Field>
                 {matches.length > 0 && (
                   <p className="notice">
@@ -489,14 +492,14 @@ export function EntityEditor({
                   </p>
                 )}
                 <label className="check-inline mb-4">
-                  <input type="checkbox" name="allowDuplicate" /> Allow a separate source even if
+                  <Input type="checkbox" name="allowDuplicate" /> Allow a separate source even if
                   the identifier or link matches
                 </label>
               </>
             )}
             {editor.kind !== 'activity' && (
               <Field label="Labels" hint="Separate labels with commas.">
-                <input
+                <Input
                   name="tags"
                   defaultValue={(item as Topic | Task | Source | undefined)?.tags.join(', ')}
                 />

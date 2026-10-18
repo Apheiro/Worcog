@@ -1,11 +1,4 @@
 'use client';
-import { useEffect } from 'react';
-import {
-  ToastContainer,
-  type ToastTransitionProps,
-  type IconProps,
-  type CloseButtonProps,
-} from 'react-toastify/unstyled';
 import {
   IconAlertTriangle,
   IconCircleCheck,
@@ -14,6 +7,13 @@ import {
   IconLoader2,
   IconX,
 } from '@tabler/icons-react';
+import { useEffect } from 'react';
+import {
+  ToastContainer,
+  type CloseButtonProps,
+  type IconProps,
+  type ToastTransitionProps,
+} from 'react-toastify/unstyled';
 
 // Completion does not depend on animationend, including with reduced motion.
 function InstantTransition({ children, isIn, done, playToast }: ToastTransitionProps) {

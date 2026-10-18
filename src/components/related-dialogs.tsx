@@ -1,12 +1,12 @@
 'use client';
-import type { FormEvent } from 'react';
 import { IconArrowUpRight } from '@tabler/icons-react';
+import type { FormEvent } from 'react';
+import { updateAttachmentLinks } from '../application/workspace';
+import { formatTimestamp } from '../domain/dates';
 import type { Attachment, Source, Workspace } from '../domain/model';
 import { sourceTopicIds } from '../domain/relationships';
-import { formatTimestamp } from '../domain/dates';
-import { updateAttachmentLinks } from '../application/workspace';
 import type { Workbench } from '../infrastructure/use-workspace';
-import { Badge, Button, Modal, human } from './ui';
+import { Badge, Button, Input, Modal, human } from './ui';
 import { FileList } from './work-lists';
 export function SourceDetail({
   source,
@@ -162,7 +162,7 @@ export function FileRelationships({
             <div className="check-list">
               {group.items.map((item) => (
                 <label key={item.id}>
-                  <input
+                  <Input
                     type="checkbox"
                     name={group.name}
                     value={item.id}

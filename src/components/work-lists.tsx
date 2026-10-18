@@ -8,9 +8,13 @@ import {
   IconPaperclip,
   IconPlus,
   IconRepeat,
-  IconUnlink,
   IconTrash,
+  IconUnlink,
 } from '@tabler/icons-react';
+import { useState } from 'react';
+import { topicTimeline } from '../application/queries';
+import { orderTasksForDisplay } from '../application/task-order';
+import { formatDate, formatTimestamp, isOverdue, today } from '../domain/dates';
 import type {
   ActivityKind,
   Attachment,
@@ -20,15 +24,11 @@ import type {
   Topic,
   Workspace,
 } from '../domain/model';
-import { formatDate, formatTimestamp, isOverdue, today } from '../domain/dates';
-import { orderTasksForDisplay } from '../application/task-order';
-import { topicTimeline } from '../application/queries';
-import { useState } from 'react';
-import { Badge, Button, Empty, Options, activityKinds, human, statuses } from './ui';
+import { Badge, Button, Empty, Options, Select, activityKinds, human, statuses } from './ui';
 export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: string) => void }) {
   return topics.length ? (
     <div className="table-wrap">
-      <table>
+      <table className="data-table">
         <thead>
           <tr>
             <th>Topic / next action</th>
@@ -141,7 +141,7 @@ export function TaskList({
               {isOverdue(task) && 'Overdue · '}
               {formatDate(task.dueDate)}
             </span>
-            <select
+            <Select
               className="compact-select"
               aria-label={`Status of ${task.title}`}
               value={task.status}
@@ -149,7 +149,7 @@ export function TaskList({
               onChange={(e) => onStatus(task.id, e.target.value as Status)}
             >
               <Options values={statuses} />
-            </select>
+            </Select>
             <Button
               size="sm"
               aria-label={`Add subtask to ${task.title}`}
@@ -241,25 +241,25 @@ export function Timeline({
         <label className="sr-only" htmlFor="timeline-kind">
           Activity type
         </label>
-        <select
+        <Select
           id="timeline-kind"
           value={kind}
           onChange={(e) => setKind(e.target.value as ActivityKind | '')}
         >
           <option value="">All event types</option>
           <Options values={activityKinds} />
-        </select>
+        </Select>
         <label className="sr-only" htmlFor="timeline-source">
           Source
         </label>
-        <select id="timeline-source" value={sourceId} onChange={(e) => setSourceId(e.target.value)}>
+        <Select id="timeline-source" value={sourceId} onChange={(e) => setSourceId(e.target.value)}>
           <option value="">All sources</option>
           {w.sources.map((s) => (
             <option key={s.id} value={s.id}>
               {s.title}
             </option>
           ))}
-        </select>
+        </Select>
         <span className="muted text-sm ml-auto">Oldest first · event date</span>
       </div>
       {entries.length ? (

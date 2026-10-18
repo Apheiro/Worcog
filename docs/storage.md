@@ -136,3 +136,12 @@ Referenced filenames are protected from stale jobs. Cleanup only targets validat
 filenames inside the managed attachments/backups directories and refuses replaced
 directory links; it never traverses subdirectories. SQLite logical deletion does
 not guarantee forensic erasure of disk pages or independent archives.
+
+## Downloaded application updates
+
+Verified executable downloads, temporary partials and small rotating diagnostics
+live in `app_cache_dir()/updates`, separate from primary data and backups.
+The cache is regenerable and may be cleared by the operating system. Production
+update credentials use Windows Credential Manager; development credentials have
+a separate browser storage entry and are not included in workspace exports.
+See [application updates](updates.md).

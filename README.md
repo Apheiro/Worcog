@@ -64,6 +64,11 @@ confirming. There is no deletion history or automatic pre-deletion backup. If
 a file cannot be removed, Worklog reports pending cleanup and offers a retry.
 External exports and backups on other devices remain independent copies.
 
+Windows x64 builds can check GitHub Releases and download a verified executable
+for manual replacement from **Storage & backups → Application updates**. Private
+releases support an optional GitHub token. See [application updates](docs/updates.md)
+for credentials, release requirements and verification limits.
+
 See [storage and recovery](docs/storage.md) before moving or restoring data.
 The app stores primary data in Tauri's persistent app-data directory; cache is
 separate. Backups contain confidential workspace information and documents.

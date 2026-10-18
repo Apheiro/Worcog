@@ -9,12 +9,12 @@ import {
   IconPlus,
 } from '@tabler/icons-react';
 import type { DeletionTarget } from '../application/deletion';
-import type { Editor } from './editors';
+import { updateTask } from '../application/workspace';
+import { formatDate, isOpen } from '../domain/dates';
 import type { Topic } from '../domain/model';
 import { attachmentTopicIds, sourceTopicIds } from '../domain/relationships';
-import { formatDate, isOpen } from '../domain/dates';
-import { updateTask } from '../application/workspace';
 import type { Workbench } from '../infrastructure/use-workspace';
+import type { Editor } from './editors';
 import { Badge, Button, human } from './ui';
 import { FileList, SourceList, TaskList, Timeline } from './work-lists';
 export function TopicDetail({

@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import Worklog from '../components/worklog';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
@@ -18,7 +20,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        {children}
+        <Suspense fallback={<p role="status">Opening workspace…</p>}>
+          <Worklog>
+          {/* asddassad */}
+            {children}
+          </Worklog>
+        </Suspense>
         <Notifications />
       </body>
     </html>

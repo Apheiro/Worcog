@@ -1,4 +1,1 @@
-import Worklog from '../components/worklog';
-export default function Page() {
-  return <Worklog />;
-}
+export { default } from '../components/routes/overview';

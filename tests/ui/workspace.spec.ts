@@ -23,6 +23,63 @@ async function mockDesktop(page: Page) {
             JSON.parse(
               sessionStorage.getItem('test.workspace') ?? JSON.stringify(blank),
             ) as Workspace;
+          if (command === 'update_status')
+            return {
+              currentVersion: '0.1.0',
+              repository: 'Apheiro/Worklog',
+              tokenSaved: sessionStorage.getItem('test.updateTokenSaved') === 'yes',
+              credentialSupported: true,
+              platformSupported: true,
+              profile:
+                sessionStorage.getItem('test.updateProfile') === 'development'
+                  ? 'development'
+                  : 'production',
+            };
+          if (command === 'set_update_token') {
+            // The test double tracks presence only, never persists token contents.
+            const token = args && 'token' in args ? args.token : null;
+            sessionStorage.setItem('test.updateTokenSaved', token ? 'yes' : 'no');
+            return {
+              currentVersion: '0.1.0',
+              repository: 'Apheiro/Worklog',
+              tokenSaved: !!token,
+              credentialSupported: true,
+              platformSupported: true,
+              profile:
+                sessionStorage.getItem('test.updateProfile') === 'development'
+                  ? 'development'
+                  : 'production',
+            };
+          }
+          if (command === 'check_updates') {
+            sessionStorage.setItem(
+              'test.developmentTokenSent',
+              args && 'developmentToken' in args && args.developmentToken ? 'yes' : 'no',
+            );
+            if (sessionStorage.getItem('test.updateCheckError'))
+              throw new Error('GitHub authentication failed. Replace the saved token.');
+            const value = sessionStorage.getItem('test.availableUpdate');
+            return value ? JSON.parse(value) : null;
+          }
+          if (command === 'download_update') {
+            sessionStorage.setItem(
+              'test.downloadCount',
+              String(Number(sessionStorage.getItem('test.downloadCount') ?? 0) + 1),
+            );
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            if (sessionStorage.getItem('test.updateDownloadError')) {
+              sessionStorage.removeItem('test.updateDownloadError');
+              throw new Error('Update SHA-256 does not match GitHub metadata.');
+            }
+            return {
+              downloadPath: 'C:/WorklogCache/updates/worklog-v0.2.0-windows-x64.exe',
+              currentExecutable: 'C:/Apps/Worklog/worklog.exe',
+            };
+          }
+          if (command === 'open_update_folder') {
+            sessionStorage.setItem('test.updateFolderOpened', 'yes');
+            return null;
+          }
           if (command === 'load_workspace') {
             const w = load();
             return { workspace: { ...w, tasks: [...w.tasks].reverse() }, cleanupWarning: null };
@@ -78,7 +135,10 @@ async function mockDesktop(page: Page) {
             sessionStorage.setItem('test.workspace', JSON.stringify(next));
             return next;
           }
-          if (command === 'open_reference' || command === 'open_attachment') return null;
+          if (command === 'open_reference' || command === 'open_attachment') {
+            sessionStorage.setItem('test.referenceOpened', 'yes');
+            return null;
+          }
           if (command === 'storage_info')
             return {
               data: '/test/data',
@@ -112,7 +172,7 @@ test('manual reference, dated annotation, task, attachment, search and restore',
   await createTopic(page, 'Network incident');
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'Network incident', exact: true }).click();
   await page.getByRole('button', { name: 'Source', exact: true }).click();
@@ -149,13 +209,13 @@ test('manual reference, dated annotation, task, attachment, search and restore',
   await page.getByRole('button', { name: 'Save relationships' }).click();
   await page.getByRole('tab', { name: /Files/ }).click();
   await expect(page.getByRole('button', { name: 'report.pdf', exact: true })).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Search everything' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Search everything' }).click();
   await page.getByRole('textbox', { name: 'Search text' }).fill('INC-42');
   await expect(page.locator('.search-result')).toHaveCount(2);
   await page.reload();
-  await page.getByRole('navigation').getByRole('button', { name: 'Search everything' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Search everything' }).click();
   await expect(page.locator('.search-result')).toHaveCount(2);
-  await page.getByRole('navigation').getByRole('button', { name: 'Storage & backups' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Storage & backups' }).click();
   await page.getByRole('button', { name: 'Create backup', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Backup created' })).toBeVisible();
   await page.getByRole('button', { name: 'Import / restore…' }).click();
@@ -164,7 +224,7 @@ test('manual reference, dated annotation, task, attachment, search and restore',
   await page.getByRole('button', { name: 'Import / restore…' }).click();
   await page.getByRole('button', { name: 'Confirm', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Workspace restored' })).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Overview', exact: true }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Overview', exact: true }).click();
   await page.screenshot({ path: 'test-results/worklog-ui.png', fullPage: true });
   expect(errors).toEqual([]);
 });
@@ -195,7 +255,7 @@ test('reuse sources across topics, preserve corrections, subtasks and archive hi
   await createTopic(page, 'Second topic');
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'First topic', exact: true }).click();
   await page.getByRole('button', { name: 'Source', exact: true }).click();
@@ -250,13 +310,13 @@ test('reuse sources across topics, preserve corrections, subtasks and archive hi
   await expect(page.locator('.task-child')).toContainText('Child work');
   const titles = page.locator('.task-row .title-link');
   await expect(titles).toHaveText(['Parent work', 'Child work']);
-  await page.getByRole('navigation').getByRole('button', { name: 'Tasks', exact: true }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Tasks', exact: true }).click();
   // Global tasks are sorted by due date before being grouped into their hierarchy.
   await expect(titles).toHaveText(['Parent work', 'Child work']);
   await page.reload();
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'Second topic', exact: true }).click();
   await page.getByRole('tab', { name: /Tasks/ }).click();
@@ -267,7 +327,7 @@ test('reuse sources across topics, preserve corrections, subtasks and archive hi
   await page.getByRole('main').getByRole('button', { name: 'Archive', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Unarchive', exact: true })).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Archive', exact: true }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Archive', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Second topic', exact: true })).toBeVisible();
 });
 
@@ -370,7 +430,7 @@ test('permanent task deletion confirms its scope, cancels safely, retries errors
   await createTopic(page, 'Deletion topic');
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'Deletion topic', exact: true }).click();
   await addTask(page, 'Delete test parent');
@@ -407,7 +467,7 @@ test('permanent task deletion confirms its scope, cancels safely, retries errors
   await expect(confirmation).toContainText('2 linked history/annotation');
   await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Delete test parent', exact: true })).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Tasks', exact: true }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Tasks', exact: true }).click();
   await page.getByRole('button', { name: 'Delete task Delete test parent', exact: true }).click();
   await page.evaluate(() => sessionStorage.setItem('test.fail', 'yes'));
   await confirmation.getByRole('button', { name: 'Delete permanently' }).click();
@@ -423,7 +483,7 @@ test('permanent task deletion confirms its scope, cancels safely, retries errors
   await page.reload();
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'Deletion topic', exact: true }).click();
   await expect(page.locator('.timeline')).toHaveCount(0);
@@ -436,7 +496,7 @@ test('permanent task deletion confirms its scope, cancels safely, retries errors
   expect(saved.activities).toEqual([]);
   expect(saved.attachments[0].taskIds).toEqual([]);
   expect(saved.attachments[0].activityIds).toEqual([]);
-  await page.getByRole('navigation').getByRole('button', { name: 'Search everything' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Search everything' }).click();
   await page.getByRole('textbox', { name: 'Search text' }).fill('Delete test');
   await expect(page.locator('.search-result')).toHaveCount(0);
 });
@@ -449,7 +509,7 @@ test('deleting an occurrence from its editor removes the whole recurring series 
   await createTopic(page, 'Recurring deletion');
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'Recurring deletion', exact: true }).click();
   await addTask(page, 'Recurring test task', true);
@@ -484,7 +544,7 @@ test('annotations, sources and managed files can be permanently deleted from the
   await createTopic(page, 'Disposable topic');
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'Disposable topic', exact: true }).click();
   await page.getByRole('button', { name: 'Annotation', exact: true }).click();
@@ -516,7 +576,7 @@ test('annotations, sources and managed files can be permanently deleted from the
   dialog = page.getByRole('dialog');
   await dialog.getByRole('button', { name: 'Save relationships' }).click();
   await expect(dialog).toHaveCount(0);
-  await page.getByRole('navigation').getByRole('button', { name: 'Files', exact: true }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Files', exact: true }).click();
   await page.getByRole('button', { name: 'Delete file report.pdf' }).click();
   await expect(confirmation).toContainText('physically deleted');
   await page.evaluate(() =>
@@ -549,7 +609,7 @@ test('topic deletion removes its descendants and editor supports deleting topics
   await createTopic(page, 'Topic to keep');
   await page
     .getByRole('navigation')
-    .getByRole('button', { name: /^Topics/ })
+    .getByRole('link', { name: /^Topics/ })
     .click();
   await page.getByRole('button', { name: 'Topic to delete', exact: true }).click();
   await addTask(page, 'Owned task');
@@ -583,7 +643,7 @@ test('clear workspace requires confirmation and allows including local backups',
   await mockDesktop(page);
   await page.goto('/');
   await createTopic(page, 'Reset fixture');
-  await page.getByRole('navigation').getByRole('button', { name: 'Storage & backups' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Storage & backups' }).click();
   await page.getByRole('button', { name: 'Delete all workspace data', exact: true }).click();
   const confirmation = page.getByRole('alertdialog');
   await expect(
@@ -636,8 +696,14 @@ test('Toastify covers loading, success, information, warnings and errors with a 
   await expect(pending).toHaveCount(0);
   const success = page.getByRole('status').filter({ hasText: 'Success: Saved locally.' });
   await expect(success).toBeVisible();
+  const progressColor = await success
+    .locator('.Toastify__progress-bar--animated')
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  const channels = progressColor.match(/[0-9.]+/g)?.map(Number);
+  expect(channels?.[0]).toBe(channels?.[1]);
+  expect(channels?.[1]).toBe(channels?.[2]);
   await expect(success).toHaveCount(0, { timeout: 10000 });
-  await page.getByRole('navigation').getByRole('button', { name: 'Storage & backups' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Storage & backups' }).click();
   await page.evaluate(() => sessionStorage.setItem('test.cancel', 'yes'));
   await page.getByRole('button', { name: 'Export archive…' }).click();
   const info = page.getByRole('status').filter({ hasText: 'Information: Export canceled.' });
@@ -684,4 +750,228 @@ test('Toastify covers loading, success, information, warnings and errors with a 
   await page.screenshot({ path: 'test-results/worklog-toast-dark.png' });
   await warning.getByRole('button', { name: 'Dismiss notification' }).click();
   await expect(warning).toHaveCount(0);
+});
+
+const updateFixture = {
+  currentVersion: '0.1.0',
+  version: '0.2.0',
+  filename: 'worklog-v0.2.0-windows-x64.exe',
+  size: 10485760,
+  notes:
+    '# Worklog 0.2.0\n\n## Improvements\n\n- Faster searches\n- Better keyboard navigation\n\n[Read documentation](https://github.com/Apheiro/Worklog)\n\n[Unsafe link](javascript:alert(1))\n\n![Remote image](https://example.invalid/track.png)\n\n<script>window.untrustedRelease=true</script>\n\n' +
+    Array.from(
+      { length: 50 },
+      (_, i) => `### Change ${i + 1}\n\nDetailed release notes for this synthetic update.`,
+    ).join('\n\n'),
+};
+test('updates announce only available releases, render safe scrollable notes and retry verified downloads', async ({
+  page,
+}) => {
+  await mockDesktop(page);
+  const remoteRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().startsWith('https://example.invalid')) remoteRequests.push(request.url());
+  });
+  await page.addInitScript(
+    (value) => sessionStorage.setItem('test.availableUpdate', JSON.stringify(value)),
+    updateFixture,
+  );
+  await page.goto('/');
+  const announcement = page.getByRole('button', { name: /Worklog 0.2.0 is available/ });
+  await expect(announcement).toBeVisible();
+  await announcement.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: 'Worklog 0.2.0 is available' })).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Improvements', exact: true })).toBeVisible();
+  await expect(dialog.locator('img,script,iframe')).toHaveCount(0);
+  await expect(dialog.getByRole('link', { name: 'Unsafe link' })).toHaveCount(0);
+  expect(remoteRequests).toEqual([]);
+  const viewport = dialog.locator('.release-viewport');
+  expect(await viewport.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+  await expect(
+    dialog.getByRole('button', { name: 'Download update', exact: true }),
+  ).toBeInViewport();
+  await dialog.getByRole('link', { name: 'Read documentation' }).click();
+  expect(await page.evaluate(() => sessionStorage.getItem('test.referenceOpened'))).toBe('yes');
+  await page.evaluate(() => sessionStorage.setItem('test.updateDownloadError', 'yes'));
+  await dialog.getByRole('button', { name: 'Download update', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: 'Downloading and verifying…' })).toBeDisabled();
+  await expect(dialog.getByText('Update SHA-256 does not match GitHub metadata.')).toBeVisible();
+  expect(await page.evaluate(() => sessionStorage.getItem('test.downloadCount'))).toBe('1');
+  await dialog.getByRole('button', { name: 'Retry download' }).click();
+  await expect(dialog.getByRole('heading', { name: 'Verified download' })).toBeVisible();
+  await expect(dialog).toContainText('C:/Apps/Worklog/worklog.exe');
+  await expect(dialog).toContainText('Keep a copy of your previous EXE');
+  await dialog.getByRole('button', { name: 'Open download folder' }).click();
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem('test.updateFolderOpened')))
+    .toBe('yes');
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeInViewport();
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.setViewportSize({ width: 1100, height: 660 });
+  await expect(dialog.getByRole('button', { name: 'Open download folder' })).toBeInViewport();
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeInViewport();
+  const instructions = dialog.getByRole('region', { name: 'Manual replacement instructions' });
+  await instructions.focus();
+  await page.keyboard.press('End');
+  await expect.poll(() => instructions.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  await page.screenshot({ path: 'test-results/application-update.png' });
+  await dialog.getByRole('button', { name: 'Open download folder' }).click();
+  expect(await page.evaluate(() => 'untrustedRelease' in window)).toBe(false);
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  expect(await page.evaluate(() => sessionStorage.getItem('test.downloadCount'))).toBe('2');
+});
+test('automatic update failures stay silent while manual checks and token management are explicit', async ({
+  page,
+}) => {
+  await mockDesktop(page);
+  await page.addInitScript(() => {
+    sessionStorage.setItem('test.updateCheckError', 'yes');
+    localStorage.setItem(
+      'worklog.updates.github-token.development.v1',
+      'development-token-ignored-by-production',
+    );
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
+  await expect(page.locator('.Toastify__toast--error')).toHaveCount(0);
+  await page.getByRole('navigation').getByRole('link', { name: 'Storage & backups' }).click();
+  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'GitHub authentication failed' }),
+  ).toBeVisible();
+  const token = page.getByLabel('GitHub token (optional)', { exact: true });
+  await expect(token).toHaveValue('');
+  expect(await page.evaluate(() => sessionStorage.getItem('test.developmentTokenSent'))).toBe('no');
+  await token.fill('synthetic-token-never-a-real-secret');
+  await page.getByRole('button', { name: 'Save / replace token' }).click();
+  await expect(token).toHaveValue('');
+  await expect(page.getByText(/GitHub token saved/, { exact: false }).first()).toBeVisible();
+  expect(
+    await page.evaluate(() => localStorage.getItem('synthetic-token-never-a-real-secret')),
+  ).toBeNull();
+  await page.getByRole('button', { name: 'Remove token', exact: true }).click();
+  await expect(page.getByText('Anonymous access', { exact: false })).toBeVisible();
+  await page.evaluate(() => sessionStorage.removeItem('test.updateCheckError'));
+  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'No downloadable stable update' }),
+  ).toBeVisible();
+});
+
+test('development update credentials use only their separate localStorage entry', async ({
+  page,
+}) => {
+  await mockDesktop(page);
+  await page.addInitScript(() => {
+    sessionStorage.setItem('test.updateProfile', 'development');
+    sessionStorage.setItem('test.updateTokenSaved', 'yes');
+    localStorage.setItem('worklog.updates.github-token.development.v1', 'synthetic-dev-token');
+  });
+  await page.goto('/');
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem('test.developmentTokenSent')))
+    .toBe('yes');
+  await page.getByRole('navigation').getByRole('link', { name: 'Storage & backups' }).click();
+  await expect(
+    page.getByText(/Development profile: this token is stored unencrypted/),
+  ).toBeVisible();
+  const token = page.getByLabel('GitHub token (optional)', { exact: true });
+  await expect(token).toHaveValue('');
+  await token.fill('synthetic-dev-replacement');
+  await page.getByRole('button', { name: 'Save / replace token' }).click();
+  await expect(token).toHaveValue('');
+  expect(
+    await page.evaluate(() => localStorage.getItem('worklog.updates.github-token.development.v1')),
+  ).toBe('synthetic-dev-replacement');
+  expect(await page.evaluate(() => sessionStorage.getItem('test.updateTokenSaved'))).toBe('yes');
+  await page.getByRole('button', { name: 'Remove token', exact: true }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => localStorage.getItem('worklog.updates.github-token.development.v1')),
+    )
+    .toBeNull();
+  expect(await page.evaluate(() => sessionStorage.getItem('test.updateTokenSaved'))).toBe('yes');
+  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem('test.developmentTokenSent')))
+    .toBe('no');
+});
+
+test('search stays visible beside collapsed filters in every section', async ({ page }) => {
+  await mockDesktop(page);
+  await page.goto('/');
+  for (const name of [/^Topics/, /^Tasks/, /^Sources/, /^Search everything$/, /^Archive$/]) {
+    await page.getByRole('navigation').getByRole('link', { name }).click();
+    const toggle = page.locator('.filters-toggle');
+    const search = page.getByRole('textbox', { name: 'Search text' });
+    const category = page.getByLabel('Category', { exact: true });
+    await expect(search).toBeVisible();
+    await expect(category).toBeHidden();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    const searchBox = await search.boundingBox();
+    const toggleBox = await toggle.boundingBox();
+    expect(searchBox!.width).toBeGreaterThan(toggleBox!.width);
+    expect(searchBox!.x + searchBox!.width).toBeLessThanOrEqual(toggleBox!.x);
+    expect(
+      Math.abs(searchBox!.y + searchBox!.height / 2 - toggleBox!.y - toggleBox!.height / 2),
+    ).toBeLessThan(2);
+    await search.fill('Test search');
+    await expect(toggle).not.toContainText('active');
+    await toggle.focus();
+    await page.keyboard.press('Enter');
+    await expect(category).toBeVisible();
+    await page.locator('.filter-controls input[type="date"]').first().fill('2026-01-01');
+    await expect(toggle).toContainText('1 active');
+    const controlsBox = await page.locator('.filter-controls').boundingBox();
+    expect(controlsBox!.y).toBeGreaterThanOrEqual(toggleBox!.y + toggleBox!.height);
+    await toggle.click();
+    await expect(category).toBeHidden();
+    await expect(search).toHaveValue('Test search');
+    await expect(toggle).toContainText('1 active');
+    await toggle.focus();
+    await page.keyboard.press('Space');
+    await page.getByRole('button', { name: 'Clear', exact: true }).click();
+    await expect(search).toHaveValue('');
+    await expect(toggle).not.toContainText('active');
+  }
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: /^Topics/ })
+    .click();
+  await expect(page.getByRole('textbox', { name: 'Search text' })).toBeVisible();
+  await expect(page.locator('.filters-toggle')).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('routes support direct entry, topic links, reload and browser history', async ({ page }) => {
+  await mockDesktop(page);
+  await page.goto('/tasks/');
+  await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible();
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: /^Topics/ })
+    .click();
+  await expect(page).toHaveURL(/\/topics\/$/);
+  await createTopic(page, 'Routed topic');
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: /^Topics/ })
+    .click();
+  await page.getByRole('button', { name: 'Routed topic', exact: true }).click();
+  await expect(page).toHaveURL(/\/topics\/\?topic=/);
+  const topicURL = page.url();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Routed topic', exact: true })).toBeVisible();
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: /^Tasks/ })
+    .click();
+  await expect(page).toHaveURL(/\/tasks\/$/);
+  await page.goBack();
+  await expect(page).toHaveURL(topicURL);
+  await expect(page.getByRole('heading', { name: 'Routed topic', exact: true })).toBeVisible();
+  await page.goForward();
+  await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible();
 });

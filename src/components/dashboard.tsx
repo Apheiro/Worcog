@@ -1,8 +1,8 @@
 'use client';
-import dayjs from 'dayjs';
 import { IconArrowRight, IconClock, IconFlag, IconLock, IconProgress } from '@tabler/icons-react';
-import type { Workspace } from '../domain/model';
+import dayjs from 'dayjs';
 import { compareTimestamps, formatTimestamp, isOpen, isOverdue, today } from '../domain/dates';
+import type { Workspace } from '../domain/model';
 import { Badge, Button, Empty, human } from './ui';
 import { TopicTable } from './work-lists';
 export function Dashboard({
