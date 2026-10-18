@@ -1,6 +1,9 @@
 use crate::{archive, storage, validation};
 use serde_json::{json, Value};
-use std::{fs, sync::Mutex};
+use std::{
+    fs,
+    sync::{Arc, Mutex},
+};
 use tauri::{Manager, State};
 use tauri_plugin_opener::OpenerExt;
 use validation::{string, Result};
@@ -8,6 +11,7 @@ struct AppState {
     store: storage::StoreAccess,
     staged: Mutex<Option<archive::StagedImport>>,
     cache: std::path::PathBuf,
+    updates: Arc<crate::updates::Updates>,
 }
 fn lock<T>(m: &Mutex<T>) -> Result<std::sync::MutexGuard<'_, T>> {
     m.lock()
@@ -169,6 +173,51 @@ async fn restore_import(token: String, state: State<'_, AppState>) -> Result<Val
     let staged = pending.take().ok_or("Missing import")?;
     state.store.with(|store| archive::restore(store, staged))
 }
+
+#[tauri::command]
+async fn update_status(state: State<'_, AppState>) -> Result<crate::updates::Status> {
+    let updates = state.updates.clone();
+    tauri::async_runtime::spawn_blocking(move || updates.status())
+        .await
+        .map_err(|_| "Update worker failed.")?
+}
+#[tauri::command]
+async fn set_update_token(
+    token: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<crate::updates::Status> {
+    let updates = state.updates.clone();
+    tauri::async_runtime::spawn_blocking(move || updates.set_token(token))
+        .await
+        .map_err(|_| "Credential worker failed.")?
+}
+#[tauri::command]
+async fn check_updates(
+    development_token: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<Option<crate::updates::metadata::Available>> {
+    let updates = state.updates.clone();
+    tauri::async_runtime::spawn_blocking(move || updates.check(development_token))
+        .await
+        .map_err(|_| "Update worker failed.")?
+}
+#[tauri::command]
+async fn download_update(
+    development_token: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<crate::updates::Receipt> {
+    let updates = state.updates.clone();
+    tauri::async_runtime::spawn_blocking(move || updates.download(development_token))
+        .await
+        .map_err(|_| "Download worker failed.")?
+}
+#[tauri::command]
+fn open_update_folder(app: tauri::AppHandle, state: State<'_, AppState>) -> Result<()> {
+    let folder = state.updates.folder()?;
+    app.opener()
+        .open_path(folder.to_string_lossy(), None::<&str>)
+        .map_err(|_| "Could not open the download folder.".into())
+}
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -180,11 +229,20 @@ pub fn run() {
             app.manage(AppState {
                 store: storage::StoreAccess::new(root),
                 staged: Mutex::new(None),
+                updates: Arc::new(crate::updates::Updates::new(
+                    cache.clone(),
+                    app.package_info().version.to_string(),
+                )),
                 cache,
             });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            update_status,
+            set_update_token,
+            check_updates,
+            download_update,
+            open_update_folder,
             load_workspace,
             save_workspace,
             cleanup_deleted_files,

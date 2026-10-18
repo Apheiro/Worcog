@@ -12,3 +12,6 @@ mod validation;
 pub use desktop::run;
 #[cfg(test)]
 mod tests;
+
+#[cfg(any(feature = "desktop", test))]
+mod updates;
