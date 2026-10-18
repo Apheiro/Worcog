@@ -4,7 +4,18 @@ export const controlsStyles = {
     '[border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] [padding:8px_10px] min-w-0 max-w-full [color:var(--ink)]',
   ],
   'textarea-control': ['[resize:vertical] [min-height:80px]'],
-  'checkbox-control': ['[width:16px] [height:16px] [accent-color:var(--primary)] shrink-0'],
+  checkbox: [
+    'inline-flex items-center justify-center shrink-0 w-5 h-5 p-0 rounded [border:1px_solid_var(--border-strong)] [background:var(--surface)] [color:var(--secondary)]',
+    '[&:hover:not(:disabled)]:[border-color:var(--focus)]',
+    '[&[data-state=checked]]:[background:var(--checkbox-fill)] [&[data-state=checked]]:[border-color:var(--checkbox-fill)] [&[data-state=checked]]:[color:var(--checkbox-mark)]',
+    '[&[data-state=indeterminate]]:[background:var(--checkbox-fill)] [&[data-state=indeterminate]]:[border-color:var(--checkbox-fill)] [&[data-state=indeterminate]]:[color:var(--checkbox-mark)]',
+    'disabled:opacity-50 disabled:cursor-not-allowed',
+  ],
+  'task-checkbox': ['w-6 h-6 rounded-md'],
+  'checkbox-indicator': [
+    'flex items-center justify-center',
+    '[&_.checkbox-mixed]:hidden [&[data-state=indeterminate]_.checkbox-mixed]:block [&[data-state=indeterminate]_.checkbox-check]:hidden',
+  ],
   'select-control': ['cursor-pointer'],
   button: [
     'inline-flex items-center justify-center [gap:7px] [padding:8px_12px] [min-height:36px] [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] [color:var(--ink)] [line-height:1.2] whitespace-nowrap [font-size:13px] [font-weight:550] [transition:background_0.12s]',

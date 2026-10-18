@@ -323,7 +323,7 @@ test('reuse sources across topics, preserve corrections, subtasks and archive hi
   await page.getByRole('tab', { name: /Tasks/ }).click();
   // The native load order may differ from insertion order after a restart.
   await expect(titles).toHaveText(['Parent work', 'Child work']);
-  await page.getByRole('button', { name: 'Mark Child work completed' }).click();
+  await page.getByRole('checkbox', { name: 'Mark Child work completed' }).click();
   await expect(page.getByLabel('Status of Child work')).toHaveValue('completed');
   await page.getByRole('main').getByRole('button', { name: 'Archive', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm', exact: true }).click();
@@ -1117,4 +1117,75 @@ test('task resources replace topic paths and open linked sources and files witho
   await page.getByRole('navigation').getByRole('link', { name: 'Tasks', exact: true }).click();
   await expect(row.locator('.row-subtitle')).toContainText('Resource topic');
   await expect(resources.getByRole('listitem')).toHaveCount(3);
+});
+
+test('shared task checkboxes distinguish completion in both themes and recover from failed saves', async ({
+  page,
+}) => {
+  await mockDesktop(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await createTopic(page, 'Checkbox topic');
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: /^Topics/ })
+    .click();
+  await page.getByRole('button', { name: 'Checkbox topic', exact: true }).click();
+  await addTask(page, 'Polished task');
+  await page.getByRole('tab', { name: /Tasks/ }).click();
+  await expect(page.getByRole('button', { name: 'New task', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Task', exact: true })).toBeVisible();
+  const row = page.getByRole('group', { name: 'Polished task', exact: true });
+  const checkbox = row.getByRole('checkbox');
+  for (const theme of ['light', 'dark']) {
+    await page.getByRole('combobox', { name: 'Color theme' }).selectOption(theme);
+    await expect(checkbox).not.toBeChecked();
+    const pendingColor = await checkbox.evaluate((el) => getComputedStyle(el).color);
+    await checkbox.focus();
+    await expect(checkbox).toBeFocused();
+    await page.keyboard.press('Space');
+    await expect(checkbox).toBeChecked();
+    await expect(checkbox).toBeEnabled();
+    await expect(row.getByLabel('Status of Polished task')).toHaveValue('completed');
+    await expect(row.locator('.title-link')).toHaveCSS('text-decoration-line', 'line-through');
+    await expect(checkbox).toHaveCSS('color', 'rgb(255, 255, 255)');
+    expect(pendingColor).not.toBe('rgb(255, 255, 255)');
+    const contrast = await checkbox.evaluate((el) => {
+      const rgb = getComputedStyle(el)
+        .backgroundColor.match(/[0-9.]+/g)!
+        .slice(0, 3)
+        .map(Number);
+      const [r, g, b] = rgb
+        .map((value) => value / 255)
+        .map((value) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
+      return 1.05 / (0.2126 * r + 0.7152 * g + 0.0722 * b + 0.05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
+    await page.keyboard.press('Space');
+    await expect(checkbox).not.toBeChecked();
+    await expect(checkbox).toBeEnabled();
+    await expect(row.getByLabel('Status of Polished task')).toHaveValue('pending');
+  }
+  await page.evaluate(() => {
+    sessionStorage.setItem('test.fail', 'yes');
+    sessionStorage.setItem('test.delay', '700');
+  });
+  await checkbox.click();
+  await expect(checkbox).toBeDisabled();
+  await expect(row.getByLabel('Status of Polished task')).toBeDisabled();
+  await expect(checkbox).toBeEnabled();
+  await expect(checkbox).not.toBeChecked();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Test storage permission denied' }).first(),
+  ).toBeVisible();
+  await checkbox.click();
+  await expect(checkbox).toBeChecked();
+  await expect(checkbox).toBeEnabled();
+  await page.reload();
+  await page.getByRole('tab', { name: /Tasks/ }).click();
+  await expect(checkbox).toBeChecked();
+  await page.setViewportSize({ width: 820, height: 750 });
+  await expect(checkbox).toBeInViewport();
+  await expect(row.getByLabel('Status of Polished task')).toBeInViewport();
+  await page.screenshot({ path: 'test-results/task-design.png' });
 });

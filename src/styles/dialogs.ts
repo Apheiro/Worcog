@@ -25,11 +25,11 @@ export const dialogsStyles = {
   'check-list': [
     '[max-height:145px] overflow-auto flex flex-col [gap:6px]',
     '[&_label]:flex [&_label]:items-start [&_label]:[gap:8px] [&_label]:[font-size:12px] [&_label]:[overflow-wrap:anywhere]',
-    '[&_input]:[margin-top:2px]',
+    '[&_.checkbox]:[margin-top:2px]',
   ],
   'check-inline': [
     'flex items-start [gap:8px] [font-size:12px] [overflow-wrap:anywhere]',
-    '[&_input]:[margin-top:2px]',
+    '[&_.checkbox]:[margin-top:2px]',
   ],
   notice: [
     '[border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px]',

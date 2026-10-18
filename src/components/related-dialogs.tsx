@@ -1,4 +1,5 @@
 'use client';
+import { Checkbox } from './checkbox';
 import { IconArrowUpRight } from '@tabler/icons-react';
 import type { FormEvent } from 'react';
 import { updateAttachmentLinks } from '../application/workspace';
@@ -6,7 +7,7 @@ import { formatTimestamp } from '../domain/dates';
 import type { Attachment, Source, Workspace } from '../domain/model';
 import { sourceTopicIds } from '../domain/relationships';
 import type { Workbench } from '../infrastructure/use-workspace';
-import { Badge, Button, Input, Modal, human } from './ui';
+import { Badge, Button, Modal, human } from './ui';
 import { FileList } from './work-lists';
 export function SourceDetail({
   source,
@@ -162,8 +163,7 @@ export function FileRelationships({
             <div className="check-list">
               {group.items.map((item) => (
                 <label key={item.id}>
-                  <Input
-                    type="checkbox"
+                  <Checkbox
                     name={group.name}
                     value={item.id}
                     defaultChecked={file[group.name].includes(item.id)}

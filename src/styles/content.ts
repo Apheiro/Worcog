@@ -116,19 +116,22 @@ export const contentStyles = {
     '[&:hover]:[background:var(--hover)]',
   ],
   'task-list': [
-    '[border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden',
+    '[border:1px_solid_var(--border)] rounded-lg [background:var(--surface)] overflow-hidden',
   ],
   'source-list': [
     '[border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden',
   ],
   'task-row': [
-    '[padding:14px] flex items-center [gap:12px] [border-bottom:1px_solid_var(--border)]',
+    'p-4 flex items-start gap-3 [border-bottom:1px_solid_var(--border)]',
+    '[&:hover]:[background:var(--surface-soft)] [&:focus-within]:[background:var(--surface-soft)]',
     '[&:last-child]:border-0',
     '[&_.compact-select]:[font-size:11px] [&_.compact-select]:[padding:4px_7px] [&_.compact-select]:[width:110px] [&_.compact-select]:shrink-0',
-    '[@media(max-width:1150px)]:flex-wrap',
-    '[@media(max-width:1150px)]:[&_>_.flex-1]:[min-width:220px]',
+    'flex-wrap [&_>_.flex-1]:[min-width:min(220px,_100%_-_40px)]',
   ],
-  'task-child': ['[padding-left:32px]', '[&_>_.button:first-child]:[border-style:dashed]'],
+  'task-child': ['pl-8'],
+  'task-completed': ['[background:var(--surface-soft)]'],
+  'task-actions': ['flex items-center flex-wrap gap-2 ml-auto'],
+  'task-action': ['border-transparent [background:transparent]'],
   completed: ['[text-decoration:line-through] [color:var(--muted)]'],
   'inline-icon': ['inline-flex [gap:4px] items-center [margin-left:7px]'],
   'source-row': [

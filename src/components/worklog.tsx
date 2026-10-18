@@ -1,4 +1,5 @@
 'use client';
+import { Checkbox } from './checkbox';
 import { useDebouncedValue, useLocalStorage } from '@mantine/hooks';
 import {
   IconArchive,
@@ -38,7 +39,7 @@ const FileRelationships = dynamic(() =>
 );
 const SourceDetail = dynamic(() => import('./related-dialogs').then((m) => m.SourceDetail));
 import { ThemeControl } from './theme-control';
-import { Button, Confirm, Input } from './ui';
+import { Button, Confirm } from './ui';
 import { ScrollArea } from './scroll-area';
 type Page =
   'overview' | 'topics' | 'tasks' | 'sources' | 'search' | 'files' | 'archive' | 'settings';
@@ -516,11 +517,10 @@ export default function Worklog({ children }: { children: ReactNode }) {
           >
             {confirmation.includeBackups && (
               <label className="flex items-center gap-2 my-4">
-                <Input
-                  type="checkbox"
+                <Checkbox
                   checked={purgeBackups}
                   disabled={wb.busy}
-                  onChange={(event) => setPurgeBackups(event.target.checked)}
+                  onCheckedChange={(checked) => setPurgeBackups(checked === true)}
                 />{' '}
                 Also delete local backups stored by Worklog
               </label>

@@ -1,30 +1,20 @@
 'use client';
 import {
   IconArrowUpRight,
-  IconCheck,
   IconEdit,
   IconFile,
   IconLink,
   IconPaperclip,
-  IconPlus,
-  IconRepeat,
   IconTrash,
   IconUnlink,
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { topicTimeline } from '../application/queries';
 import { orderTasksForDisplay } from '../application/task-order';
-import { formatDate, formatTimestamp, isOverdue, today } from '../domain/dates';
-import type {
-  ActivityKind,
-  Attachment,
-  Source,
-  Status,
-  Task,
-  Topic,
-  Workspace,
-} from '../domain/model';
-import { Badge, Button, Empty, Options, Select, activityKinds, human, statuses } from './ui';
+import { formatDate, formatTimestamp, today } from '../domain/dates';
+import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
+import { Badge, Button, Empty, Options, Select, activityKinds, human } from './ui';
+import { TaskRow, type TaskRowProps } from './task-row';
 export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: string) => void }) {
   return topics.length ? (
     <div className="table-wrap">
@@ -94,124 +84,24 @@ export function TaskList({
   onOpenSource,
   onOpenFile,
   showContext = true,
-}: {
-  tasks: Task[];
-  workspace: Workspace;
-  onEdit: (id: string) => void;
-  onStatus: (id: string, status: Status) => void;
-  onAddSubtask: (task: Task) => void;
-  onDelete: (id: string) => void;
-  onOpenSource: (id: string) => void;
-  onOpenFile: (id: string) => void;
-  showContext?: boolean;
-  busy: boolean;
-}) {
+}: Omit<TaskRowProps, 'task'> & { tasks: TaskRowProps['task'][] }) {
   return tasks.length ? (
     <div className="task-list">
-      {orderTasksForDisplay(tasks).map((task) => {
-        const parent = w.tasks.find((t) => t.id === task.parentId);
-        const sources = w.sources.filter((source) => task.sourceIds.includes(source.id));
-        const files = w.attachments.filter((file) => file.taskIds.includes(task.id));
-        return (
-          <div className={`task-row ${parent ? 'task-child' : ''}`} key={task.id}>
-            <Button
-              size="sm"
-              aria-label={`Mark ${task.title} ${task.status === 'completed' ? 'pending' : 'completed'}`}
-              disabled={busy}
-              onClick={() =>
-                onStatus(task.id, task.status === 'completed' ? 'pending' : 'completed')
-              }
-            >
-              <IconCheck size={16} className={task.status === 'completed' ? '' : 'muted'} />
-            </Button>
-            <div className="min-w-0 flex-1">
-              <button
-                className={`title-link ${task.status === 'completed' ? 'completed' : ''}`}
-                onClick={() => onEdit(task.id)}
-              >
-                {task.title}
-              </button>
-              {showContext && (
-                <div className="row-subtitle">
-                  {w.topics.find((t) => t.id === task.topicId)?.title}
-                  {parent && ` / ${parent.title}`} · {task.owner || 'Unassigned'} ·{' '}
-                  {human(task.priority)}
-                  {task.recurrence !== 'none' && (
-                    <span className="inline-icon">
-                      <IconRepeat size={13} />
-                      {human(task.recurrence)}
-                    </span>
-                  )}
-                  {task.recurrenceRootId && ' · Recurring instance'}
-                </div>
-              )}
-              {(sources.length > 0 || files.length > 0) && (
-                <ul className="task-resources" aria-label={`Resources for ${task.title}`}>
-                  {sources.map((source) => (
-                    <li key={source.id}>
-                      <button
-                        type="button"
-                        className="source-chip task-resource"
-                        aria-label={`View source ${source.title}${source.identifier ? ` · ${source.identifier}` : ''}`}
-                        onClick={() => onOpenSource(source.id)}
-                      >
-                        <IconLink size={13} aria-hidden="true" />
-                        <span>
-                          {source.title}
-                          {source.identifier && ` · ${source.identifier}`}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                  {files.map((file) => (
-                    <li key={file.id}>
-                      <button
-                        type="button"
-                        className="source-chip task-resource"
-                        aria-label={`Open file ${file.originalName}`}
-                        disabled={busy}
-                        onClick={() => onOpenFile(file.id)}
-                      >
-                        <IconPaperclip size={13} aria-hidden="true" />
-                        <span>{file.originalName}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {task.nextAction && <p className="row-action">Next: {task.nextAction}</p>}
-            </div>
-            <span className={isOverdue(task) ? 'overdue text-sm' : 'muted text-sm'}>
-              {isOverdue(task) && 'Overdue · '}
-              {formatDate(task.dueDate)}
-            </span>
-            <Select
-              className="compact-select"
-              aria-label={`Status of ${task.title}`}
-              value={task.status}
-              disabled={busy}
-              onChange={(e) => onStatus(task.id, e.target.value as Status)}
-            >
-              <Options values={statuses} />
-            </Select>
-            <Button
-              size="sm"
-              aria-label={`Add subtask to ${task.title}`}
-              onClick={() => onAddSubtask(task)}
-            >
-              <IconPlus size={16} />
-            </Button>
-            <Button
-              size="sm"
-              disabled={busy}
-              aria-label={`Delete task ${task.title}`}
-              onClick={() => onDelete(task.id)}
-            >
-              <IconTrash size={16} />
-            </Button>
-          </div>
-        );
-      })}
+      {orderTasksForDisplay(tasks).map((task) => (
+        <TaskRow
+          key={task.id}
+          task={task}
+          workspace={w}
+          onEdit={onEdit}
+          onStatus={onStatus}
+          busy={busy}
+          onAddSubtask={onAddSubtask}
+          onDelete={onDelete}
+          onOpenSource={onOpenSource}
+          onOpenFile={onOpenFile}
+          showContext={showContext}
+        />
+      ))}
     </div>
   ) : (
     <Empty title="No tasks in this view">Tasks added to a topic will appear here.</Empty>

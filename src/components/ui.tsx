@@ -3,6 +3,7 @@ import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import * as Dialog from '@radix-ui/react-dialog';
 import { IconX } from '@tabler/icons-react';
 import { cva } from 'cva';
+import { Checkbox } from './checkbox';
 import {
   Children,
   cloneElement,
@@ -16,17 +17,10 @@ import {
 } from 'react';
 
 const input = cva({
-  variants: { kind: { text: 'control', checkbox: 'checkbox-control' } },
-  defaultVariants: { kind: 'text' },
+  base: 'control',
 });
 export function Input({ className, type, ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      type={type}
-      className={input({ kind: type === 'checkbox' ? 'checkbox' : 'text', className })}
-      {...props}
-    />
-  );
+  return <input type={type} className={input({ className })} {...props} />;
 }
 export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return <select className={input({ className: 'select-control ' + className })} {...props} />;
@@ -181,6 +175,7 @@ export function Field({
     isValidElement<{ 'aria-labelledby'?: string; 'aria-describedby'?: string }>(child) &&
     ((typeof child.type === 'string' && ['input', 'textarea', 'select'].includes(child.type)) ||
       child.type === Input ||
+      child.type === Checkbox ||
       child.type === Select ||
       child.type === Textarea)
       ? cloneElement(child, {

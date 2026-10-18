@@ -158,12 +158,6 @@ export function TopicDetail({
           />
         </Tabs.Content>
         <Tabs.Content value="tasks">
-          <div className="section-heading">
-            <h2>All tasks and subtasks</h2>
-            <Button size="sm" onClick={() => edit({ kind: 'task', topicId: topic.id })}>
-              New task
-            </Button>
-          </div>
           <TaskList
             showContext={false}
             onOpenSource={openSource}

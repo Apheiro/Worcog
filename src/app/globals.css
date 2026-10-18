@@ -27,6 +27,8 @@
   --primary: #25272b;
   --primary-hover: #41444a;
   --on-primary: #fff;
+  --checkbox-fill: var(--primary);
+  --checkbox-mark: #fff;
   --on-danger: #fff;
   --danger-fill: #aa3030;
   --danger-fill-hover: #8d2525;
@@ -57,6 +59,7 @@
   --primary: #e8e8e8;
   --primary-hover: #d0d0d0;
   --on-primary: #1a1a1a;
+  --checkbox-fill: var(--border-strong);
   --danger-fill: #555555;
   --danger-fill-hover: #444444;
   --warning-ink: #dedede;

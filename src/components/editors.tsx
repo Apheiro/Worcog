@@ -1,4 +1,5 @@
 'use client';
+import { Checkbox } from './checkbox';
 import { IconTrash } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useState, type FormEvent } from 'react';
@@ -71,8 +72,7 @@ function Checks({
         <div className="check-list">
           {options.map((option) => (
             <label key={option.id}>
-              <Input
-                type="checkbox"
+              <Checkbox
                 name={name}
                 value={option.id}
                 defaultChecked={selected.includes(option.id)}
@@ -492,8 +492,8 @@ export function EntityEditor({
                   </p>
                 )}
                 <label className="check-inline mb-4">
-                  <Input type="checkbox" name="allowDuplicate" /> Allow a separate source even if
-                  the identifier or link matches
+                  <Checkbox name="allowDuplicate" /> Allow a separate source even if the identifier
+                  or link matches
                 </label>
               </>
             )}

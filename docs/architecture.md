@@ -18,7 +18,11 @@ live in `src/components/routes/`; dialogs are loaded dynamically.
 Component styles are UnoCSS shortcuts grouped by responsibility in `src/styles/`
 and registered in `uno.config.ts`. CVA defines shared button, badge, modal,
 navigation and form-control variants. `Input`, `Select` and `Textarea` in
-`ui.tsx` centralize native controls; `Field` associates labels and hints.
+`ui.tsx` centralize native controls; `Field` associates labels and hints. Shared `Checkbox` controls use Radix UI
+with native form participation and checked/indeterminate/disabled states.
+`TaskRow` composes this checkbox with task details, linked resources and actions
+in both task views. Its checked mark stays white in both themes using dedicated
+checkbox tokens; checked fill adapts to each theme for contrast.
 `globals.css` contains only theme tokens, document defaults, accessibility
 rules and external Toastify overrides. Responsive and interactive component
 styles belong with the UnoCSS shortcuts rather than global CSS selectors.
