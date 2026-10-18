@@ -49,8 +49,8 @@ export default function Route() {
     <Section>
       {
         <>
-          <div className="toolbar">
-            <span className="muted text-sm">{topics.length} topics</span>
+          <div className="toolbar flex items-center [gap:10px] [margin:19px_0] [&_.select-trigger]:[font-size:12px] [&_.select-trigger]:[padding:6px_9px] [&_.select-trigger]:[max-width:240px] [@media(max-width:800px)]:flex-wrap">
+            <span className="muted [color:var(--muted)] text-sm">{topics.length} topics</span>
             <label className="ml-auto text-sm" htmlFor="topic-sort">
               Sort by
             </label>

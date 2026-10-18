@@ -40,13 +40,16 @@ export function SourceDetail({
   return (
     <Modal title={source.title} onClose={close} wide>
       {error && (
-        <p className="notice mb-4" role="alert">
+        <p
+          className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] mb-4"
+          role="alert"
+        >
           {error}
         </p>
       )}
       <div className="flex items-center gap-2 flex-wrap mb-5">
         <Badge>{human(source.kind)}</Badge>
-        <span className="muted">{source.platform}</span>
+        <span className="muted [color:var(--muted)]">{source.platform}</span>
         <Button className="ml-auto" onClick={edit}>
           Edit / link topics
         </Button>
@@ -59,7 +62,7 @@ export function SourceDetail({
           </Button>
         )}
       </div>
-      <dl className="metadata">
+      <dl className="metadata grid [grid-template-columns:100px_minmax(0,_1fr)] [font-size:12px] [gap:10px_15px] [&_dt]:[color:var(--muted)] [&_dd]:m-0">
         <dt>Identifier</dt>
         <dd>{source.identifier || 'Not provided'}</dd>
         <dt>Event</dt>
@@ -81,20 +84,23 @@ export function SourceDetail({
             {w.topics.find((t) => t.id === id)?.title}
           </Button>
         ))}
-        {!topicIds.length && <p className="muted">No linked topics.</p>}
+        {!topicIds.length && <p className="muted [color:var(--muted)]">No linked topics.</p>}
       </div>
       <h3 className="mt-5">Annotations citing this source</h3>
       {annotations.length ? (
         annotations.map((a) => (
-          <blockquote className="revision" key={a.id}>
-            <time className="row-subtitle">
+          <blockquote
+            className="revision [border-left:2px_solid_var(--border)] [margin:10px_0] [padding:6px_12px] [background:var(--surface-soft)] [font-size:12px]"
+            key={a.id}
+          >
+            <time className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
               {formatTimestamp(a.eventAt)} · {human(a.kind)}
             </time>
             <p className="whitespace-pre-wrap">{a.text}</p>
           </blockquote>
         ))
       ) : (
-        <p className="muted my-3">No annotations cite this source yet.</p>
+        <p className="muted [color:var(--muted)] my-3">No annotations cite this source yet.</p>
       )}
       <h3 className="mt-5">Linked tasks</h3>
       {tasks.length ? (
@@ -104,7 +110,7 @@ export function SourceDetail({
           </p>
         ))
       ) : (
-        <p className="muted my-3">No linked tasks.</p>
+        <p className="muted [color:var(--muted)] my-3">No linked tasks.</p>
       )}
       <h3 className="mt-5">Files</h3>
       <FileList
@@ -156,11 +162,18 @@ export function FileRelationships({
   return (
     <Modal title="File relationships" description={file.originalName} onClose={close}>
       <form onSubmit={submit}>
-        {wb.error && <p className="notice mb-5">{wb.error}</p>}
+        {wb.error && (
+          <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] mb-5">
+            {wb.error}
+          </p>
+        )}
         {groups.map((group) => (
-          <fieldset className="checks" key={group.name}>
+          <fieldset
+            className="checks [border:1px_solid_var(--border)] [border-radius:4px] [padding:9px_12px_12px] [margin:0_0_18px] min-w-0 [&_legend]:[font-size:11px] [&_legend]:[color:var(--muted)] [&_legend]:[padding:0_5px]"
+            key={group.name}
+          >
             <legend>{group.title}</legend>
-            <div className="check-list">
+            <div className="check-list [max-height:145px] overflow-auto flex flex-col [gap:6px] [&_label]:flex [&_label]:items-start [&_label]:[gap:8px] [&_label]:[font-size:12px] [&_label]:[overflow-wrap:anywhere] [&_.checkbox]:[margin-top:2px]">
               {group.items.map((item) => (
                 <label key={item.id}>
                   <Checkbox
@@ -171,15 +184,17 @@ export function FileRelationships({
                   <span>{item.title}</span>
                 </label>
               ))}
-              {!group.items.length && <p className="muted text-sm">No items yet.</p>}
+              {!group.items.length && (
+                <p className="muted [color:var(--muted)] text-sm">No items yet.</p>
+              )}
             </div>
           </fieldset>
         ))}
-        <p className="muted text-sm">
+        <p className="muted [color:var(--muted)] text-sm">
           Removing links keeps the managed copy on disk. Files with no links remain available in the
           Files view.
         </p>
-        <div className="form-footer">
+        <div className="form-footer flex [justify-content:flex-end] [gap:9px] [margin-top:24px] [padding-top:18px] [border-top:1px_solid_var(--border)]">
           <Button
             type="button"
             tone="danger"

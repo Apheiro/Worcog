@@ -17,12 +17,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
       </head>
       <body>
-        <a className="skip-link" href="#main-content">
+        <a
+          className="skip-link fixed [top:-100px] [left:240px] [background:var(--surface)] [color:var(--ink)] [z-index:200] [padding:10px] [border:1px_solid] [&:focus]:[top:10px]"
+          href="#main-content"
+        >
           Skip to content
         </a>
         <Suspense fallback={<p role="status">Opening workspace…</p>}>
           <Worklog>
-          {/* asddassad */}
+            {/* asddassad */}
             {children}
           </Worklog>
         </Suspense>

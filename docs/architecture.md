@@ -15,8 +15,10 @@ records do not require build-time dynamic routes. Direct entry, reload and
 browser history preserve the selected topic. Section queries and presentation
 live in `src/components/routes/`; dialogs are loaded dynamically.
 
-Component styles are UnoCSS shortcuts grouped by responsibility in `src/styles/`
-and registered in `uno.config.ts`. CVA defines shared button, badge, modal,
+Component styles use UnoCSS utilities directly in each component file. CVA
+keeps reusable component variants alongside their markup. Only theme tokens
+and document defaults are global; `uno.config.ts` registers no component
+shortcuts. CVA defines shared button, badge, modal,
 navigation and form-control variants. `Input` and `Textarea` in `ui.tsx`
 centralize native controls; `Field` associates labels and hints. `Select` uses
 Radix UI with a simple options/value/onValueChange API, portaled theme-aware
@@ -27,8 +29,9 @@ with native form participation and checked/indeterminate/disabled states.
 in both task views. Its checked mark stays white in both themes using dedicated
 checkbox tokens; checked fill adapts to each theme for contrast.
 `globals.css` contains only theme tokens, document defaults, accessibility
-rules and external Toastify overrides. Responsive and interactive component
-styles belong with the UnoCSS shortcuts rather than global CSS selectors.
+rules. Toastify appearance is defined in `Notifications`. Responsive and interactive component
+styles belong directly in their components rather than global CSS selectors
+or separate style maps.
 
 The requested CVA beta is published under the renamed `cva` package:
 `1.0.0-beta.12` (Apache-2.0). Its installed type definitions were checked and the

@@ -1208,6 +1208,7 @@ test('Radix selects support keyboard dismissal, empty filters and original form 
   await theme.focus();
   await page.keyboard.press('Space');
   await expect(page.getByRole('listbox')).toBeVisible();
+  await expect(page.getByRole('option', { name: 'System', exact: true })).toBeFocused();
   await page.keyboard.press('End');
   await page.keyboard.press('Enter');
   await expect(theme).toHaveText('System');
@@ -1265,4 +1266,19 @@ test('Radix selects support keyboard dismissal, empty filters and original form 
   );
   expect(saved?.parentId).toBeNull();
   expect(saved?.priority).toBe('high');
+  await chooseOption(theme, 'dark');
+  await page.getByRole('tab', { name: /Tasks/ }).click();
+  const status = page
+    .getByRole('group', { name: 'Independent task', exact: true })
+    .getByRole('combobox');
+  await status.click();
+  const menu = page.getByRole('listbox');
+  await expect(menu).toHaveCSS('background-color', 'rgb(28, 28, 28)');
+  await expect(menu).toHaveCSS('border-top-width', '1px');
+  await expect(menu.getByRole('option', { name: 'Pending', exact: true })).toHaveCSS(
+    'padding-left',
+    '9px',
+  );
+  await page.screenshot({ path: 'test-results/select-task-live.png' });
+  await page.keyboard.press('Escape');
 });

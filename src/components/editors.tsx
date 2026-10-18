@@ -66,10 +66,10 @@ function Checks({
   selected: string[];
 }) {
   return (
-    <fieldset className="checks">
+    <fieldset className="checks [border:1px_solid_var(--border)] [border-radius:4px] [padding:9px_12px_12px] [margin:0_0_18px] min-w-0 [&_legend]:[font-size:11px] [&_legend]:[color:var(--muted)] [&_legend]:[padding:0_5px]">
       <legend>{title}</legend>
       {options.length ? (
-        <div className="check-list">
+        <div className="check-list [max-height:145px] overflow-auto flex flex-col [gap:6px] [&_label]:flex [&_label]:items-start [&_label]:[gap:8px] [&_label]:[font-size:12px] [&_label]:[overflow-wrap:anywhere] [&_.checkbox]:[margin-top:2px]">
           {options.map((option) => (
             <label key={option.id}>
               <Checkbox
@@ -82,7 +82,7 @@ function Checks({
           ))}
         </div>
       ) : (
-        <p className="muted text-sm">No items available yet.</p>
+        <p className="muted [color:var(--muted)] text-sm">No items available yet.</p>
       )}
     </fieldset>
   );
@@ -230,7 +230,11 @@ export function EntityEditor({
       wide
     >
       <form onSubmit={submit}>
-        {error && <p className="notice mb-5">{error}</p>}
+        {error && (
+          <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] mb-5">
+            {error}
+          </p>
+        )}
         {editor.kind === 'source' && !editor.id && w.sources.length > 0 && (
           <Field
             label="Reuse an existing reference"
@@ -265,7 +269,7 @@ export function EntityEditor({
             )}
             {(editor.kind === 'topic' || editor.kind === 'task') && (
               <>
-                <div className="form-grid">
+                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                   <Field label="Status">
                     <Select
                       name="status"
@@ -316,7 +320,7 @@ export function EntityEditor({
                 <Field label="Participants">
                   <Input name="participants" defaultValue={topic?.participants} />
                 </Field>
-                <div className="form-grid">
+                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                   <Field label="Next action">
                     <Input name="nextAction" defaultValue={topic?.nextAction} />
                   </Field>
@@ -334,7 +338,7 @@ export function EntityEditor({
             )}
             {editor.kind === 'task' && (
               <>
-                <div className="form-grid">
+                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                   <Field label="Topic">
                     <Select
                       name="topicId"
@@ -363,7 +367,7 @@ export function EntityEditor({
                 <Field label="Description">
                   <Textarea name="description" rows={3} defaultValue={task?.description} />
                 </Field>
-                <div className="form-grid">
+                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                   <Field label="Start date">
                     <Input type="date" name="startDate" defaultValue={task?.startDate ?? ''} />
                   </Field>
@@ -371,7 +375,7 @@ export function EntityEditor({
                     <Input type="date" name="dueDate" defaultValue={task?.dueDate ?? ''} />
                   </Field>
                 </div>
-                <div className="form-grid">
+                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                   <Field label="Repeat">
                     <Select
                       name="recurrence"
@@ -383,7 +387,7 @@ export function EntityEditor({
                     <Input name="nextAction" defaultValue={task?.nextAction} />
                   </Field>
                 </div>
-                <p className="muted text-sm mb-4">
+                <p className="muted [color:var(--muted)] text-sm mb-4">
                   Recurring tasks create separate instances through today. Monthly series keep the
                   original day, clamped to the end of shorter months. Cancel the original task to
                   stop a series.
@@ -397,7 +401,7 @@ export function EntityEditor({
               </>
             )}
             {(editor.kind === 'activity' || editor.kind === 'source') && (
-              <div className="form-grid">
+              <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                 <Field label="Type">
                   <Select
                     name="kind"
@@ -446,7 +450,7 @@ export function EntityEditor({
                   selected={activity?.taskIds ?? []}
                 />
                 {activity && (
-                  <p className="muted text-sm">
+                  <p className="muted [color:var(--muted)] text-sm">
                     Created {dayjs(activity.createdAt).format('MMM D, YYYY HH:mm')}.{' '}
                     {activity.revisions.length} previous correction(s).
                   </p>
@@ -455,7 +459,7 @@ export function EntityEditor({
             )}
             {editor.kind === 'source' && (
               <>
-                <div className="form-grid">
+                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                   <Field label="System / platform">
                     <Input
                       name="platform"
@@ -485,12 +489,12 @@ export function EntityEditor({
                   <Textarea name="notes" rows={3} defaultValue={source?.notes} />
                 </Field>
                 {matches.length > 0 && (
-                  <p className="notice">
+                  <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px]">
                     Similar references exist: {matches.map((s) => s.title).join(', ')}. Consider
                     reusing a saved source.
                   </p>
                 )}
-                <label className="check-inline mb-4">
+                <label className="check-inline flex items-start [gap:8px] [font-size:12px] [overflow-wrap:anywhere] [&_.checkbox]:[margin-top:2px] mb-4">
                   <Checkbox name="allowDuplicate" /> Allow a separate source even if the identifier
                   or link matches
                 </label>
@@ -533,10 +537,12 @@ export function EntityEditor({
                   {f.originalName}
                 </Button>
               ))}
-            <p className="muted text-xs mt-2">Associate documents from Files → Relationships.</p>
+            <p className="muted [color:var(--muted)] text-xs mt-2">
+              Associate documents from Files → Relationships.
+            </p>
           </section>
         )}
-        <div className="form-footer">
+        <div className="form-footer flex [justify-content:flex-end] [gap:9px] [margin-top:24px] [padding-top:18px] [border-top:1px_solid_var(--border)]">
           {item && editor.id && (
             <Button
               type="button"

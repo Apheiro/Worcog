@@ -28,8 +28,8 @@ export default function Route() {
     <Section>
       {
         <>
-          <div className="toolbar">
-            <div className="segmented">
+          <div className="toolbar flex items-center [gap:10px] [margin:19px_0] [&_.select-trigger]:[font-size:12px] [&_.select-trigger]:[padding:6px_9px] [&_.select-trigger]:[max-width:240px] [@media(max-width:800px)]:flex-wrap">
+            <div className="segmented inline-flex [border:1px_solid_var(--border)] [border-radius:4px] overflow-hidden [background:var(--surface)] [&_button]:[padding:6px_13px] [&_button]:[font-size:12px] [&_button]:[background:transparent] [&_button]:border-0 [&_button]:[border-right:1px_solid_var(--border)] [&_button]:[color:var(--muted)] [&_button:last-child]:border-0 [&_button[aria-pressed=true]]:[background:var(--selected)] [&_button[aria-pressed=true]]:[color:var(--ink)]">
               {['open', 'all', 'overdue', 'blocked'].map((view) => (
                 <button
                   key={view}
@@ -40,7 +40,9 @@ export default function Route() {
                 </button>
               ))}
             </div>
-            <span className="muted text-sm ml-auto">{tasks.length} tasks · grouped by parent</span>
+            <span className="muted [color:var(--muted)] text-sm ml-auto">
+              {tasks.length} tasks · grouped by parent
+            </span>
           </div>
           <TaskList
             onOpenSource={setSourceId}

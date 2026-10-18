@@ -32,7 +32,7 @@ function ReleaseLink({ href, children }: { href?: string; children?: ReactNode }
 export function ReleaseNotes({ notes }: { notes: string }) {
   return (
     <Markdown
-      className="release-notes"
+      className="release-notes [overflow-wrap:anywhere] [line-height:1.6] [font-size:13px] [&_:is(h1,_h2,_h3,_h4,_p,_ul,_ol,_pre,_blockquote)]:[margin:12px_0] [&_:is(ul,_ol)]:[padding-left:22px] [&_pre]:[white-space:pre-wrap] [&_pre]:[background:var(--surface-soft)] [&_pre]:[padding:10px] [&_a]:[text-decoration:underline] [&_table]:w-full [&_table]:[font-size:12px]"
       options={{ disableParsingRawHTML: true, overrides: { a: ReleaseLink, img: () => null } }}
     >
       {notes || 'No release notes were provided.'}
@@ -42,16 +42,16 @@ export function ReleaseNotes({ notes }: { notes: string }) {
 export function ApplicationUpdates({ updates: u }: { updates: UpdateController }) {
   const [token, setToken] = useState('');
   return (
-    <section className="section mt-6">
-      <div className="section-heading">
+    <section className="section [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden [&_.table-wrap]:border-0 [&_.table-wrap]:rounded-none [&_.empty]:border-0 [&_.empty]:rounded-none [&_.empty]:m-0 mt-6">
+      <div className="section-heading [padding:16px_20px] flex items-center justify-between [gap:15px] [min-height:58px] [border-bottom:1px_solid_var(--border)]">
         <h2>Application updates</h2>
       </div>
-      <div className="settings-body">
+      <div className="settings-body [padding:21px] [font-size:13px]">
         <p>
           Download verified Windows x64 updates from Apheiro/Worklog on GitHub. Updates are
           installed manually.
         </p>
-        <p className="muted text-sm my-3">
+        <p className="muted [color:var(--muted)] text-sm my-3">
           Installed: {u.status?.currentVersion ?? '…'} · Profile: {u.status?.profile ?? '…'} ·{' '}
           {u.status?.tokenSaved ? 'GitHub token saved' : 'Anonymous access'}
         </p>
@@ -67,7 +67,7 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
           {u.available && <Button onClick={u.show}>View update {u.available.version}</Button>}
         </div>
         {!u.status?.platformSupported && u.status && (
-          <p className="muted text-sm">
+          <p className="muted [color:var(--muted)] text-sm">
             Downloading application updates is supported on Windows x64.
           </p>
         )}
@@ -93,14 +93,14 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
               disabled={!!u.busy || !u.status?.credentialSupported}
             />
           </Field>
-          <p className="muted text-sm my-3">
+          <p className="muted [color:var(--muted)] text-sm my-3">
             Public repositories work without a token. For a private repository, use a fine-grained
             personal access token restricted to Apheiro/Worklog with Contents: Read. This also
             permits reading repository source code; GitHub does not provide a releases-only read
             permission here. Production tokens stay in Windows Credential Manager.
           </p>
           {u.status?.profile === 'development' && (
-            <p className="notice my-3">
+            <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] my-3">
               Development profile: this token is stored unencrypted in this browser&apos;s separate
               localStorage entry. It is never copied to or from Windows production credentials.
               Requests still go to the real GitHub repository through Rust.
@@ -122,7 +122,11 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
             </Button>
           </div>
         </form>
-        {u.error && <p className="notice mt-4">{u.error}</p>}
+        {u.error && (
+          <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] mt-4">
+            {u.error}
+          </p>
+        )}
       </div>
     </section>
   );
@@ -131,30 +135,41 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
   if (!u.open || !u.available) return null;
   return (
     <Modal
-      className="update-modal"
+      className="update-modal [&.update-modal]:flex [&.update-modal]:flex-col [&.update-modal]:overflow-hidden [&.update-modal]:[top:20px] [&.update-modal]:[transform:translateX(-50%)] [&.update-modal]:[height:min(780px,_calc(100dvh_-_140px))] [&.update-modal]:[max-height:calc(100dvh_-_140px)] [&.update-modal]:[&_>_.modal-header]:shrink-0 [&.update-modal]:[&_>_.muted]:shrink-0 [&.update-modal]:[&_.form-footer]:shrink-0"
       title={`Worklog ${u.available.version} is available`}
       description={`Installed: ${u.available.currentVersion} · Download: ${u.available.filename} · ${(u.available.size / 1024 / 1024).toFixed(1)} MiB`}
       onClose={u.close}
       wide
     >
-      <div className="update-dialog-body">
-        <ScrollArea.Root className="release-scroll">
-          <ScrollArea.Viewport className="release-viewport" tabIndex={0} aria-label="Release notes">
+      <div className="update-dialog-body flex flex-col flex-1 [min-height:0] overflow-hidden [&_>_p]:shrink-0">
+        <ScrollArea.Root className="release-scroll flex-1 [min-height:80px] overflow-hidden">
+          <ScrollArea.Viewport
+            className="release-viewport h-full w-full [padding-right:16px] [&:focus-visible]:[outline:2px_solid_var(--focus)] [&:focus-visible]:[outline-offset:-2px]"
+            tabIndex={0}
+            aria-label="Release notes"
+          >
             <ReleaseNotes notes={u.available.notes} />
           </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar orientation="vertical" className="release-scrollbar">
-            <ScrollArea.Thumb className="release-thumb" />
+          <ScrollArea.Scrollbar
+            orientation="vertical"
+            className="release-scrollbar flex [width:8px] [background:var(--surface-soft)] [padding:2px]"
+          >
+            <ScrollArea.Thumb className="release-thumb flex-1 [background:var(--border-strong)] [border-radius:4px]" />
           </ScrollArea.Scrollbar>
         </ScrollArea.Root>
-        {u.error && <p className="notice my-3">{u.error}</p>}
+        {u.error && (
+          <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] my-3">
+            {u.error}
+          </p>
+        )}
         {u.receipt && (
           <section
-            className="update-receipt"
+            className="update-receipt [&_ol]:[padding-left:22px] overflow-auto [flex-shrink:1] [min-height:80px] [font-size:12px] [&_dd]:[overflow-wrap:anywhere] [&:focus-visible]:[outline:2px_solid_var(--focus)] [&:focus-visible]:[outline-offset:-2px]"
             tabIndex={0}
             aria-label="Manual replacement instructions"
           >
             <h3>Verified download</h3>
-            <dl className="metadata my-3">
+            <dl className="metadata grid [grid-template-columns:100px_minmax(0,_1fr)] [font-size:12px] [gap:10px_15px] [&_dt]:[color:var(--muted)] [&_dd]:m-0 my-3">
               <dt>New executable</dt>
               <dd>{u.receipt.downloadPath}</dd>
               <dt>Running executable</dt>
@@ -174,11 +189,11 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
             </ol>
           </section>
         )}
-        <p className="muted text-xs my-3">
+        <p className="muted [color:var(--muted)] text-xs my-3">
           SHA-256 checks integrity against GitHub metadata. It does not replace an independent
           publisher signature. Worklog will not close, run or replace executables automatically.
         </p>
-        <div className="form-footer">
+        <div className="form-footer flex [justify-content:flex-end] [gap:9px] [margin-top:24px] [padding-top:18px] [border-top:1px_solid_var(--border)]">
           <Button disabled={!!u.busy} onClick={u.close}>
             Close
           </Button>

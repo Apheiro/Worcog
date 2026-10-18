@@ -11,13 +11,13 @@ export default function Route() {
   return (
     <Section>
       {
-        <div className="settings">
+        <div className="settings [max-width:900px]">
           <ApplicationUpdates updates={updates} />
-          <section className="section">
-            <div className="section-heading">
+          <section className="section [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden [&_.table-wrap]:border-0 [&_.table-wrap]:rounded-none [&_.empty]:border-0 [&_.empty]:rounded-none [&_.empty]:m-0">
+            <div className="section-heading [padding:16px_20px] flex items-center justify-between [gap:15px] [min-height:58px] [border-bottom:1px_solid_var(--border)]">
               <h2>Back up and recover</h2>
             </div>
-            <div className="settings-body">
+            <div className="settings-body [padding:21px] [font-size:13px]">
               <p>
                 Backups and exports contain a versioned JSON manifest and all managed files in a ZIP
                 archive. Keep an export on another device for protection against disk loss.
@@ -55,15 +55,15 @@ export default function Route() {
                   <IconUpload size={17} /> Import / restore…
                 </Button>
               </div>
-              <p className="muted text-sm">
+              <p className="muted [color:var(--muted)] text-sm">
                 Restore validates the archive, shows a summary, requests confirmation, and creates a
                 safety backup before replacing the workspace. It does not merge records. Archives
                 are unencrypted; store them privately.
               </p>
             </div>
           </section>
-          <section className="section mt-6">
-            <div className="section-heading">
+          <section className="section [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden [&_.table-wrap]:border-0 [&_.table-wrap]:rounded-none [&_.empty]:border-0 [&_.empty]:rounded-none [&_.empty]:m-0 mt-6">
+            <div className="section-heading [padding:16px_20px] flex items-center justify-between [gap:15px] [min-height:58px] [border-bottom:1px_solid_var(--border)]">
               <h2>Storage locations</h2>
               <Button
                 size="sm"
@@ -75,9 +75,9 @@ export default function Route() {
                 Show locations
               </Button>
             </div>
-            <div className="settings-body">
+            <div className="settings-body [padding:21px] [font-size:13px]">
               {storage ? (
-                <dl className="metadata">
+                <dl className="metadata grid [grid-template-columns:100px_minmax(0,_1fr)] [font-size:12px] [gap:10px_15px] [&_dt]:[color:var(--muted)] [&_dd]:m-0">
                   {Object.entries(storage).map(([key, value]) => (
                     <div className="contents" key={key}>
                       <dt>{key}</dt>
@@ -86,7 +86,7 @@ export default function Route() {
                   ))}
                 </dl>
               ) : (
-                <p className="muted">
+                <p className="muted [color:var(--muted)]">
                   Locations are resolved by Tauri for the current operating system.
                 </p>
               )}
@@ -97,11 +97,11 @@ export default function Route() {
               </p>
             </div>
           </section>
-          <section className="section mt-6">
-            <div className="section-heading">
+          <section className="section [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden [&_.table-wrap]:border-0 [&_.table-wrap]:rounded-none [&_.empty]:border-0 [&_.empty]:rounded-none [&_.empty]:m-0 mt-6">
+            <div className="section-heading [padding:16px_20px] flex items-center justify-between [gap:15px] [min-height:58px] [border-bottom:1px_solid_var(--border)]">
               <h2>Permanent deletion</h2>
             </div>
-            <div className="settings-body">
+            <div className="settings-body [padding:21px] [font-size:13px]">
               <p>
                 Delete individual items using their trash buttons. Delete all removes every topic,
                 task, source, annotation and managed file. You can also include local backups in the

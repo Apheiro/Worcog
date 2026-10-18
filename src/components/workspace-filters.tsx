@@ -32,9 +32,12 @@ export function WorkspaceFilters({
     ([key, value]) => key !== 'query' && value?.trim(),
   ).length;
   return (
-    <section className="filters" aria-label="Search and filters">
-      <div className="filters-header">
-        <div className="search-field">
+    <section
+      className="filters [background:var(--surface)] [border:1px_solid_var(--border)] [border-radius:5px] [margin-bottom:24px]"
+      aria-label="Search and filters"
+    >
+      <div className="filters-header flex items-stretch">
+        <div className="search-field flex flex-1 min-w-0 [gap:10px] items-center [padding:3px_15px] [color:var(--muted)] [&_>_svg]:shrink-0 [&_input]:border-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:[padding:10px_0] [&_input]:[background:none]">
           <IconSearch size={17} />
           <Input
             aria-label="Search text"
@@ -47,18 +50,26 @@ export function WorkspaceFilters({
           />
         </div>
         <Button
-          className="filters-toggle"
+          className="filters-toggle shrink-0 border-0 [border-left:1px_solid_var(--border)] rounded-none [padding:10px_16px] [&[aria-expanded=true]_.filters-chevron]:[transform:rotate(180deg)]"
           aria-expanded={expanded}
           aria-controls={controlsId}
           onClick={() => setExpanded((open) => !open)}
         >
           <IconFilter size={17} aria-hidden="true" />
           <span>Filters</span>
-          {activeCount > 0 && <span className="badge">{activeCount} active</span>}
+          {activeCount > 0 && (
+            <span className="badge inline-flex items-center [background:var(--surface-soft)] [color:var(--secondary)] [border:1px_solid_var(--border)] whitespace-nowrap [font-size:11px] [font-weight:550] [border-radius:4px] [padding:2px_7px] [line-height:1.6]">
+              {activeCount} active
+            </span>
+          )}
           <IconChevronDown className="filters-chevron" size={17} aria-hidden="true" />
         </Button>
       </div>
-      <div className="filter-controls" id={controlsId} hidden={!expanded}>
+      <div
+        className="filter-controls [&[hidden]]:hidden [border-top:1px_solid_var(--border)] flex items-end [gap:12px] flex-wrap [padding:14px_16px] [&_.field]:m-0 [&_.field]:[min-width:100px] [&_.field]:[max-width:170px] [&_.field]:flex-1 [&_.field_>_span]:[font-size:10px] [&_.field_>_span]:uppercase [&_.field_>_span]:[letter-spacing:0.5px] [&_.field_>_span]:[color:var(--muted)] [&_input]:[font-size:12px] [&_input]:[min-height:34px] [&_input]:[padding:6px_7px] [&_input]:w-full [&_.select-trigger]:[font-size:12px] [&_.select-trigger]:[min-height:34px] [&_.select-trigger]:[padding:6px_7px] [&_.select-trigger]:w-full [@media(max-width:1150px)]:[&_.field]:[min-width:110px] [@media(max-width:800px)]:[&_.field]:[min-width:120px] [@media(max-width:800px)]:[&_.field]:[max-width:none]"
+        id={controlsId}
+        hidden={!expanded}
+      >
         {page === 'search' && (
           <Field label="Entity">
             <Select
