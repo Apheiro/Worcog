@@ -1132,6 +1132,7 @@ test('shared task checkboxes distinguish completion in both themes and recover f
     .click();
   await page.getByRole('button', { name: 'Checkbox topic', exact: true }).click();
   await addTask(page, 'Polished task');
+  await addTask(page, 'Pending task');
   await page.getByRole('tab', { name: /Tasks/ }).click();
   await expect(page.getByRole('button', { name: 'New task', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Task', exact: true })).toBeVisible();
@@ -1140,11 +1141,14 @@ test('shared task checkboxes distinguish completion in both themes and recover f
   for (const theme of ['light', 'dark']) {
     await page.getByRole('combobox', { name: 'Color theme' }).selectOption(theme);
     await expect(checkbox).not.toBeChecked();
+    await expect(checkbox.locator('.checkbox-indicator')).toHaveCount(0);
     const pendingColor = await checkbox.evaluate((el) => getComputedStyle(el).color);
     await checkbox.focus();
     await expect(checkbox).toBeFocused();
     await page.keyboard.press('Space');
     await expect(checkbox).toBeChecked();
+    await expect(checkbox.locator('.checkbox-check')).toBeVisible();
+    await expect(checkbox.locator('.checkbox-mixed')).toBeHidden();
     await expect(checkbox).toBeEnabled();
     await expect(row.getByLabel('Status of Polished task')).toHaveValue('completed');
     await expect(row.locator('.title-link')).toHaveCSS('text-decoration-line', 'line-through');
@@ -1163,6 +1167,7 @@ test('shared task checkboxes distinguish completion in both themes and recover f
     expect(contrast).toBeGreaterThanOrEqual(4.5);
     await page.keyboard.press('Space');
     await expect(checkbox).not.toBeChecked();
+    await expect(checkbox.locator('.checkbox-indicator')).toHaveCount(0);
     await expect(checkbox).toBeEnabled();
     await expect(row.getByLabel('Status of Polished task')).toHaveValue('pending');
   }

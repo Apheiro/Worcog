@@ -18,10 +18,7 @@ type CheckboxProps = Omit<ComponentPropsWithRef<typeof Primitive.Root>, 'childre
 export function Checkbox({ appearance, className, ...props }: CheckboxProps) {
   return (
     <Primitive.Root className={checkbox({ appearance, className })} {...props}>
-      <Primitive.Indicator
-        forceMount={appearance === 'task' ? true : undefined}
-        className="checkbox-indicator"
-      >
+      <Primitive.Indicator className="checkbox-indicator">
         <IconCheck size={14} stroke={2.5} aria-hidden="true" className="checkbox-check" />
         <IconMinus size={14} stroke={2.5} aria-hidden="true" className="checkbox-mixed" />
       </Primitive.Indicator>
