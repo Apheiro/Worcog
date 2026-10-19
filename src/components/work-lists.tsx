@@ -16,6 +16,7 @@ import { Badge, Button, Empty, Select } from './core';
 import { sourceKindLabel } from '../domain/sources';
 import { selectOptions, activityKinds, human } from '../domain/options';
 import { assignedNames } from '../domain/responsibles';
+import { TopicInactivityIndicator } from './topic-inactivity-indicator';
 import { CategoryTag } from './category-tag';
 import { ResourceTasks } from './resource-tasks';
 import { TaskRow, type TaskRowProps } from './task-row';
@@ -36,7 +37,8 @@ export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: strin
         <tbody>
           {topics.map((topic) => (
             <tr key={topic.id}>
-              <td>
+              <td className="relative overflow-hidden">
+                <TopicInactivityIndicator topic={topic} edge />
                 <Button tone="link" size="auto" onClick={() => open(topic.id)}>
                   {topic.title}
                 </Button>

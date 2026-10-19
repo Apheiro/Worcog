@@ -1,4 +1,5 @@
 'use client';
+import { TopicInactivityIndicator } from './topic-inactivity-indicator';
 import { CategoryTag } from './category-tag';
 import { Card } from './core/card';
 import * as Tabs from '@radix-ui/react-tabs';
@@ -53,6 +54,7 @@ export function TopicDetail({
           </p>
           <h1 className="break-words">{topic.title}</h1>
           <div className="flex gap-2 items-center flex-wrap mt-3">
+            <TopicInactivityIndicator topic={topic} />
             <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
               {human(topic.status)}
             </Badge>

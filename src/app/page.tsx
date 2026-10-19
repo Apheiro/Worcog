@@ -1,4 +1,6 @@
 'use client';
+import { TopicInactivityIndicator } from '../components/topic-inactivity-indicator';
+import { topicInactivity } from '../application/topic-inactivity';
 import { Card, CardHeader } from '../components/core/card';
 import { IconArrowRight, IconClock, IconFlag, IconLock, IconProgress } from '@tabler/icons-react';
 import dayjs from 'dayjs';
@@ -10,7 +12,7 @@ import { TopicTable } from '../components/work-lists';
 import { useWorklog } from '../providers/worklog';
 
 export default function Page() {
-  const { w, openTopic, setEditor, enabled } = useWorklog();
+  const { w, openTopic, setEditor, enabled, inactivitySettings } = useWorklog();
   const newTopic = () => setEditor({ kind: 'topic' });
   const topics = w.topics.filter((t) => !t.archived);
   const tasks = w.tasks.filter(
@@ -20,7 +22,7 @@ export default function Page() {
   const blocked = tasks.filter((t) => t.status === 'blocked');
   const active = topics.filter((t) => t.status === 'in_progress');
   const stale = topics.filter(
-    (t) => isOpen(t.status) && dayjs(t.updatedAt).isBefore(dayjs().subtract(14, 'day')),
+    (t) => isOpen(t.status) && topicInactivity(t.updatedAt, inactivitySettings).stale,
   );
   const dueSoon = tasks.filter(
     (t) =>
@@ -201,18 +203,20 @@ export default function Page() {
               <Button
                 tone="row"
                 size="auto"
+                className="relative overflow-hidden [&.action-row]:[border-radius:inherit]"
                 key={topic.id}
                 onClick={() => openTopic(topic.id)}
               >
+                <TopicInactivityIndicator topic={topic} edge />
                 <strong>{topic.title}</strong>
                 <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere] ml-auto">
-                  Over 14 days
+                  {inactivitySettings.days}+ days without activity
                 </span>
               </Button>
             ))
           ) : (
             <p className="section-empty [padding:30px_22px] [color:var(--muted)] [font-size:13px]">
-              No open topics have gone more than 14 days without an update.
+              No open topics have reached {inactivitySettings.days} days without an update.
             </p>
           )}
         </Card>

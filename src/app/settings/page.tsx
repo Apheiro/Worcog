@@ -3,6 +3,7 @@ import { Card, CardHeader, CardContent } from '../../components/core/card';
 import { IconDatabase, IconDownload, IconUpload } from '@tabler/icons-react';
 import { native } from '../../infrastructure/native';
 import { notifications } from '../../infrastructure/notifications';
+import { TopicInactivitySettingsForm } from '../../components/topic-inactivity-settings';
 import { ApplicationUpdates } from '../../components/application-updates';
 import { Button } from '../../components/core';
 import { useWorklog } from '../../providers/worklog';
@@ -16,12 +17,19 @@ export default function Page() {
     enabled,
     askDelete,
     inspectImport,
+    inactivitySettings,
+    setInactivitySettings,
   } = useWorklog();
   return (
     <WorkspaceSection>
       {
         <div className="settings [max-width:900px]">
           <ApplicationUpdates updates={updates} />
+          <TopicInactivitySettingsForm
+            key={JSON.stringify(inactivitySettings)}
+            settings={inactivitySettings}
+            onSave={setInactivitySettings}
+          />
           <Card>
             <CardHeader>
               <h2>Back up and recover</h2>

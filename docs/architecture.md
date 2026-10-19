@@ -134,6 +134,15 @@ Changing a category color applies to the text of all its topic tags, without
 a background or border. Historical topic participants and relationships remain
 in stored records for archive compatibility without exposing those controls.
 
+Topic inactivity indicators use Day.js elapsed days since the topic's centrally
+maintained `updatedAt` timestamp and colord's mix plugin to interpolate between
+configurable endpoint colors, clamping at the configured period. Defaults are
+14 days, grayish white (`#e5e7eb`) and red (`#ef4444`). Settings persist per device
+using the same local preference storage as filters. Indicators are derived when
+the workspace loads at startup and rerender after activity or settings changes;
+no stored topic timestamps are changed by calculating indicators. Topic tables,
+detail and the Overview inactivity section share the indicator and threshold.
+
 ## Recurring tasks
 
 Daily, weekly and monthly schedules create independent task records through the

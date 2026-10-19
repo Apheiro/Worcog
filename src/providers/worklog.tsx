@@ -13,6 +13,11 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { deleteEntity, deletionPreview, type DeletionTarget } from '../application/deletion';
+import {
+  defaultTopicInactivitySettings,
+  deserializeTopicInactivity,
+  type TopicInactivitySettings,
+} from '../application/topic-inactivity';
 import { type SearchFilter } from '../application/queries';
 import { deleteTask, planTaskDeletion } from '../application/task-deletion';
 import { updateTopic } from '../application/workspace';
@@ -68,6 +73,11 @@ function useWorklogController() {
   const [sort, setSort] = useLocalStorage<'updated' | 'due' | 'priority' | 'name'>({
     key: 'worklog.topic-sort',
     defaultValue: 'updated',
+  });
+  const [inactivitySettings, setInactivitySettings] = useLocalStorage<TopicInactivitySettings>({
+    key: 'worklog.topic-inactivity.v1',
+    defaultValue: defaultTopicInactivitySettings,
+    deserialize: deserializeTopicInactivity,
   });
   const [taskView, setTaskView] = useState('open');
   const filter = filters[page] ?? {};
@@ -260,6 +270,8 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     setFilters,
     sort,
     setSort,
+    inactivitySettings,
+    setInactivitySettings,
     taskView,
     setTaskView,
     filter,
