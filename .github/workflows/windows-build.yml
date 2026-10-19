@@ -72,9 +72,9 @@ jobs:
         run: |
           gh release view "$env:RELEASE_TAG" --json tagName
           if ($LASTEXITCODE -ne 0) { throw "The target GitHub release does not exist." }
-      - name: Build unsigned Windows x64 executable and NSIS installer
-        run: pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis -- --locked
-      - name: Prepare executable, installer and checksums
+      - name: Build unsigned portable Windows x64 executable
+        run: pnpm tauri build --target x86_64-pc-windows-msvc --no-bundle -- --locked
+      - name: Prepare portable executable and checksums
         id: assets
         shell: pwsh
         env:
@@ -87,8 +87,6 @@ jobs:
           if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
             throw "Application executable was not found: $exe"
           }
-          $installers = @(Get-ChildItem -Path (Join-Path $release "bundle/nsis") -Filter "*.exe" -File)
-          if ($installers.Count -ne 1) { throw "Expected exactly one NSIS installer." }
           $assets = Join-Path $env:RUNNER_TEMP "worklog-assets"
           New-Item -ItemType Directory -Path $assets -Force | Out-Null
           $sourceCommit = git rev-parse HEAD
@@ -102,7 +100,6 @@ jobs:
           ) | Set-Content -LiteralPath (Join-Path $assets "BUILD-INFO.txt") -Encoding utf8
           $prefix = "worklog-v$($env:APP_VERSION)-windows-x64"
           Copy-Item -LiteralPath $exe -Destination (Join-Path $assets "$prefix.exe")
-          Copy-Item -LiteralPath $installers[0].FullName -Destination (Join-Path $assets "$prefix-setup.exe")
           $checksums = Get-ChildItem -LiteralPath $assets -Filter "*.exe" -File | Sort-Object Name | ForEach-Object {
             $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             "$hash  $($_.Name)"

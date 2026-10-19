@@ -58,15 +58,14 @@ not run lint, standalone type checks, unit tests or UI tests. Tauri exports the
 frontend through its configured `beforeBuildCommand` during compilation:
 
 ```sh
-pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis -- --locked
+pnpm tauri build --target x86_64-pc-windows-msvc --no-bundle -- --locked
 ```
 
-This produces both the application executable and an NSIS installer using the
-committed Cargo lockfile. The build requires exactly one installer and creates:
+This builds only the portable application executable using the committed Cargo
+lockfile. Bundling is disabled in Tauri configuration as well. The workflow creates:
 
-- `worklog-v<version>-windows-x64.exe`: application executable.
-- `worklog-v<version>-windows-x64-setup.exe`: NSIS installer.
-- `SHA256SUMS.txt`: SHA-256 hashes of both executables.
+- `worklog-v<version>-windows-x64.exe`: portable application executable.
+- `SHA256SUMS.txt`: SHA-256 hash of the executable.
 - `BUILD-INFO.txt`: exact source commit, version, target release and workflow run.
 
 Download the `worklog-windows-x64-v<version>` artifact from the run's
@@ -81,10 +80,9 @@ the checksum file. It does not create releases or move tags. All other release
 assets remain untouched. Runs for the same build ref/tag are serialized with
 cancellation disabled.
 
-Both executables are unsigned. Windows can show SmartScreen or unknown-publisher
-warnings. The application executable alone does not install WebView2; the
-installer is the normal distribution path and handles the configured Tauri
-prerequisites. Signing certificates, ARM64 builds and MSI packaging are not
+The executable is unsigned. Windows can show SmartScreen or unknown-publisher
+warnings. The portable executable does not install WebView2; that runtime must already
+be available on the destination machine. No installer is generated. Signing certificates, ARM64 builds and MSI packaging are not
 configured by this workflow. No credentials or signing material are stored in
 the repository.
 
@@ -101,6 +99,6 @@ References:
 The application selects the versioned standalone Windows x64 executable only
 after GitHub reports it as uploaded with valid size and SHA-256 digest metadata.
 A release created before its build completes is therefore not announced yet.
-Do not rename that asset or substitute the NSIS installer for it. No workflow or
+Do not rename that asset. No workflow or
 versioning change is needed. See [application updates](updates.md) for complete
 publication, private-access and manual replacement requirements.
