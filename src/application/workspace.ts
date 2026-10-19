@@ -150,7 +150,7 @@ export function createSource(
   now = clock(),
 ): Workspace {
   const source: Source = {
-    kind: 'other',
+    kind: 'mail',
     platform: '',
     identifier: '',
     url: '',

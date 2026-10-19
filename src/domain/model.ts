@@ -2,8 +2,18 @@ export type Status = 'pending' | 'in_progress' | 'blocked' | 'completed' | 'canc
 export type Priority = 'low' | 'normal' | 'high' | 'urgent';
 export type ActivityKind =
   'note' | 'progress' | 'decision' | 'blocker' | 'meeting' | 'outcome' | 'status' | 'milestone';
+export type SourceType = 'mail' | 'ticketing' | 'meeting' | 'messaging';
 export type SourceKind =
-  'email' | 'teams' | 'invgate' | 'document' | 'meeting' | 'url' | 'phone' | 'system' | 'other';
+  | SourceType
+  | 'email'
+  | 'teams'
+  | 'invgate'
+  | 'document'
+  | 'meeting'
+  | 'url'
+  | 'phone'
+  | 'system'
+  | 'other';
 export interface Base {
   id: string;
   createdAt: string;
@@ -15,7 +25,9 @@ export interface Topic extends Base {
   category: string;
   status: Status;
   priority: Priority;
+  /** Legacy import compatibility; use responsibleNames for assignments. */
   owner: string;
+  responsibleNames?: string[];
   participants: string;
   tags: string[];
   nextAction: string;
@@ -31,7 +43,9 @@ export interface Task extends Base {
   parentId: string | null;
   status: Status;
   priority: Priority;
+  /** Legacy import compatibility; use responsibleNames for assignments. */
   owner: string;
+  responsibleNames?: string[];
   startDate: string | null;
   dueDate: string | null;
   completedAt: string | null;
@@ -51,7 +65,10 @@ export interface Activity extends Base {
   sourceIds: string[];
   revisions: { text: string; revisedAt: string }[];
 }
+export type MessageContext = 'sender' | 'participants' | 'group';
 export interface Source extends Base {
+  subject?: string;
+  messageContext?: MessageContext;
   title: string;
   kind: SourceKind;
   platform: string;
@@ -78,6 +95,8 @@ export interface Attachment {
 export interface Workspace {
   formatVersion: 1;
   revision: number;
+  responsibleNames?: string[];
+  categoryColors?: Record<string, string>;
   topics: Topic[];
   tasks: Task[];
   activities: Activity[];
@@ -93,6 +112,8 @@ export interface StorageInfo {
 export const emptyWorkspace = (): Workspace => ({
   formatVersion: 1,
   revision: 0,
+  responsibleNames: [],
+  categoryColors: {},
   topics: [],
   tasks: [],
   activities: [],

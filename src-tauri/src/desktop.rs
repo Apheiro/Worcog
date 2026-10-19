@@ -56,15 +56,20 @@ async fn storage_info(state: State<'_, AppState>) -> Result<Value> {
     ))
 }
 #[tauri::command]
-async fn attach_file(state: State<'_, AppState>) -> Result<Option<Value>> {
-    let Some(selected) = rfd::AsyncFileDialog::new()
-        .set_title("Attach a document (100 MiB maximum)")
-        .pick_file()
-        .await
-    else {
-        return Ok(None);
+async fn attach_file(path: Option<String>, state: State<'_, AppState>) -> Result<Option<Value>> {
+    let selected_path = if let Some(path) = path {
+        std::path::PathBuf::from(path)
+    } else {
+        let Some(selected) = rfd::AsyncFileDialog::new()
+            .set_title("Attach a document (100 MiB maximum)")
+            .pick_file()
+            .await
+        else {
+            return Ok(None);
+        };
+        selected.path().to_path_buf()
     };
-    let path = selected.path();
+    let path = selected_path.as_path();
     let metadata = fs::metadata(path).map_err(|e| e.to_string())?;
     if !metadata.is_file() || metadata.len() > 100 * 1024 * 1024 {
         return Err("Choose a regular file up to 100 MiB".into());
@@ -90,6 +95,25 @@ async fn attach_file(state: State<'_, AppState>) -> Result<Option<Value>> {
     Ok(Some(
         json!({"id":id,"originalName":path.file_name().and_then(|s|s.to_str()).unwrap_or("document"),"managedName":managed,"mime":mime_guess::from_path(path).first_or_octet_stream().to_string(),"size":size,"addedAt":chrono::Utc::now().to_rfc3339(),"topicIds":[],"taskIds":[],"activityIds":[],"sourceIds":[]}),
     ))
+    })
+}
+#[tauri::command]
+async fn discard_draft_attachment(managed_name: String, state: State<'_, AppState>) -> Result<()> {
+    validation::managed_name(&managed_name)?;
+    state.store.with(|store| {
+        let w = store.load()?;
+        if validation::list(&w, "attachments")?
+            .iter()
+            .any(|a| a["managedName"].as_str() == Some(managed_name.as_str()))
+        {
+            return Err("Cannot discard a saved attachment".into());
+        }
+        let path = store.root.join("attachments").join(&managed_name);
+        match fs::remove_file(path) {
+            Ok(()) => Ok(()),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(e) => Err(e.to_string()),
+        }
     })
 }
 #[tauri::command]
@@ -248,6 +272,7 @@ pub fn run() {
             cleanup_deleted_files,
             storage_info,
             attach_file,
+            discard_draft_attachment,
             open_attachment,
             open_reference,
             create_backup,

@@ -8,7 +8,7 @@ pub fn string<'a>(v: &'a Value, key: &str) -> Result<&'a str> {
         .filter(|s| {
             s.len()
                 <= match key {
-                    "title" | "owner" | "platform" | "originalName" => 500,
+                    "title" | "subject" | "owner" | "platform" | "originalName" => 500,
                     "category" | "mime" | "id" | "topicId" | "parentId" | "recurrenceRootId" => 200,
                     "identifier" => 1000,
                     "url" => 4096,
@@ -58,8 +58,28 @@ pub fn validate(w: &Value) -> Result<()> {
     if w["formatVersion"] != 1 || w["revision"].as_u64().is_none() {
         return Err("Incompatible workspace format".into());
     }
-    if w.as_object().map(|v| v.len()) != Some(7) {
+    let expected = 7
+        + usize::from(w.get("responsibleNames").is_some())
+        + usize::from(w.get("categoryColors").is_some());
+    if w.as_object().map(|v| v.len()) != Some(expected) {
         return Err("Unexpected workspace fields".into());
+    }
+    if let Some(names) = w.get("responsibleNames") {
+        validate_names(names)?;
+    }
+    if let Some(colors) = w.get("categoryColors") {
+        let colors = colors.as_object().ok_or("Invalid category colors")?;
+        for (name, color) in colors {
+            let color = color.as_str().ok_or("Invalid category color")?;
+            if name.trim().is_empty()
+                || name.len() > 200
+                || color.len() != 7
+                || !color.starts_with('#')
+                || !color[1..].bytes().all(|c| c.is_ascii_hexdigit())
+            {
+                return Err("Invalid category color".into());
+            }
+        }
     }
     let mut managed_files = HashSet::new();
     let mut ids: HashMap<&str, HashSet<&str>> = HashMap::new();
@@ -77,7 +97,21 @@ pub fn validate(w: &Value) -> Result<()> {
                 "sources" => "id createdAt updatedAt title kind platform identifier url eventAt participants notes tags topicIds",
                 "attachments" => "id originalName managedName mime size addedAt topicIds taskIds activityIds sourceIds", _ => ""
             };
-            let fields: HashSet<_> = allowed.split(' ').collect();
+            let mut fields: HashSet<_> = allowed.split(' ').collect();
+            if ["tasks", "topics"].contains(&kind) && e.get("responsibleNames").is_some() {
+                fields.insert("responsibleNames");
+                validate_names(&e["responsibleNames"])?;
+            }
+            if kind == "sources" {
+                if e.get("subject").is_some() {
+                    fields.insert("subject");
+                    string(e, "subject")?;
+                }
+                if e.get("messageContext").is_some() {
+                    fields.insert("messageContext");
+                    choices(e, "messageContext", &["sender", "participants", "group"])?;
+                }
+            }
             let obj = e.as_object().ok_or("Invalid record")?;
             if obj.len() != fields.len() || obj.keys().any(|k| !fields.contains(k.as_str())) {
                 return Err("Unexpected or missing record fields".into());
@@ -173,8 +207,18 @@ pub fn validate(w: &Value) -> Result<()> {
                         e,
                         "kind",
                         &[
-                            "email", "teams", "invgate", "document", "meeting", "url", "phone",
-                            "system", "other",
+                            "mail",
+                            "ticketing",
+                            "messaging",
+                            "email",
+                            "teams",
+                            "invgate",
+                            "document",
+                            "meeting",
+                            "url",
+                            "phone",
+                            "system",
+                            "other",
                         ],
                     )?;
                     for k in ["platform", "identifier", "url", "participants", "notes"] {
@@ -321,6 +365,21 @@ pub fn validate_url(s: &str) -> Result<()> {
         || s.chars().any(char::is_control)
     {
         return Err("Only HTTP, HTTPS or Teams references are allowed".into());
+    }
+    Ok(())
+}
+
+fn validate_names(value: &Value) -> Result<()> {
+    let names = value.as_array().ok_or("Invalid responsibles")?;
+    if names.len() > 10000 {
+        return Err("Too many responsibles".into());
+    }
+    let mut unique = HashSet::new();
+    for name in names {
+        let name = name.as_str().ok_or("Invalid responsible name")?;
+        if name.trim().is_empty() || name.len() > 500 || !unique.insert(name.to_lowercase()) {
+            return Err("Invalid or duplicate responsible name".into());
+        }
     }
     Ok(())
 }

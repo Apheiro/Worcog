@@ -10,6 +10,13 @@ const ids = z
   .array(id)
   .max(10000)
   .refine((values) => new Set(values).size === values.length, 'Duplicate relationship.');
+const responsibleNames = z
+  .array(z.string().trim().min(1).max(500))
+  .max(10000)
+  .refine(
+    (names) => new Set(names.map((name) => name.toLocaleLowerCase())).size === names.length,
+    'Duplicate responsible.',
+  );
 const tags = z.array(z.string().trim().min(1).max(100)).max(100);
 export const statusSchema = z.enum(['pending', 'in_progress', 'blocked', 'completed', 'canceled']);
 const priority = z.enum(['low', 'normal', 'high', 'urgent']);
@@ -23,6 +30,7 @@ export const topicSchema = z
     status: statusSchema,
     priority,
     owner: z.string().max(500),
+    responsibleNames: responsibleNames.optional(),
     participants: text,
     tags,
     nextAction: text,
@@ -42,6 +50,7 @@ export const taskSchema = z
     status: statusSchema,
     priority,
     owner: z.string().max(500),
+    responsibleNames: responsibleNames.optional(),
     startDate: date.nullable(),
     dueDate: date.nullable(),
     completedAt: timestamp.nullable(),
@@ -77,8 +86,13 @@ export const activitySchema = z
 export const sourceSchema = z
   .object({
     ...base,
+    subject: z.string().max(500).optional(),
+    messageContext: z.enum(['sender', 'participants', 'group']).optional(),
     title,
     kind: z.enum([
+      'mail',
+      'ticketing',
+      'messaging',
       'email',
       'teams',
       'invgate',
@@ -134,6 +148,10 @@ export const workspaceSchema: z.ZodType<Workspace> = z
   .object({
     formatVersion: z.literal(1),
     revision: z.number().int().nonnegative(),
+    responsibleNames: responsibleNames.optional(),
+    categoryColors: z
+      .record(z.string().trim().min(1).max(200), z.string().regex(/^#[0-9a-fA-F]{6}$/))
+      .optional(),
     topics: z.array(topicSchema),
     tasks: z.array(taskSchema),
     activities: z.array(activitySchema),

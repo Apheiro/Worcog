@@ -21,7 +21,7 @@ impl Store {
         let version: u32 = db
             .query_row("PRAGMA user_version", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        if version > 2 {
+        if version > 4 {
             return Err("Database was created by a newer application".into());
         }
         if version == 0 {
@@ -38,6 +38,12 @@ impl Store {
         if version < 2 {
             db.execute_batch("BEGIN IMMEDIATE; CREATE TABLE IF NOT EXISTS pending_file_deletions(kind TEXT NOT NULL CHECK(kind IN ('attachments','backups')),name TEXT NOT NULL,PRIMARY KEY(kind,name)); PRAGMA user_version=2; COMMIT;").map_err(|e|e.to_string())?;
         }
+        if version < 3 {
+            db.execute_batch("BEGIN IMMEDIATE; ALTER TABLE metadata ADD COLUMN responsible_names TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(responsible_names)); PRAGMA user_version=3; COMMIT;").map_err(|e| e.to_string())?;
+        }
+        if version < 4 {
+            db.execute_batch("BEGIN IMMEDIATE; ALTER TABLE metadata ADD COLUMN category_colors TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(category_colors)); PRAGMA user_version=4; COMMIT;").map_err(|e| e.to_string())?;
+        }
         Ok(Self { db, root })
     }
     pub fn load(&self) -> Result<Value> {
@@ -46,7 +52,21 @@ impl Store {
         let revision: i64 = snapshot
             .query_row("SELECT revision FROM metadata WHERE id=1", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        let mut w = json!({"formatVersion":1,"revision":revision});
+        let directory: String = snapshot
+            .query_row(
+                "SELECT responsible_names FROM metadata WHERE id=1",
+                [],
+                |r| r.get(0),
+            )
+            .map_err(|e| e.to_string())?;
+        let names: Value = serde_json::from_str(&directory).map_err(|e| e.to_string())?;
+        let colors: String = snapshot
+            .query_row("SELECT category_colors FROM metadata WHERE id=1", [], |r| {
+                r.get(0)
+            })
+            .map_err(|e| e.to_string())?;
+        let colors: Value = serde_json::from_str(&colors).map_err(|e| e.to_string())?;
+        let mut w = json!({"formatVersion":1,"revision":revision,"responsibleNames":names,"categoryColors":colors});
         for kind in COLLECTIONS {
             let mut stmt = snapshot
                 .prepare(&format!("SELECT payload FROM {kind} ORDER BY id"))
@@ -161,8 +181,25 @@ impl Store {
                 }
             }
         }
-        tx.execute("UPDATE metadata SET revision=?1 WHERE id=1", [revision + 1])
-            .map_err(|e| e.to_string())?;
+        tx.execute(
+            "UPDATE metadata SET revision=?1,responsible_names=?2,category_colors=?3 WHERE id=1",
+            params![
+                revision + 1,
+                serde_json::to_string(
+                    &w.get("responsibleNames")
+                        .cloned()
+                        .unwrap_or_else(|| json!([]))
+                )
+                .map_err(|e| e.to_string())?,
+                serde_json::to_string(
+                    &w.get("categoryColors")
+                        .cloned()
+                        .unwrap_or_else(|| json!({}))
+                )
+                .map_err(|e| e.to_string())?
+            ],
+        )
+        .map_err(|e| e.to_string())?;
         tx.commit().map_err(|e| e.to_string())?;
         w["revision"] = json!(revision + 1);
         Ok(w)
