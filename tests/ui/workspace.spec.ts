@@ -1209,9 +1209,13 @@ test('Radix selects support keyboard dismissal, empty filters and original form 
   await page.keyboard.press('Space');
   await expect(page.getByRole('listbox')).toBeVisible();
   await expect(page.getByRole('option', { name: 'System', exact: true })).toBeFocused();
+  // Home/End follow the displayed order: System, Light, Dark.
+  await page.keyboard.press('Home');
+  await expect(page.getByRole('option', { name: 'System', exact: true })).toBeFocused();
   await page.keyboard.press('End');
+  await expect(page.getByRole('option', { name: 'Dark', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(theme).toHaveText('System');
+  await expect(theme).toHaveText('Dark');
   await expect(theme).toBeFocused();
   await theme.click();
   await page.keyboard.press('Escape');
@@ -1281,4 +1285,53 @@ test('Radix selects support keyboard dismissal, empty filters and original form 
   );
   await page.screenshot({ path: 'test-results/select-task-live.png' });
   await page.keyboard.press('Escape');
+});
+
+test('shared buttons and cards keep their variants and module borders consistent in both themes', async ({
+  page,
+}) => {
+  await mockDesktop(page);
+  await page.goto('/');
+  await createTopic(page, 'Shared surfaces');
+  const theme = page.getByRole('combobox', { name: 'Color theme' });
+  const primary = page.getByRole('button', { name: 'New topic', exact: true });
+  const moduleCard = page
+    .locator('.card')
+    .filter({ has: page.getByRole('heading', { name: 'Pending tasks', exact: true }) });
+  for (const value of ['light', 'dark']) {
+    await chooseOption(theme, value);
+    await expect(moduleCard).toHaveCSS('border-radius', '5px');
+    await expect(moduleCard).toHaveCSS('border-top-width', '1px');
+    await expect(moduleCard).toHaveCSS(
+      'background-color',
+      value === 'light' ? 'rgb(255, 255, 255)' : 'rgb(28, 28, 28)',
+    );
+    await expect(primary).toHaveCSS(
+      'color',
+      value === 'light' ? 'rgb(255, 255, 255)' : 'rgb(26, 26, 26)',
+    );
+    await expect(primary).toHaveCSS(
+      'background-color',
+      value === 'light' ? 'rgb(37, 39, 43)' : 'rgb(232, 232, 232)',
+    );
+    await primary.hover();
+    await expect(primary).toHaveCSS(
+      'background-color',
+      value === 'light' ? 'rgb(65, 68, 74)' : 'rgb(208, 208, 208)',
+    );
+    await primary.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByLabel('Title', { exact: true })).toBeVisible();
+    await dialog.getByRole('button', { name: 'Close dialog' }).click();
+    await expect(dialog).toHaveCount(0);
+  }
+  await page.screenshot({ path: 'test-results/shared-button-card-live.png' });
+  await page.getByRole('navigation').getByRole('link', { name: 'Storage & backups' }).click();
+  const backup = page
+    .locator('.card')
+    .filter({ has: page.getByRole('heading', { name: 'Back up and recover', exact: true }) });
+  await expect(backup).toHaveCSS('border-radius', '5px');
+  await expect(backup).toHaveCSS('border-top-width', '1px');
+  await expect(backup).toHaveCSS('background-color', 'rgb(28, 28, 28)');
 });
