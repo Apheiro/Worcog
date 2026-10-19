@@ -17,7 +17,8 @@ export const defaultTopicInactivitySettings: TopicInactivitySettings = {
   extremeColor: '#ef4444',
 };
 
-export function deserializeTopicInactivity(value: string): TopicInactivitySettings {
+export function deserializeTopicInactivity(value: string | undefined): TopicInactivitySettings {
+  if (value === undefined) return defaultTopicInactivitySettings;
   try {
     const parsed = topicInactivitySchema.safeParse(JSON.parse(value));
     return parsed.success ? parsed.data : defaultTopicInactivitySettings;
