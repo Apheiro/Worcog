@@ -9,7 +9,7 @@ on:
         type: string
         default: ''
       source_ref:
-        description: Optional branch or commit to build instead of the release tag (for release repair)
+        description: Optional source ref override (empty = selected workflow branch)
         required: false
         type: string
         default: ''
@@ -43,7 +43,7 @@ jobs:
       - name: Check out the selected tag or ref
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ inputs.source_ref || (inputs.release_tag && format('refs/tags/{0}', inputs.release_tag)) || github.ref }}
+          ref: ${{ inputs.source_ref || (github.event_name == 'workflow_dispatch' && github.ref) || (inputs.release_tag && format('refs/tags/{0}', inputs.release_tag)) || github.ref }}
           persist-credentials: false
       - name: Install pnpm from packageManager
         uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0

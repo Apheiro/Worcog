@@ -39,14 +39,14 @@ Actions are pinned by commit SHA and checkout does not persist credentials.
 Open **Actions → Windows build → Run workflow**:
 
 - Leave `release_tag` empty to build the selected ref and keep artifacts only.
-- Enter an existing tag, for example `v0.1.0`, to check out
-  `refs/tags/v0.1.0`, validate its versions and attach assets to its existing
-  GitHub release. The selected tag must contain this build pipeline's scripts.
-- To repair an existing release without moving its tag, select workflow branch
-  `main`, set `release_tag` to `v0.2.0` and `source_ref` to `main` (or a specific
-  corrected commit). The source must still declare version `0.2.0` in all
-  version files; mismatches fail validation. Leave `source_ref` empty for normal
-  builds from the release tag. This does not create a release or move a tag.
+- Manual builds use the selected workflow branch, even when `release_tag` is
+  supplied. Select `main` to include its latest fixes. `source_ref` optionally
+  overrides the source; use a branch, tag or full commit SHA.
+- Enter an existing tag in `release_tag` to attach assets to that release.
+  The source version must match the release tag; mismatches fail validation.
+  For example, select `main` and enter `v0.3.0` to rebuild that release with
+  current fixes. This does not create a release or move a tag. To deliberately
+  rebuild the original tagged source, also set `source_ref` to `refs/tags/v0.3.0`.
 - Pushes of tags matching `v*` also build artifacts only. Automatic release
   publication comes from the explicit reusable workflow call, avoiding duplicate
   uploads from tag events.
