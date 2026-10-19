@@ -102,3 +102,18 @@ A release created before its build completes is therefore not announced yet.
 Do not rename that asset. No workflow or
 versioning change is needed. See [application updates](updates.md) for complete
 publication, private-access and manual replacement requirements.
+
+## Refresh application icons without a new release
+
+The source artwork is `ico.svg`. Generate the desktop and mobile icon variants
+with `pnpm tauri icon ico.svg --fit contain --output src-tauri/icons`. The
+transparent contain fit preserves the proportions of the original artwork.
+`src/app/favicon.ico` and `src/app/icon.png` mirror the generated ICO and PNG
+for the webview/browser icon.
+
+Include `[skip release]` in an icon-only commit message to skip the Release
+Please job for that push. Other workflows remain enabled, and the manual
+Windows workflow can still run. No version or tag needs to change. Build from
+`main` with `source_ref=main`; set `release_tag=v0.3.0` to replace assets on
+the existing 0.3.0 release, or leave it empty for Actions artifacts only.
+Simply rerunning an old build uses its old checkout and will not include new icons.
