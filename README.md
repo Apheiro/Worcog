@@ -1,4 +1,8 @@
-# Worklog
+<p align="center">
+  <img src="src-tauri/icons/icon.png" alt="Worklog icon" width="128" height="128" />
+</p>
+
+<h1 align="center">Worklog</h1>
 
 A local-first desktop workspace for topics, dated activity, tasks, manually
 recorded external sources, and managed documents. Email, Teams and InvGate

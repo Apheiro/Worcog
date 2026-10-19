@@ -13,6 +13,8 @@
     "windows": [
       {
         "title": "Worklog",
+        "decorations": false,
+        "resizable": true,
         "width": 1320,
         "height": 860,
         "minWidth": 900,

@@ -46,6 +46,11 @@ export function Modal({
       <Dialog.Portal>
         <Dialog.Overlay className="overlay fixed [inset:0] [background:var(--overlay)] [z-index:40]" />
         <Dialog.Content
+          onInteractOutside={(event) => {
+            const target = event.detail.originalEvent.target;
+            if (target instanceof Element && target.closest('[data-window-titlebar]'))
+              event.preventDefault();
+          }}
           className={modal({ wide, className })}
           aria-describedby={description ? 'modal-description' : undefined}
         >

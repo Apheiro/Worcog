@@ -60,7 +60,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
     heading,
   } = useWorklog();
   return (
-    <div className="app-shell flex [min-height:100vh] h-dvh ">
+    <div className="app-shell flex h-full min-h-0 w-full">
       <aside className="sidebar [width:228px] [background:var(--sidebar)] [border-right:1px_solid_var(--border)] flex flex-col [padding:29px_16px_20px] [&_nav]:flex [&_nav]:flex-col [&_nav]:[gap:4px] [@media(max-width:1150px)]:[width:200px] [@media(max-width:1150px)]:[padding:24px_12px] [@media(max-width:800px)]:[width:65px] [@media(max-width:800px)]:[padding:20px_8px] h-full">
         <div className="brand flex items-center [gap:11px] [padding:0_9px_32px] [font-size:19px] [font-weight:650] [letter-spacing:-0.5px] [line-height:1.25] [&_small]:block [&_small]:[color:var(--muted)] [&_small]:[font-size:11px] [&_small]:[font-weight:400] [&_small]:[letter-spacing:0] [&_small]:[margin-top:4px] [@media(max-width:800px)]:[padding:0_8px_25px] [@media(max-width:800px)]:[&_>_span:last-child]:hidden">
           <span className="brand-mark [width:31px] [height:33px] grid [place-items:center] [background:var(--primary)] [color:var(--on-primary)] [border-radius:6px] [font-size:18px]">
@@ -99,7 +99,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </aside>
-      <main id="main-content" className="flex-[1] flex flex-col h-full">
+      <main id="main-content" className="flex-[1] flex flex-col h-full min-h-0 min-w-0">
         <header className="app-header [height:61px] [border-bottom:1px_solid_var(--border)] flex items-center justify-between [padding:0_35px] [background:var(--surface)] [font-size:12px] [color:var(--muted)] [@media(max-width:800px)]:[padding:0_20px] [@media(max-width:800px)]:[&_.text-xs]:hidden">
           <span>{selectedTopic ? 'Topics / Workspace' : heading}</span>
           <div className="flex items-center gap-4">

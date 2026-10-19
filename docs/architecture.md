@@ -51,6 +51,15 @@ date adapter or a young optional dependency. Mantine Hooks handles saved UI
 preferences and debounced input. Native collection operations cover the current
 queries, so `lodash-es` is unnecessary.
 
+The desktop window uses an undecorated Tauri frame with a theme-aware custom
+caption in `app/window-frame.tsx`. Its native control hook lives in
+`infrastructure/use-window-controls.ts`; Tauri handles minimize, maximize/restore,
+close, title-bar dragging and double-click maximization. Only those window
+mutation permissions are added to the main-window capability. The caption stays
+available while the workspace loads and is omitted in ordinary browsers. The
+workspace fills the remaining height beneath the caption, keeping its existing
+scrolling regions.
+
 ## Boundaries
 
 | Area                   | Responsibility                                              |

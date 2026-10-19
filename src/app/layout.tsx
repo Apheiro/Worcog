@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { WorklogProvider } from '../providers/worklog';
+import { WindowFrame } from './window-frame';
 import { WorkspaceLayout } from './workspace-layout';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
@@ -24,11 +25,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           Skip to content
         </a>
-        <Suspense fallback={<p role="status">Opening workspace…</p>}>
-          <WorklogProvider>
-            <WorkspaceLayout>{children}</WorkspaceLayout>
-          </WorklogProvider>
-        </Suspense>
+        <WindowFrame>
+          <Suspense fallback={<p role="status">Opening workspace…</p>}>
+            <WorklogProvider>
+              <WorkspaceLayout>{children}</WorkspaceLayout>
+            </WorklogProvider>
+          </Suspense>
+        </WindowFrame>
         <Notifications />
       </body>
     </html>
