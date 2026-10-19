@@ -21,6 +21,7 @@ type SelectProps = Omit<
 const trigger = cva({
   base: [
     'control',
+    '[&:focus]:[outline:none] [&:focus-visible]:[outline:none] focus:[border-color:var(--focus)]',
     '[border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] [padding:8px_10px] min-w-0 max-w-full [color:var(--ink)]',
     'select-trigger',
     'inline-flex items-center justify-between gap-2 text-left cursor-pointer [font-size:13px] [line-height:1.4]',

@@ -1,41 +1,30 @@
 'use client';
-import { Checkbox } from './checkbox';
+import { Checkbox } from './core/checkbox';
 import { IconTrash } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useState, type FormEvent } from 'react';
 import * as actions from '../application/workspace';
-import { toTimestamp } from '../domain/dates';
-import type {
-  ActivityKind,
-  Priority,
-  Source,
-  SourceKind,
-  Status,
-  Task,
-  Topic,
-  Workspace,
-} from '../domain/model';
+import { SourceFields } from './source-fields';
 import {
-  Button,
-  Field,
-  Input,
-  Modal,
-  selectOptions,
-  Select,
-  Textarea,
-  activityKinds,
-  human,
-  priorities,
-  sourceKinds,
-  statuses,
-} from './ui';
+  initialSourcePlatform,
+  isSourceType,
+  sourceType,
+  type SourceFormValues,
+} from '../domain/sources';
+import { TaskEditor } from './task-editor';
+import { ResponsiblePicker } from './responsible-picker';
+import { assignedNames, responsibleDirectory } from '../domain/responsibles';
+import { toTimestamp } from '../domain/dates';
+import type { ActivityKind, Priority, Source, Status, Topic, Workspace } from '../domain/model';
+import { Button, Field, Input, Modal, Select, Textarea } from './core';
+import { selectOptions, activityKinds, priorities, statuses } from '../domain/options';
 export type Editor = {
   kind: 'topic' | 'task' | 'source' | 'activity';
   id?: string;
   topicId?: string;
   parentId?: string;
 };
-type Props = {
+export type EntityEditorProps = {
   editor: Editor;
   workspace: Workspace;
   busy: boolean;
@@ -45,14 +34,6 @@ type Props = {
   onDelete: (kind: Editor['kind'], id: string) => void;
   onSave: (transform: (w: Workspace) => Workspace) => Promise<boolean>;
 };
-const tags = (value: string) => [
-  ...new Set(
-    value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-  ),
-];
 const localTime = (date?: string) => dayjs(date).format('YYYY-MM-DDTHH:mm');
 function Checks({
   title,
@@ -87,43 +68,40 @@ function Checks({
     </fieldset>
   );
 }
-export function EntityEditor({
+export function EntityEditor(props: EntityEditorProps) {
+  if (props.editor.kind === 'task') return <TaskEditor {...props} />;
+  return <RecordEditor {...props} />;
+}
+function RecordEditor({
   editor,
   workspace: w,
   busy,
   error,
-  openFile,
   onClose,
   onDelete,
   onSave,
-}: Props) {
+}: EntityEditorProps) {
   const topic = w.topics.find((x) => x.id === editor.id);
-  const task = w.tasks.find((x) => x.id === editor.id);
   const source = w.sources.find((x) => x.id === editor.id);
   const activity = w.activities.find((x) => x.id === editor.id);
-  const item =
-    editor.kind === 'topic'
-      ? topic
-      : editor.kind === 'task'
-        ? task
-        : editor.kind === 'source'
-          ? source
-          : activity;
-  const [taskTopic, setTaskTopic] = useState(
-    task?.topicId ?? editor.topicId ?? w.topics.find((t) => !t.archived)?.id ?? '',
-  );
-  const [reuse, setReuse] = useState('');
-  const [titleText, setTitleText] = useState(source?.title ?? '');
-  const [identifierText, setIdentifierText] = useState(source?.identifier ?? '');
-  const matches =
-    !editor.id && editor.kind === 'source'
-      ? w.sources.filter(
-          (s) =>
-            (identifierText.trim() &&
-              s.identifier.toLowerCase() === identifierText.trim().toLowerCase()) ||
-            (titleText.trim() && s.title.toLowerCase().includes(titleText.trim().toLowerCase())),
-        )
-      : [];
+  const item = editor.kind === 'topic' ? topic : editor.kind === 'source' ? source : activity;
+  const [sourceForm, setSourceForm] = useState<SourceFormValues>(() => ({
+    kind: source ? (sourceType(source.kind) ?? '') : '',
+    platform: source ? initialSourcePlatform(source) : '',
+    identifier: source?.identifier ?? '',
+    subject: source?.subject ?? '',
+    messageContext: source?.messageContext ?? 'participants',
+    url: source?.url ?? '',
+    eventAt: source ? localTime(source.eventAt) : '',
+    participants: source?.participants ?? '',
+    notes: source?.notes ?? '',
+  }));
+  const [category, setCategory] = useState(topic?.category ?? 'General');
+  const [categoryColors, setCategoryColors] = useState<Record<string, string>>({});
+  const categoryColor =
+    categoryColors[category.trim()] ?? w.categoryColors?.[category.trim()] ?? '#64748b';
+  const [responsibles, setResponsibles] = useState(topic ? assignedNames(topic) : []);
+  const [createdNames, setCreatedNames] = useState<string[]>([]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -134,59 +112,38 @@ export function EntityEditor({
       title: get('title'),
       status: get('status') as Status,
       priority: get('priority') as Priority,
-      owner: get('owner'),
-      tags: tags(get('tags')),
+      responsibleNames: responsibles,
     };
     const transform = (current: Workspace): Workspace => {
       if (editor.kind === 'topic') {
+        current = {
+          ...current,
+          responsibleNames: [...new Set([...responsibleDirectory(current), ...createdNames])],
+          categoryColors: { ...current.categoryColors, [get('category')]: categoryColor },
+        };
         const input = {
           ...common,
           summary: get('summary'),
           category: get('category'),
-          participants: get('participants'),
-          nextAction: get('nextAction'),
           targetDate: nullable('targetDate'),
-          relatedTopicIds: many('relatedTopicIds'),
         };
         return editor.id
           ? actions.updateTopic(current, editor.id, input)
           : actions.createTopic(current, input);
       }
-      if (editor.kind === 'task') {
-        const input = {
-          ...common,
-          topicId: get('topicId'),
-          description: get('description'),
-          parentId: nullable('parentId'),
-          startDate: nullable('startDate'),
-          dueDate: nullable('dueDate'),
-          nextAction: get('nextAction'),
-          sourceIds: many('sourceIds'),
-          recurrence: get('recurrence') as Task['recurrence'],
-        };
-        return editor.id
-          ? actions.updateTask(current, editor.id, input)
-          : actions.createTask(current, input);
-      }
       if (editor.kind === 'source') {
-        if (reuse) {
-          const existing = current.sources.find((s) => s.id === reuse);
-          if (!existing) throw new Error('Choose an existing source.');
-          return actions.updateSource(current, reuse, {
-            topicIds: [...new Set([...existing.topicIds, ...many('topicIds')])],
-          });
-        }
+        if (!isSourceType(sourceForm.kind)) throw new Error('Choose a source type.');
         const input = {
           title: get('title'),
-          kind: get('kind') as SourceKind,
-          platform: get('platform'),
-          identifier: get('identifier'),
-          url: get('url'),
-          eventAt: toTimestamp(get('eventAt')),
-          participants: get('participants'),
-          notes: get('notes'),
-          tags: tags(get('tags')),
-          topicIds: many('topicIds'),
+          ...sourceForm,
+          kind: sourceForm.kind,
+          eventAt:
+            source && sourceForm.eventAt === localTime(source.eventAt)
+              ? source.eventAt
+              : sourceForm.eventAt
+                ? toTimestamp(sourceForm.eventAt)
+                : (source?.eventAt ?? new Date().toISOString()),
+          topicIds: source?.topicIds ?? [],
         };
         const duplicate = current.sources.find(
           (s) =>
@@ -196,13 +153,9 @@ export function EntityEditor({
               s.platform.toLowerCase() === input.platform.toLowerCase()) ||
               (input.url && s.url === input.url)),
         );
-        if (duplicate && !data.has('allowDuplicate'))
-          throw new Error(
-            `A source with this identifier or link already exists: “${duplicate.title}”. Reuse it from the selector, or explicitly allow a separate reference.`,
-          );
-        return editor.id
-          ? actions.updateSource(current, editor.id, input)
-          : actions.createSource(current, input);
+        if (duplicate) throw new Error('A source with this identifier or link already exists.');
+        if (!editor.id) throw new Error('Create sources from a task.');
+        return actions.updateSource(current, editor.id, input);
       }
       const input = {
         text: get('text'),
@@ -210,7 +163,7 @@ export function EntityEditor({
         eventAt: toTimestamp(get('eventAt')),
         topicIds: many('topicIds'),
         taskIds: many('taskIds'),
-        sourceIds: many('sourceIds'),
+        sourceIds: activity?.sourceIds ?? [],
       };
       return editor.id
         ? actions.updateActivity(current, editor.id, input)
@@ -235,25 +188,7 @@ export function EntityEditor({
             {error}
           </p>
         )}
-        {editor.kind === 'source' && !editor.id && w.sources.length > 0 && (
-          <Field
-            label="Reuse an existing reference"
-            hint="Select a saved source to associate it with these topics, without duplicating it."
-          >
-            <Select
-              value={reuse}
-              onValueChange={setReuse}
-              options={[
-                { value: '', label: 'Create a new source' },
-                ...w.sources.map((s) => ({
-                  value: s.id,
-                  label: s.title + ' ' + (s.identifier && `· ${s.identifier}`),
-                })),
-              ]}
-            />
-          </Field>
-        )}
-        {!reuse && (
+        {
           <>
             {editor.kind !== 'activity' && (
               <Field label="Title">
@@ -262,42 +197,57 @@ export function EntityEditor({
                   required
                   maxLength={500}
                   autoFocus
-                  defaultValue={(item as Topic | Task | Source | undefined)?.title}
-                  onChange={(e) => setTitleText(e.target.value)}
+                  defaultValue={(item as Topic | Source | undefined)?.title}
                 />
               </Field>
             )}
-            {(editor.kind === 'topic' || editor.kind === 'task') && (
+            {editor.kind === 'topic' && (
               <>
-                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
-                  <Field label="Status">
-                    <Select
-                      name="status"
-                      defaultValue={(item as Topic | Task | undefined)?.status ?? 'pending'}
-                      options={selectOptions(statuses)}
-                    />
-                  </Field>
-                  <Field label="Priority">
-                    <Select
-                      name="priority"
-                      defaultValue={(item as Topic | Task | undefined)?.priority ?? 'normal'}
-                      options={selectOptions(priorities)}
-                    />
-                  </Field>
-                </div>
-                <Field label="Owner">
-                  <Input name="owner" defaultValue={(item as Topic | Task | undefined)?.owner} />
+                <Field label="Status">
+                  <Select
+                    name="status"
+                    defaultValue={(item as Topic | undefined)?.status ?? 'pending'}
+                    options={selectOptions(statuses)}
+                  />
                 </Field>
+
+                <ResponsiblePicker
+                  names={[...new Set([...responsibleDirectory(w), ...createdNames])]}
+                  selected={responsibles}
+                  onChange={setResponsibles}
+                  onCreate={(name) => setCreatedNames((names) => [...names, name])}
+                  disabled={busy}
+                />
               </>
             )}
             {editor.kind === 'topic' && (
               <>
                 <Field label="Category">
-                  <Input
-                    name="category"
-                    defaultValue={topic?.category ?? 'General'}
-                    list="categories"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      name="category"
+                      aria-label="Category"
+                      className="min-w-0 flex-1"
+                      value={category}
+                      onChange={(event) => setCategory(event.target.value)}
+                      maxLength={200}
+                      required
+                      list="categories"
+                    />
+                    <Input
+                      type="color"
+                      value={categoryColor}
+                      aria-label="Category color"
+                      title="Category color — shared by all topics in this category"
+                      className="h-9 w-9 shrink-0 cursor-pointer [&[type=color]]:[padding:3px]"
+                      onChange={(event) =>
+                        setCategoryColors((colors) => ({
+                          ...colors,
+                          [category.trim()]: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
                   <datalist id="categories">
                     {[
                       ...new Set([
@@ -314,104 +264,33 @@ export function EntityEditor({
                     ))}
                   </datalist>
                 </Field>
-                <Field label="Summary">
-                  <Textarea name="summary" rows={4} defaultValue={topic?.summary} />
-                </Field>
-                <Field label="Participants">
-                  <Input name="participants" defaultValue={topic?.participants} />
-                </Field>
-                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
-                  <Field label="Next action">
-                    <Input name="nextAction" defaultValue={topic?.nextAction} />
-                  </Field>
-                  <Field label="Target date">
-                    <Input type="date" name="targetDate" defaultValue={topic?.targetDate ?? ''} />
-                  </Field>
-                </div>
-                <Checks
-                  title="Related topics"
-                  name="relatedTopicIds"
-                  options={w.topics.filter((t) => t.id !== topic?.id)}
-                  selected={topic?.relatedTopicIds ?? []}
-                />
+                <details className="mb-4 text-xs rounded-lg [border:1px_solid_var(--border)] p-4">
+                  <summary className="cursor-pointer font-medium">Advanced fields</summary>
+                  <div className="pt-4">
+                    <Field label="Target date">
+                      <Input type="date" name="targetDate" defaultValue={topic?.targetDate ?? ''} />
+                    </Field>
+                    <Field label="Summary">
+                      <Textarea name="summary" rows={4} defaultValue={topic?.summary} />
+                    </Field>
+                    <Field label="Priority">
+                      <Select
+                        name="priority"
+                        defaultValue={(item as Topic | undefined)?.priority ?? 'normal'}
+                        options={selectOptions(priorities)}
+                      />
+                    </Field>
+                  </div>
+                </details>
               </>
             )}
-            {editor.kind === 'task' && (
-              <>
-                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
-                  <Field label="Topic">
-                    <Select
-                      name="topicId"
-                      value={taskTopic}
-                      onValueChange={setTaskTopic}
-                      required
-                      options={[
-                        { value: '', label: 'Choose a topic', disabled: true },
-                        ...w.topics.map((t) => ({ value: t.id, label: t.title })),
-                      ]}
-                    />
-                  </Field>
-                  <Field label="Parent task">
-                    <Select
-                      name="parentId"
-                      defaultValue={task?.parentId ?? editor.parentId ?? ''}
-                      options={[
-                        { value: '', label: 'No parent' },
-                        ...w.tasks
-                          .filter((t) => t.topicId === taskTopic && t.id !== task?.id)
-                          .map((t) => ({ value: t.id, label: t.title })),
-                      ]}
-                    />
-                  </Field>
-                </div>
-                <Field label="Description">
-                  <Textarea name="description" rows={3} defaultValue={task?.description} />
-                </Field>
-                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
-                  <Field label="Start date">
-                    <Input type="date" name="startDate" defaultValue={task?.startDate ?? ''} />
-                  </Field>
-                  <Field label="Due date">
-                    <Input type="date" name="dueDate" defaultValue={task?.dueDate ?? ''} />
-                  </Field>
-                </div>
-                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
-                  <Field label="Repeat">
-                    <Select
-                      name="recurrence"
-                      defaultValue={task?.recurrence ?? 'none'}
-                      options={selectOptions(['none', 'daily', 'weekly', 'monthly'])}
-                    />
-                  </Field>
-                  <Field label="Next action">
-                    <Input name="nextAction" defaultValue={task?.nextAction} />
-                  </Field>
-                </div>
-                <p className="muted [color:var(--muted)] text-sm mb-4">
-                  Recurring tasks create separate instances through today. Monthly series keep the
-                  original day, clamped to the end of shorter months. Cancel the original task to
-                  stop a series.
-                </p>
-                <Checks
-                  title="Linked sources"
-                  name="sourceIds"
-                  options={w.sources}
-                  selected={task?.sourceIds ?? []}
-                />
-              </>
-            )}
-            {(editor.kind === 'activity' || editor.kind === 'source') && (
+            {editor.kind === 'activity' && (
               <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
                 <Field label="Type">
                   <Select
                     name="kind"
-                    defaultValue={
-                      (editor.kind === 'activity' ? activity?.kind : source?.kind) ??
-                      (editor.kind === 'activity' ? 'note' : 'email')
-                    }
-                    options={[
-                      ...selectOptions(editor.kind === 'activity' ? activityKinds : sourceKinds),
-                    ]}
+                    defaultValue={activity?.kind ?? 'note'}
+                    options={[...selectOptions(activityKinds)]}
                   />
                 </Field>
                 <Field label="Event date and time (local)">
@@ -419,9 +298,7 @@ export function EntityEditor({
                     type="datetime-local"
                     name="eventAt"
                     required
-                    defaultValue={localTime(
-                      editor.kind === 'activity' ? activity?.eventAt : source?.eventAt,
-                    )}
+                    defaultValue={localTime(activity?.eventAt)}
                   />
                 </Field>
               </div>
@@ -434,15 +311,6 @@ export function EntityEditor({
                 >
                   <Textarea name="text" rows={6} required autoFocus defaultValue={activity?.text} />
                 </Field>
-                <Checks
-                  title="Sources / origin"
-                  name="sourceIds"
-                  options={w.sources.map((s) => ({
-                    id: s.id,
-                    title: `${human(s.kind)} · ${s.title}${s.identifier ? ` · ${s.identifier}` : ''}`,
-                  }))}
-                  selected={activity?.sourceIds ?? []}
-                />
                 <Checks
                   title="Related tasks"
                   name="taskIds"
@@ -458,89 +326,22 @@ export function EntityEditor({
               </>
             )}
             {editor.kind === 'source' && (
-              <>
-                <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
-                  <Field label="System / platform">
-                    <Input
-                      name="platform"
-                      defaultValue={source?.platform}
-                      placeholder="Outlook, Teams, InvGate…"
-                    />
-                  </Field>
-                  <Field label="External identifier">
-                    <Input
-                      name="identifier"
-                      defaultValue={source?.identifier}
-                      onChange={(e) => setIdentifierText(e.target.value)}
-                      placeholder="Ticket number, message ID…"
-                    />
-                  </Field>
-                </div>
-                <Field
-                  label="Original link (optional)"
-                  hint="HTTP, HTTPS or msteams link. No account connection is made."
-                >
-                  <Input name="url" defaultValue={source?.url} placeholder="https://…" />
-                </Field>
-                <Field label="Participants / sender">
-                  <Input name="participants" defaultValue={source?.participants} />
-                </Field>
-                <Field label="Context">
-                  <Textarea name="notes" rows={3} defaultValue={source?.notes} />
-                </Field>
-                {matches.length > 0 && (
-                  <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px]">
-                    Similar references exist: {matches.map((s) => s.title).join(', ')}. Consider
-                    reusing a saved source.
-                  </p>
-                )}
-                <label className="check-inline flex items-start [gap:8px] [font-size:12px] [overflow-wrap:anywhere] [&_.checkbox]:[margin-top:2px] mb-4">
-                  <Checkbox name="allowDuplicate" /> Allow a separate source even if the identifier
-                  or link matches
-                </label>
-              </>
-            )}
-            {editor.kind !== 'activity' && (
-              <Field label="Labels" hint="Separate labels with commas.">
-                <Input
-                  name="tags"
-                  defaultValue={(item as Topic | Task | Source | undefined)?.tags.join(', ')}
-                />
-              </Field>
+              <SourceFields
+                value={sourceForm}
+                onChange={(patch) => setSourceForm((current) => ({ ...current, ...patch }))}
+                sources={w.sources}
+                disabled={busy}
+              />
             )}
           </>
-        )}
-        {(editor.kind === 'activity' || editor.kind === 'source') && (
+        }
+        {editor.kind === 'activity' && (
           <Checks
             title="Linked topics"
             name="topicIds"
             options={w.topics}
-            selected={
-              (editor.kind === 'activity' ? activity?.topicIds : source?.topicIds) ??
-              (editor.topicId ? [editor.topicId] : [])
-            }
+            selected={activity?.topicIds ?? (editor.topicId ? [editor.topicId] : [])}
           />
-        )}
-        {editor.id && editor.kind !== 'topic' && (
-          <section className="mt-5">
-            <h3>Related files</h3>
-            {w.attachments
-              .filter((f) =>
-                editor.kind === 'task'
-                  ? f.taskIds.includes(editor.id ?? '')
-                  : editor.kind === 'source'
-                    ? f.sourceIds.includes(editor.id ?? '')
-                    : f.activityIds.includes(editor.id ?? ''),
-              )
-              .map((f) => (
-                <Button type="button" size="sm" key={f.id} onClick={() => openFile(f.id)}>
-                  {f.originalName}
-                </Button>
-              ))}
-            <p className="muted [color:var(--muted)] text-xs mt-2">
-              Associate documents from Files → Relationships.
-            </p>
-          </section>
         )}
         <div className="form-footer flex [justify-content:flex-end] [gap:9px] [margin-top:24px] [padding-top:18px] [border-top:1px_solid_var(--border)]">
           {item && editor.id && (
@@ -558,8 +359,12 @@ export function EntityEditor({
           <Button type="button" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button tone="primary" type="submit" disabled={busy}>
-            {busy ? 'Saving…' : reuse ? 'Link source' : 'Save'}
+          <Button
+            tone="primary"
+            type="submit"
+            disabled={busy || (editor.kind === 'source' && !sourceForm.kind)}
+          >
+            {busy ? 'Saving…' : 'Save'}
           </Button>
         </div>
       </form>

@@ -1,0 +1,139 @@
+'use client';
+import { useState } from 'react';
+import type { Source } from '../domain/model';
+import {
+  isSourceType,
+  messagingContexts,
+  sourceParticipantLabel,
+  sourceFields,
+  sourceType,
+  initialSourcePlatform,
+  type SourceFormValues,
+} from '../domain/sources';
+import { selectOptions, sourceKinds } from '../domain/options';
+import { Field, Input, MultiSelect, Select, Textarea } from './core';
+
+/** Shared fields for task-owned source creation and source metadata editing. */
+export function SourceFields({
+  value,
+  onChange,
+  sources,
+  disabled,
+}: {
+  value: SourceFormValues;
+  onChange: (patch: Partial<SourceFormValues>) => void;
+  sources: Source[];
+  disabled?: boolean;
+}) {
+  const [createdPlatforms, setCreatedPlatforms] = useState<string[]>([]);
+  const fields = value.kind ? sourceFields[value.kind] : undefined;
+  const names = [
+    ...(fields?.platforms ?? []),
+    ...sources
+      .filter((source) => sourceType(source.kind) === value.kind)
+      .map(initialSourcePlatform),
+    ...createdPlatforms,
+    value.platform,
+  ].filter(Boolean);
+  const platforms = [
+    ...new Map(names.map((name) => [name.toLocaleLowerCase(), name])).values(),
+  ].sort((a, b) => a.localeCompare(b));
+  return (
+    <fieldset disabled={disabled} className="min-w-0 m-0 p-0 border-0">
+      <Field label="Type">
+        <Select
+          value={value.kind}
+          onValueChange={(kind) => {
+            if (isSourceType(kind)) onChange({ kind });
+          }}
+          options={[
+            { value: '', label: 'Choose a source type', disabled: true },
+            ...selectOptions(sourceKinds),
+          ]}
+          disabled={disabled}
+        />
+      </Field>
+      {fields && (
+        <>
+          <MultiSelect
+            label="System Platform"
+            options={platforms}
+            value={value.platform ? [value.platform] : []}
+            onValueChange={(values) => onChange({ platform: values[0] ?? '' })}
+            onCreate={(name) => setCreatedPlatforms((names) => [...names, name])}
+            multiple={false}
+            disabled={disabled}
+          />
+          {value.kind === 'mail' && (
+            <Field label="Subject">
+              <Input
+                value={value.subject}
+                maxLength={500}
+                onChange={(event) => onChange({ subject: event.target.value })}
+              />
+            </Field>
+          )}
+          {fields.identifier && (
+            <Field label={fields.identifier}>
+              <Input
+                value={value.identifier}
+                maxLength={1000}
+                onChange={(event) => onChange({ identifier: event.target.value })}
+              />
+            </Field>
+          )}
+          {fields.link && (
+            <Field label={fields.link} hint="Optional HTTP, HTTPS or Teams link.">
+              <Input
+                value={value.url}
+                maxLength={4096}
+                placeholder="https://…"
+                onChange={(event) => onChange({ url: event.target.value })}
+              />
+            </Field>
+          )}
+          {fields.date && (
+            <Field label={fields.date}>
+              <Input
+                type="datetime-local"
+                value={value.eventAt}
+                onChange={(event) => onChange({ eventAt: event.target.value })}
+              />
+            </Field>
+          )}
+          {value.kind === 'messaging' && (
+            <Field label="Identify conversation by">
+              <Select
+                value={value.messageContext}
+                options={messagingContexts}
+                disabled={disabled}
+                onValueChange={(mode) => {
+                  const option = messagingContexts.find((option) => option.value === mode);
+                  if (option) onChange({ messageContext: option.value });
+                }}
+              />
+            </Field>
+          )}
+          <Field
+            label={sourceParticipantLabel({
+              kind: value.kind || 'mail',
+              messageContext: value.messageContext,
+            })}
+          >
+            <Input
+              value={value.participants}
+              onChange={(event) => onChange({ participants: event.target.value })}
+            />
+          </Field>
+          <Field label="Context">
+            <Textarea
+              value={value.notes}
+              rows={3}
+              onChange={(event) => onChange({ notes: event.target.value })}
+            />
+          </Field>
+        </>
+      )}
+    </fieldset>
+  );
+}

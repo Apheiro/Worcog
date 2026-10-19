@@ -7,6 +7,8 @@ import type {
   Topic,
   Workspace,
 } from '../domain/model';
+import { sourceType, sourceKindLabel } from '../domain/sources';
+import { assignedNames } from '../domain/responsibles';
 import { activityTopicIds, sourceTopicIds } from '../domain/relationships';
 import { calendarDate, compareTimestamps, isOpen, isOverdue, today } from '../domain/dates';
 export type EntityType = 'topic' | 'task' | 'activity' | 'source';
@@ -17,6 +19,7 @@ export interface SearchFilter {
   status?: Status | '';
   priority?: Priority | '';
   owner?: string;
+  responsibleName?: string;
   from?: string;
   to?: string;
   topicId?: string;
@@ -42,7 +45,8 @@ function matchesTopic(topic: Topic, filter: SearchFilter): boolean {
     (!filter.category || topic.category === filter.category) &&
     (!filter.status || topic.status === filter.status) &&
     (!filter.priority || topic.priority === filter.priority) &&
-    (!filter.owner || contains(topic.owner, filter.owner))
+    (!(filter.responsibleName || filter.owner) ||
+      contains(assignedNames(topic).join(' '), filter.responsibleName || filter.owner))
   );
 }
 export function filterTopics(
@@ -59,15 +63,7 @@ export function filterTopics(
         matchesTopic(topic, filter) &&
         (!filter.topicId || filter.topicId === topic.id) &&
         contains(
-          [
-            topic.title,
-            topic.summary,
-            topic.category,
-            topic.owner,
-            topic.participants,
-            topic.nextAction,
-            ...topic.tags,
-          ].join(' '),
+          [topic.title, topic.summary, topic.category, ...assignedNames(topic)].join(' '),
           filter.query,
         ) &&
         dateWithin(topic.targetDate, filter),
@@ -99,12 +95,10 @@ export function filterTasks(
             filter.category) &&
         (!filter.status || task.status === filter.status) &&
         (!filter.priority || task.priority === filter.priority) &&
-        (!filter.owner || contains(task.owner, filter.owner)) &&
+        (!(filter.responsibleName || filter.owner) ||
+          contains(assignedNames(task).join(' '), filter.responsibleName || filter.owner)) &&
         dateWithin(task.dueDate, filter) &&
-        contains(
-          [task.title, task.description, task.owner, task.nextAction, ...task.tags].join(' '),
-          filter.query,
-        ),
+        contains([task.title, task.description, ...assignedNames(task)].join(' '), filter.query),
     )
     .sort(
       (a, b) =>
@@ -145,21 +139,14 @@ export function searchWorkspace(
           date: topic.updatedAt,
           topicIds: [topic.id],
         },
-        [
-          topic.title,
-          topic.summary,
-          topic.category,
-          topic.owner,
-          topic.participants,
-          topic.nextAction,
-          ...topic.tags,
-        ].join(' '),
+        [topic.title, topic.summary, topic.category, ...assignedNames(topic)].join(' '),
       );
   for (const task of workspace.tasks)
     if (
       (!options.status || task.status === options.status) &&
       (!options.priority || task.priority === options.priority) &&
-      (!options.owner || contains(task.owner, options.owner))
+      (!(options.responsibleName || options.owner) ||
+        contains(assignedNames(task).join(' '), options.responsibleName || options.owner))
     )
       add(
         {
@@ -170,9 +157,9 @@ export function searchWorkspace(
           date: task.dueDate ?? task.updatedAt,
           topicIds: [task.topicId],
         },
-        [task.title, task.description, task.owner, task.nextAction, ...task.tags].join(' '),
+        [task.title, task.description, ...assignedNames(task)].join(' '),
       );
-  if (!options.status && !options.priority && !options.owner) {
+  if (!options.status && !options.priority && !options.owner && !options.responsibleName) {
     for (const activity of workspace.activities)
       add(
         {
@@ -193,7 +180,7 @@ export function searchWorkspace(
         ].join(' '),
       );
     for (const source of workspace.sources)
-      if (!options.sourceKind || source.kind === options.sourceKind)
+      if (!options.sourceKind || (sourceType(source.kind) ?? source.kind) === options.sourceKind)
         add(
           {
             id: source.id,
@@ -205,13 +192,13 @@ export function searchWorkspace(
           },
           [
             source.title,
-            source.kind,
+            source.subject ?? '',
+            sourceKindLabel(source.kind),
             source.platform,
             source.identifier,
             source.url,
             source.notes,
             source.participants,
-            ...source.tags,
           ].join(' '),
         );
   }

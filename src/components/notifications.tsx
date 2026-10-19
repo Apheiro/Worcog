@@ -1,4 +1,5 @@
 'use client';
+import { Button } from './core/button';
 import {
   IconAlertTriangle,
   IconCircleCheck,
@@ -37,14 +38,16 @@ function NotificationIcon({ type, isLoading }: IconProps) {
 }
 function CloseNotification({ closeToast }: CloseButtonProps) {
   return (
-    <button
+    <Button
+      tone="ghost"
+      size="auto"
       type="button"
-      className="toast-close inline-flex [align-self:flex-start] shrink-0 [padding:3px] border-0 [background:transparent] [color:inherit]"
+      className="toast-close self-start p-[3px] [color:inherit]"
       aria-label="Dismiss notification"
       onClick={closeToast}
     >
       <IconX size={17} aria-hidden="true" />
-    </button>
+    </Button>
   );
 }
 export function Notifications() {

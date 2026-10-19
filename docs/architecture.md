@@ -9,17 +9,26 @@ provide keyboard-accessible date selection.
 
 Each section has a statically exported App Router page (`/`, `/topics/`,
 `/tasks/`, `/sources/`, `/search/`, `/files/`, `/archive/`, `/settings/`).
-The root layout preserves the workspace controller and dialogs across navigation.
+The root `app/layout.tsx` mounts `WorklogProvider` and the shared
+`app/workspace-layout.tsx`, preserving workspace state and dialogs across navigation.
 Navigation uses Next.js links; topic details use `/topics/?topic=<id>` so local
 records do not require build-time dynamic routes. Direct entry, reload and
 browser history preserve the selected topic. Section queries and presentation
-live in `src/components/routes/`; dialogs are loaded dynamically.
+live directly in each `src/app/**/page.tsx`; dialogs are loaded dynamically.
+`src/components/` contains reusable application components, including the shared
+`WorkspaceSection` heading and filters. Basic UI primitives live in
+`src/components/core/`, independently of workspace state and domain options.
 
 Component styles use UnoCSS utilities directly in each component file. CVA
 keeps reusable component variants alongside their markup. Only theme tokens
 and document defaults are global; `uno.config.ts` registers no component
-shortcuts. CVA defines shared button, badge, modal,
-navigation and form-control variants. `Input` and `Textarea` in `ui.tsx`
+shortcuts. `Button` in `core/button.tsx` shares action, ghost, link, resource-chip
+and row variants, with compact and icon sizes. `Card` in `core/card.tsx` shares
+surface/soft tones, padding and interactive states across dashboard modules,
+settings, filters, topic summaries and search results. `CardHeader` and
+`CardContent` keep module spacing consistent; Radix Slot preserves native
+semantics for interactive cards through `asChild`. CVA defines badge, modal,
+navigation and form-control variants. `Input` and `Textarea` in `core/input.tsx`
 centralize native controls; `Field` associates labels and hints. `Select` uses
 Radix UI with a simple options/value/onValueChange API, portaled theme-aware
 menus, keyboard navigation and native form participation. Empty choices retain
@@ -46,8 +55,9 @@ queries, so `lodash-es` is unnecessary.
 
 | Area                   | Responsibility                                              |
 | ---------------------- | ----------------------------------------------------------- |
-| `src/app`              | Static app entry and global layout                          |
-| `src/components`       | Workspace screens and reusable controls                     |
+| `src/app`              | Route pages, route composition and shared Next.js layout    |
+| `src/components`       | Reusable functional application components                  |
+| `src/components/core`  | Basic reusable UI primitives                                |
 | `src/domain`           | Canonical entities, validation and date rules               |
 | `src/application`      | Mutations, recurrence, query and timeline rules             |
 | `src/infrastructure`   | Typed Tauri command boundary                                |
@@ -85,6 +95,45 @@ silently replacing the topic's chronology. Sources are reusable entities with
 their own metadata; no URL is required. Safe saved links are opened through a
 native service, with scheme validation before opening.
 
+## Task resources and responsibilities
+
+Task creation starts from a topic, or from a parent task for subtasks; their IDs
+are implicit. The task editor owns source creation, file import and resource
+linking/unlinking. Sources and Files are management views with metadata and task
+membership, without creation or relationship-editing controls. An explicit
+resource search is required for reuse; a new task never lists the full catalogue.
+Native drops and the file picker share the validated managed-copy importer.
+Dropping a source URL opens a source draft for type selection; task and resource records are committed
+in one workspace save. Canceling discards only uncommitted uploaded copies;
+unlinking saved resources preserves them. Legacy topic/source/annotation resource
+relationships remain readable without allowing new links outside task editing.
+
+The responsible directory is stored in SQLite metadata (migration 3) and included
+in exports. Task/topic payloads store selected responsible names. Legacy owners
+remain readable as initial assignments. Description, start/end dates and repeat
+are collapsed under advanced task fields. Owner, Next Action and Labels have no
+editing, display or label-search functionality; their legacy payload fields remain
+only for compatibility with existing databases and archives.
+
+Source creation and metadata editing share `SourceFields`. Available types are
+Mail, Ticketing, Meeting and Messaging; provider names belong to System Platform.
+Platform selection uses the shared `MultiSelect` in single-selection mode, with
+search and inline creation. Mail exposes subject, date and sender/recipients;
+Ticketing exposes ticket identifier/link; Meeting exposes date, attendees and
+meeting/recording link; Messaging exposes conversation link, Date/Time and a single context field selected
+from Sender, Participants or Group Name. Subject and the conversation context
+mode are preserved in source metadata and included in exports.
+Hidden metadata is preserved when changing type. Historical Email, InvGate and
+Teams/Phone types map to Mail, Ticketing and Messaging respectively; ambiguous
+legacy categories require an explicit type selection when edited.
+
+Topic forms omit Participants and Related Topics. Target Date, Summary and
+Priority are grouped under advanced fields. A shared category-to-color mapping
+is stored in SQLite metadata (migration 4) and exported with the workspace.
+Changing a category color applies to the text of all its topic tags, without
+a background or border. Historical topic participants and relationships remain
+in stored records for archive compatibility without exposing those controls.
+
 ## Recurring tasks
 
 Daily, weekly and monthly schedules create independent task records through the
@@ -120,8 +169,8 @@ described in [releases](releases.md).
 
 ## First-version limits
 
-Status and priority values are fixed; categories, owners and labels are free-form.
-There is one owner field per topic or task. Board layouts, task dependencies,
+Status and priority values are fixed; categories are free-form.
+Tasks and topics use a shared name-only responsible directory and allow multiple assignments. Board layouts, task dependencies,
 custom status definitions and automatic external integrations are not included.
 Topics can be archived and tasks canceled to retain history. All entity types
 can also be permanently deleted with confirmation. Plain-text annotations preserve

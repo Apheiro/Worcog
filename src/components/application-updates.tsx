@@ -1,4 +1,5 @@
 'use client';
+import { Card, CardHeader, CardContent } from './core/card';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import { IconDownload } from '@tabler/icons-react';
 import Markdown from 'markdown-to-jsx';
@@ -6,7 +7,7 @@ import { useState, type ReactNode } from 'react';
 import { errorMessage, native } from '../infrastructure/native';
 import { notifications } from '../infrastructure/notifications';
 import type { UpdateController } from '../infrastructure/use-updates';
-import { Button, Field, Input, Modal } from './ui';
+import { Button, Field, Input, Modal } from './core';
 
 function ReleaseLink({ href, children }: { href?: string; children?: ReactNode }) {
   let safeHref: string | null = null;
@@ -42,11 +43,11 @@ export function ReleaseNotes({ notes }: { notes: string }) {
 export function ApplicationUpdates({ updates: u }: { updates: UpdateController }) {
   const [token, setToken] = useState('');
   return (
-    <section className="section [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden [&_.table-wrap]:border-0 [&_.table-wrap]:rounded-none [&_.empty]:border-0 [&_.empty]:rounded-none [&_.empty]:m-0 mt-6">
-      <div className="section-heading [padding:16px_20px] flex items-center justify-between [gap:15px] [min-height:58px] [border-bottom:1px_solid_var(--border)]">
+    <Card className="mt-6">
+      <CardHeader>
         <h2>Application updates</h2>
-      </div>
-      <div className="settings-body [padding:21px] [font-size:13px]">
+      </CardHeader>
+      <CardContent className="settings-body">
         <p>
           Download verified Windows x64 updates from Apheiro/Worklog on GitHub. Updates are
           installed manually.
@@ -127,8 +128,8 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
             {u.error}
           </p>
         )}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }
 export function UpdateDialog({ updates: u }: { updates: UpdateController }) {

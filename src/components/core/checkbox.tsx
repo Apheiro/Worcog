@@ -10,6 +10,7 @@ const checkbox = cva({
     'checkbox',
     'inline-flex items-center justify-center shrink-0 w-5 h-5 p-0 rounded [border:1px_solid_var(--border-strong)] [background:var(--surface)] [color:var(--secondary)]',
     '[&:hover:not(:disabled)]:[border-color:var(--focus)]',
+    '[&:focus-visible]:[outline:none] [&:focus-visible]:[border-color:var(--focus)]',
     '[&[data-state=checked]]:[background:var(--checkbox-fill)] [&[data-state=checked]]:[border-color:var(--checkbox-fill)] [&[data-state=checked]]:[color:var(--checkbox-mark)]',
     '[&[data-state=indeterminate]]:[background:var(--checkbox-fill)] [&[data-state=indeterminate]]:[border-color:var(--checkbox-fill)] [&[data-state=indeterminate]]:[color:var(--checkbox-mark)]',
     'disabled:opacity-50 disabled:cursor-not-allowed',

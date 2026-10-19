@@ -1,22 +1,12 @@
 'use client';
 import { IconPlus } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { Button } from '../ui';
-import { useWorklog } from '../worklog';
-import { WorkspaceFilters } from '../workspace-filters';
-export function Section({ children }: { children: ReactNode }) {
-  const {
-    w,
-    page,
-    setFilters,
-    filter,
-    setFilter,
-    enabled,
-    attach,
-    heading,
-    addForPage,
-    newItemName,
-  } = useWorklog();
+import { Button } from './core';
+import { useWorklog } from '../providers/worklog';
+import { WorkspaceFilters } from './workspace-filters';
+export function WorkspaceSection({ children }: { children: ReactNode }) {
+  const { w, page, setFilters, filter, setFilter, enabled, heading, addForPage, newItemName } =
+    useWorklog();
   return (
     <>
       <div className="page-heading flex items-start justify-between [gap:24px] [margin-bottom:29px] [&_h1_+_p]:[margin-top:9px] [&_h1_+_p]:[font-size:13px] [&_>_.button]:[margin-top:22px] [@media(max-width:1150px)]:[&_h1]:[font-size:27px] [@media(max-width:800px)]:flex-wrap [@media(max-width:800px)]:[gap:15px] [@media(max-width:800px)]:[&_>_.button]:[margin-top:0] [@media(max-width:800px)]:[&_h1]:[font-size:26px]">
@@ -31,34 +21,19 @@ export function Section({ children }: { children: ReactNode }) {
               : page === 'tasks'
                 ? 'Track outcomes, deadlines, and recurring work.'
                 : page === 'sources'
-                  ? 'Reusable references to the places where work happens.'
+                  ? 'Sources created from tasks and their relationships.'
                   : page === 'archive'
                     ? 'Preserved topics and their complete history.'
                     : page === 'files'
-                      ? 'Managed copies and their relationships across your workspace.'
+                      ? 'Managed files uploaded from tasks and their relationships.'
                       : page === 'search'
                         ? 'Find topics, tasks, annotations and external identifiers.'
                         : 'Persistent data, portable archives and recovery.'}
           </p>
         </div>
-        {['topics', 'tasks', 'sources'].includes(page) && (
-          <Button
-            tone="primary"
-            onClick={addForPage}
-            disabled={!enabled || (page === 'tasks' && !w.topics.length)}
-          >
+        {page === 'topics' && (
+          <Button tone="primary" onClick={addForPage} disabled={!enabled}>
             <IconPlus size={17} /> New {newItemName}
-          </Button>
-        )}
-        {page === 'files' && (
-          <Button
-            tone="primary"
-            disabled={!enabled}
-            onClick={() => {
-              void attach();
-            }}
-          >
-            <IconPlus size={17} /> Attach file
           </Button>
         )}
       </div>

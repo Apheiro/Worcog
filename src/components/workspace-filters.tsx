@@ -1,18 +1,11 @@
 'use client';
+import { Card } from './core/card';
 import { IconChevronDown, IconFilter, IconSearch } from '@tabler/icons-react';
 import { useId, useState } from 'react';
 import type { SearchFilter } from '../application/queries';
 import type { Priority, SourceKind, Status, Workspace } from '../domain/model';
-import {
-  Button,
-  Field,
-  Input,
-  selectOptions,
-  priorities,
-  Select,
-  sourceKinds,
-  statuses,
-} from './ui';
+import { Button, Field, Input, Select } from './core';
+import { selectOptions, priorities, sourceKinds, statuses } from '../domain/options';
 export function WorkspaceFilters({
   page,
   workspace: w,
@@ -32,10 +25,7 @@ export function WorkspaceFilters({
     ([key, value]) => key !== 'query' && value?.trim(),
   ).length;
   return (
-    <section
-      className="filters [background:var(--surface)] [border:1px_solid_var(--border)] [border-radius:5px] [margin-bottom:24px]"
-      aria-label="Search and filters"
-    >
+    <Card className="filters mb-6" aria-label="Search and filters">
       <div className="filters-header flex items-stretch">
         <div className="search-field flex flex-1 min-w-0 [gap:10px] items-center [padding:3px_15px] [color:var(--muted)] [&_>_svg]:shrink-0 [&_input]:border-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:[padding:10px_0] [&_input]:[background:none]">
           <IconSearch size={17} />
@@ -108,10 +98,10 @@ export function WorkspaceFilters({
                 options={[{ value: '', label: 'All priorities' }, ...selectOptions(priorities)]}
               />
             </Field>
-            <Field label="Owner">
+            <Field label="Assignee">
               <Input
-                value={filter.owner ?? ''}
-                onChange={(e) => setFilter({ owner: e.target.value })}
+                value={filter.responsibleName ?? filter.owner ?? ''}
+                onChange={(e) => setFilter({ responsibleName: e.target.value, owner: '' })}
                 placeholder="Any owner"
               />
             </Field>
@@ -164,6 +154,6 @@ export function WorkspaceFilters({
           Clear
         </Button>
       </div>
-    </section>
+    </Card>
   );
 }

@@ -6,14 +6,18 @@ import {
   IconLink,
   IconPaperclip,
   IconTrash,
-  IconUnlink,
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { topicTimeline } from '../application/queries';
 import { orderTasksForDisplay } from '../application/task-order';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
 import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
-import { Badge, Button, Empty, selectOptions, Select, activityKinds, human } from './ui';
+import { Badge, Button, Empty, Select } from './core';
+import { sourceKindLabel } from '../domain/sources';
+import { selectOptions, activityKinds, human } from '../domain/options';
+import { assignedNames } from '../domain/responsibles';
+import { CategoryTag } from './category-tag';
+import { ResourceTasks } from './resource-tasks';
 import { TaskRow, type TaskRowProps } from './task-row';
 export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: string) => void }) {
   return topics.length ? (
@@ -21,10 +25,10 @@ export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: strin
       <table className="data-table [border-collapse:collapse] w-full [min-width:760px] text-left [font-size:12px] [&_th]:[padding:10px_15px] [&_th]:[font-size:10px] [&_th]:[font-weight:600] [&_th]:[color:var(--muted)] [&_th]:[background:var(--surface-soft)] [&_th]:[letter-spacing:0.4px] [&_th]:uppercase [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:whitespace-nowrap [&_td]:[padding:15px] [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_td:first-child]:[width:38%] [&_td:nth-child(5)]:whitespace-nowrap [&_td:nth-child(6)]:whitespace-nowrap [&_tr:last-child_td]:[border-bottom:none] [&_tbody_tr:hover]:[background:var(--surface-soft)]">
         <thead>
           <tr>
-            <th>Topic / next action</th>
+            <th>Topic</th>
             <th>Status</th>
             <th>Priority</th>
-            <th>Owner</th>
+            <th>Assignees</th>
             <th>Target</th>
             <th>Updated</th>
           </tr>
@@ -33,20 +37,12 @@ export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: strin
           {topics.map((topic) => (
             <tr key={topic.id}>
               <td>
-                <button
-                  className="title-link p-0 border-0 [background:transparent] [color:var(--ink)] text-left [font-weight:550] [overflow-wrap:anywhere] [&:hover]:[text-decoration:underline] [&:hover]:[text-underline-offset:3px]"
-                  onClick={() => open(topic.id)}
-                >
+                <Button tone="link" size="auto" onClick={() => open(topic.id)}>
                   {topic.title}
-                </button>
+                </Button>
                 <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-                  {topic.category} {topic.tags.length > 0 && `· ${topic.tags.join(', ')}`}
+                  <CategoryTag category={topic.category} />
                 </div>
-                {topic.nextAction && (
-                  <div className="row-action [font-size:12px] [color:var(--muted)] [margin-top:5px] [max-width:520px] [overflow-wrap:anywhere]">
-                    Next: {topic.nextAction}
-                  </div>
-                )}
               </td>
               <td>
                 <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
@@ -58,7 +54,7 @@ export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: strin
                   {human(topic.priority)}
                 </Badge>
               </td>
-              <td>{topic.owner || 'Unassigned'}</td>
+              <td>{assignedNames(topic).join(', ') || 'Unassigned'}</td>
               <td
                 className={
                   topic.targetDate &&
@@ -136,21 +132,19 @@ export function SourceList({
           <span className="entity-icon [width:35px] [height:35px] grid [place-items:center] [background:var(--surface-soft)] [border:1px_solid_var(--border)] [border-radius:5px] [color:var(--muted)]">
             <IconLink size={18} />
           </span>
-          <span className="flex-1 min-w-0">
-            <button
-              className="title-link p-0 border-0 [background:transparent] [color:var(--ink)] text-left [font-weight:550] [overflow-wrap:anywhere] [&:hover]:[text-decoration:underline] [&:hover]:[text-underline-offset:3px]"
-              onClick={() => onOpen(source.id)}
-            >
+          <div className="flex-1 min-w-0">
+            <Button tone="link" size="auto" onClick={() => onOpen(source.id)}>
               <strong>{source.title}</strong>
-            </button>
+            </Button>
             <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-              {human(source.kind)} · {source.platform || 'Manual reference'}
+              {sourceKindLabel(source.kind)} · {source.platform || 'Manual reference'}
               {source.identifier && ` · ${source.identifier}`}
             </span>
             <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere] truncate">
               {source.notes}
             </span>
-          </span>
+            <ResourceTasks sourceId={source.id} />
+          </div>
           <span className="muted [color:var(--muted)] text-sm">{formatDate(source.eventAt)}</span>
           <Button size="sm" aria-label={`View ${source.title}`} onClick={() => onOpen(source.id)}>
             <IconArrowUpRight size={17} />
@@ -166,9 +160,7 @@ export function SourceList({
       ))}
     </div>
   ) : (
-    <Empty title="No references yet">
-      Record an email, ticket, conversation or document manually.
-    </Empty>
+    <Empty title="No references yet">Create a source from a task to see it here.</Empty>
   );
 }
 export function Timeline({
@@ -269,15 +261,11 @@ export function Timeline({
                       const source = w.sources.find((s) => s.id === id);
                       return (
                         source && (
-                          <button
-                            className="source-chip inline-flex items-center [gap:5px] [border:1px_solid_var(--border)] [background:var(--surface-soft)] [border-radius:4px] [padding:3px_7px] [font-size:11px] [color:var(--secondary)] text-left [overflow-wrap:anywhere] [&:hover]:[background:var(--hover)]"
-                            key={id}
-                            onClick={() => onSource(id)}
-                          >
+                          <Button tone="chip" size="auto" key={id} onClick={() => onSource(id)}>
                             <IconLink size={13} />
                             {source.title}
                             {source.identifier && ` · ${source.identifier}`}
-                          </button>
+                          </Button>
                         )
                       );
                     })}
@@ -351,14 +339,12 @@ export function FileList({
   files,
   open,
   manage,
-  unlink,
   onDelete,
 }: {
   files: Attachment[];
   onDelete: (id: string) => void;
   open: (id: string) => void;
   manage: (id: string) => void;
-  unlink?: (id: string) => void;
 }) {
   return files.length ? (
     <div>
@@ -369,19 +355,17 @@ export function FileList({
         >
           <IconFile size={20} />
           <div className="flex-1 min-w-0">
-            <button
-              className="title-link p-0 border-0 [background:transparent] [color:var(--ink)] text-left [font-weight:550] [overflow-wrap:anywhere] [&:hover]:[text-decoration:underline] [&:hover]:[text-underline-offset:3px]"
-              onClick={() => open(file.id)}
-            >
+            <Button tone="link" size="auto" onClick={() => open(file.id)}>
               {file.originalName}
-            </button>
+            </Button>
             <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
               {(file.size / 1024).toFixed(1)} KB · {file.mime || 'Unknown type'} · Added{' '}
               {formatDate(file.addedAt)}
             </div>
+            <ResourceTasks fileId={file.id} />
           </div>
           <Button size="sm" onClick={() => manage(file.id)}>
-            Relationships
+            Details
           </Button>
           <Button
             size="sm"
@@ -390,21 +374,10 @@ export function FileList({
           >
             <IconTrash size={16} />
           </Button>
-          {unlink && (
-            <Button
-              size="sm"
-              aria-label={`Unlink ${file.originalName}`}
-              onClick={() => unlink(file.id)}
-            >
-              <IconUnlink size={16} />
-            </Button>
-          )}
         </div>
       ))}
     </div>
   ) : (
-    <Empty title="No attached files">
-      Attach a document to keep a managed copy, independent of the original location.
-    </Empty>
+    <Empty title="No attached files">Upload files from a task to keep managed copies here.</Empty>
   );
 }

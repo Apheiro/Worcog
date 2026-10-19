@@ -8,7 +8,8 @@ import {
   subscribeToTheme,
   themeOptions,
 } from '../infrastructure/theme';
-import { selectOptions, Select } from './ui';
+import { Select } from './core';
+import { selectOptions } from '../domain/options';
 
 export function ThemeControl() {
   const preference = useSyncExternalStore(

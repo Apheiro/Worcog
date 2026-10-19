@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import Worklog from '../components/worklog';
+import { WorklogProvider } from '../providers/worklog';
+import { WorkspaceLayout } from './workspace-layout';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
@@ -24,10 +25,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Skip to content
         </a>
         <Suspense fallback={<p role="status">Opening workspace…</p>}>
-          <Worklog>
-            {/* asddassad */}
-            {children}
-          </Worklog>
+          <WorklogProvider>
+            <WorkspaceLayout>{children}</WorkspaceLayout>
+          </WorklogProvider>
         </Suspense>
         <Notifications />
       </body>
