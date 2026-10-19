@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/Apheiro/Worklog/compare/v0.3.0...v0.3.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* **settings:** accept missing inactivity storage values ([21a50ee](https://github.com/Apheiro/Worklog/commit/21a50eee5dd4fd1e5f550e542d3c78c91be2c459))
+
 ## [0.3.0](https://github.com/Apheiro/Worklog/compare/v0.2.0...v0.3.0) (2026-10-19)
 
 
