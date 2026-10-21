@@ -1,5 +1,6 @@
 'use client';
 import { useState, type FormEvent } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import {
   topicInactivitySchema,
   type TopicInactivitySettings,
@@ -15,13 +16,22 @@ export function TopicInactivitySettingsForm({
   onSave: (settings: TopicInactivitySettings) => void;
 }) {
   const [error, setError] = useState('');
+  const [colors, setColors] = useState({
+    initialColor: settings.initialColor,
+    midpointColor: settings.midpointColor,
+    extremeColor: settings.extremeColor,
+  });
+  const points = [
+    { key: 'initialColor', label: 'Initial', position: '0%', align: 'start' },
+    { key: 'midpointColor', label: 'Midpoint', position: '50%', align: 'center' },
+    { key: 'extremeColor', label: 'Final', position: '100%', align: 'end' },
+  ] as const;
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const result = topicInactivitySchema.safeParse({
       days: Number(data.get('days')),
-      initialColor: data.get('initialColor'),
-      extremeColor: data.get('extremeColor'),
+      ...colors,
     });
     if (!result.success) {
       setError('Enter a positive whole number of days and valid colors.');
@@ -32,15 +42,14 @@ export function TopicInactivitySettingsForm({
     notifications.success('Topic inactivity settings saved.');
   }
   return (
-    <Card className="mb-6">
+    <Card>
       <CardHeader>
         <h2>Topic inactivity</h2>
       </CardHeader>
       <CardContent>
         <p className="text-sm [color:var(--muted)] mb-4">
-          Indicators transition from the initial color to the final color as a topic approaches
-          the inactivity period. They are recalculated when you open the app. Settings are saved on
-          this device.
+          Indicators transition through three colors as a topic approaches the inactivity period.
+          Select a marker to adjust its color. Settings are saved on this device.
         </p>
         <form onSubmit={submit}>
           <div className="flex flex-wrap items-start gap-4">
@@ -54,28 +63,68 @@ export function TopicInactivitySettingsForm({
                 defaultValue={settings.days}
               />
             </Field>
-            <Field label="Initial color">
-              <div>
-                <Input
-                  name="initialColor"
-                  type="color"
-                  aria-label="Initial inactivity color"
-                  defaultValue={settings.initialColor}
-                  className="w-9 h-9 cursor-pointer [&[type=color]]:[padding:3px]"
-                />
+            <div className="min-w-0 flex-1 [flex-basis:260px] mb-4">
+              <p className="text-xs [color:var(--secondary)] font-medium mb-3">Inactivity colors</p>
+              <div className="px-6 pt-6 pb-2">
+                <div
+                  className="relative h-2 rounded-full [border:1px_solid_var(--border)]"
+                  style={{
+                    background: `linear-gradient(to right in lab, ${colors.initialColor}, ${colors.midpointColor} 50%, ${colors.extremeColor})`,
+                  }}
+                >
+                  {points.map((point) => (
+                    <Popover.Root key={point.key}>
+                      <Popover.Trigger asChild>
+                        <button
+                          type="button"
+                          aria-label={`${point.label} inactivity color: ${colors[point.key]}`}
+                          className="group absolute top-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded [background:transparent] [border:0] cursor-pointer focus-visible:[outline:2px_solid_var(--focus)] focus-visible:[outline-offset:2px]"
+                          style={{ left: point.position }}
+                        >
+                          <span className="absolute bottom-full flex flex-col items-center pointer-events-none">
+                            <span className="rounded [border:1px_solid_var(--border)] [background:var(--surface)] [color:var(--secondary)] px-1.5 py-0.5 text-[10px] whitespace-nowrap group-hover:[color:var(--ink)]">
+                              {point.label}
+                            </span>
+                            <span className="h-0 w-0 [border-left:3px_solid_transparent] [border-right:3px_solid_transparent] [border-top:4px_solid_var(--secondary)]" />
+                          </span>
+                          <span
+                            className="h-3 w-3 rounded-full [border:2px_solid_var(--surface)] [box-shadow:0_0_0_1px_var(--secondary)] group-hover:[box-shadow:0_0_0_2px_var(--ink)]"
+                            style={{ background: colors[point.key] }}
+                          />
+                        </button>
+                      </Popover.Trigger>
+                      <Popover.Portal>
+                        <Popover.Content
+                          side="top"
+                          align={point.align}
+                          sideOffset={8}
+                          collisionPadding={12}
+                          aria-label={`${point.label} color`}
+                          className="z-50 rounded-md [border:1px_solid_var(--border)] [background:var(--surface)] [color:var(--ink)] p-3 [box-shadow:0_4px_16px_#0002]"
+                        >
+                          <label className="flex items-center gap-3 text-xs">
+                            <span>{point.label}</span>
+                            <Input
+                              type="color"
+                              value={colors[point.key]}
+                              onChange={(event) =>
+                                setColors((current) => ({ ...current, [point.key]: event.target.value }))
+                              }
+                              className="h-8 w-8 cursor-pointer [&[type=color]]:[padding:2px]"
+                            />
+                            <span className="font-mono [color:var(--muted)]">{colors[point.key]}</span>
+                          </label>
+                          <Popover.Arrow className="[fill:var(--surface)]" />
+                        </Popover.Content>
+                      </Popover.Portal>
+                    </Popover.Root>
+                  ))}
+                </div>
+                <div className="mt-3 flex justify-between text-[10px] [color:var(--muted)]" aria-hidden="true">
+                  <span>0%</span><span>50%</span><span>100%</span>
+                </div>
               </div>
-            </Field>
-            <Field label="Final color">
-              <div>
-                <Input
-                  name="extremeColor"
-                  type="color"
-                  aria-label="Final inactivity color"
-                  defaultValue={settings.extremeColor}
-                  className="w-9 h-9 cursor-pointer [&[type=color]]:[padding:3px]"
-                />
-              </div>
-            </Field>
+            </div>
           </div>
           {error && (
             <p role="alert" className="text-xs [color:var(--danger-ink)] mb-3">

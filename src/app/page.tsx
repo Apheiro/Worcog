@@ -6,13 +6,26 @@ import { IconArrowRight, IconClock, IconFlag, IconLock, IconProgress } from '@ta
 import dayjs from 'dayjs';
 import { compareTimestamps, formatTimestamp, isOpen, isOverdue, today } from '../domain/dates';
 import { Badge, Button, Empty } from '../components/core';
-import { assignedNames } from '../domain/responsibles';
 import { human } from '../domain/options';
 import { TopicTable } from '../components/work-lists';
 import { useWorklog } from '../providers/worklog';
 
 export default function Page() {
-  const { w, openTopic, setEditor, enabled, inactivitySettings } = useWorklog();
+  const {
+    w,
+    openTopic,
+    setEditor,
+    enabled,
+    inactivitySettings,
+    navigate,
+    setFilters,
+    setTaskView,
+  } = useWorklog();
+  function showTasks(view: 'open' | 'overdue' | 'blocked') {
+    setFilters((current) => ({ ...current, tasks: {} }));
+    setTaskView(view);
+    navigate('tasks');
+  }
   const newTopic = () => setEditor({ kind: 'topic' });
   const topics = w.topics.filter((t) => !t.archived);
   const tasks = w.tasks.filter(
@@ -31,7 +44,6 @@ export default function Page() {
   const recent = [...w.activities]
     .sort((a, b) => compareTimestamps(b.eventAt, a.eventAt))
     .slice(0, 8);
-  const next = [...tasks].sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'));
   return (
     <>
       <div className="page-heading flex items-start justify-between [gap:24px] [margin-bottom:29px] [&_h1_+_p]:[margin-top:9px] [&_h1_+_p]:[font-size:13px] [&_>_.button]:[margin-top:22px] [@media(max-width:1150px)]:[&_h1]:[font-size:27px] [@media(max-width:800px)]:flex-wrap [@media(max-width:800px)]:[gap:15px] [@media(max-width:800px)]:[&_>_.button]:[margin-top:0] [@media(max-width:800px)]:[&_h1]:[font-size:26px]">
@@ -64,13 +76,41 @@ export default function Page() {
       <Card asChild tone="soft">
         <div className="metrics grid [grid-template-columns:repeat(4,_minmax(0,_1fr))] [margin:25px_0_28px] [@media(max-width:800px)]:[grid-template-columns:1fr_1fr]">
           {[
-            { title: 'Open tasks', value: tasks.length, icon: IconClock },
-            { title: 'Overdue', value: overdue.length, icon: IconFlag },
-            { title: 'Blocked tasks', value: blocked.length, icon: IconLock },
-            { title: 'Topics in progress', value: active.length, icon: IconProgress },
+            {
+              title: 'Open tasks',
+              value: tasks.length,
+              icon: IconClock,
+              onClick: () => showTasks('open'),
+            },
+            {
+              title: 'Overdue',
+              value: overdue.length,
+              icon: IconFlag,
+              onClick: () => showTasks('overdue'),
+            },
+            {
+              title: 'Blocked tasks',
+              value: blocked.length,
+              icon: IconLock,
+              onClick: () => showTasks('blocked'),
+            },
+            {
+              title: 'Topics in progress',
+              value: active.length,
+              icon: IconProgress,
+              onClick: () => {
+                setFilters((current) => ({ ...current, topics: { status: 'in_progress' } }));
+                navigate('topics');
+              },
+            },
           ].map((metric) => (
-            <div
-              className="metric [padding:19px_23px] [border-right:1px_solid_var(--border)] [font-size:12px] [color:var(--muted)] [&:last-child]:[border:none] [&_svg]:[color:var(--muted)] [&_strong]:block [&_strong]:[color:var(--ink)] [&_strong]:[font-size:30px] [&_strong]:[font-weight:550] [&_strong]:[line-height:1.2] [&_strong]:[margin-top:11px] [&_strong]:[letter-spacing:-0.7px] [@media(max-width:1150px)]:[padding:15px] [@media(max-width:800px)]:[&:nth-child(2)]:[border-right:0] [@media(max-width:800px)]:[&:nth-child(-n_+_2)]:[border-bottom:1px_solid_var(--border)]"
+            <Button
+              type="button"
+              tone="ghost"
+              size="auto"
+              onClick={metric.onClick}
+              aria-label={`${metric.title}: ${metric.value}. View results`}
+              className="metric [&.button]:block [&.button]:rounded-none [&.button]:text-left [padding:19px_23px] [border-right:1px_solid_var(--border)] [font-size:12px] [color:var(--muted)] [&:last-child]:[border:none] [&_svg]:[color:var(--muted)] [&_strong]:block [&_strong]:[color:var(--ink)] [&_strong]:[font-size:30px] [&_strong]:[font-weight:550] [&_strong]:[line-height:1.2] [&_strong]:[margin-top:11px] [&_strong]:[letter-spacing:-0.7px] [@media(max-width:1150px)]:[padding:15px] [@media(max-width:800px)]:[&:nth-child(2)]:[border-right:0] [@media(max-width:800px)]:[&:nth-child(-n_+_2)]:[border-bottom:1px_solid_var(--border)]"
               key={metric.title}
             >
               <div className="flex items-center justify-between">
@@ -78,76 +118,34 @@ export default function Page() {
                 <metric.icon size={18} />
               </div>
               <strong>{metric.value}</strong>
-            </div>
+            </Button>
           ))}
         </div>
       </Card>
-      <div className="dashboard-grid grid [grid-template-columns:minmax(0,_1.2fr)_minmax(0,_1fr)] [gap:25px] [@media(max-width:1150px)]:[gap:18px] [@media(max-width:800px)]:[grid-template-columns:1fr]">
-        <Card>
-          <CardHeader>
-            <h2>Pending tasks</h2>
-            <span className="muted [color:var(--muted)] text-sm">{next.length} tasks</span>
-          </CardHeader>
-          {next.length ? (
-            next.slice(0, 10).map((topic) => (
-              <Button
-                tone="row"
-                size="auto"
-                key={topic.id}
-                onClick={() => openTopic(topic.topicId)}
-              >
-                <span className="flex-1">
-                  <strong>{topic.title}</strong>
-                  <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-                    {w.topics.find((item) => item.id === topic.topicId)?.title} ·{' '}
-                    {assignedNames(topic).join(', ') || 'Unassigned'}
-                  </span>
-                </span>
-                {topic.dueDate && (
-                  <span
-                    className={
-                      topic.dueDate < today()
-                        ? 'overdue [color:var(--danger-ink)] [font-weight:550] text-sm'
-                        : 'muted [color:var(--muted)] text-sm'
-                    }
-                  >
-                    {dayjs(topic.dueDate).format('MMM D')}
-                  </span>
-                )}
-                <IconArrowRight size={16} />
-              </Button>
-            ))
-          ) : (
-            <p className="section-empty [padding:30px_22px] [color:var(--muted)] [font-size:13px]">
-              Pending tasks will appear here.
-            </p>
-          )}
-        </Card>
-        <Card>
-          <CardHeader>
-            <h2>Needs attention</h2>
-            <Badge>{new Set([...overdue, ...blocked, ...dueSoon]).size}</Badge>
-          </CardHeader>
-          {[...new Set([...overdue, ...blocked, ...dueSoon])].slice(0, 8).map((task) => (
-            <Button tone="row" size="auto" key={task.id} onClick={() => openTopic(task.topicId)}>
-              <span className="flex-1">
-                <strong>{task.title}</strong>
-                <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-                  {w.topics.find((t) => t.id === task.topicId)?.title}
-                </span>
+      <Card>
+        <CardHeader>
+          <h2>Needs attention</h2>
+          <Badge>{new Set([...overdue, ...blocked, ...dueSoon]).size}</Badge>
+        </CardHeader>
+        {[...new Set([...overdue, ...blocked, ...dueSoon])].slice(0, 8).map((task) => (
+          <Button tone="row" size="auto" key={task.id} onClick={() => openTopic(task.topicId)}>
+            <span className="flex-1">
+              <strong>{task.title}</strong>
+              <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
+                {w.topics.find((t) => t.id === task.topicId)?.title}
               </span>
-              <Badge tone={isOverdue(task) ? 'danger' : 'warning'}>
-                {isOverdue(task) ? 'Overdue' : task.status === 'blocked' ? 'Blocked' : 'Due soon'}
-              </Badge>
-            </Button>
-          ))}
-          {!overdue.length && !blocked.length && !dueSoon.length && (
-            <p className="section-empty [padding:30px_22px] [color:var(--muted)] [font-size:13px]">
-              No blocked or overdue tasks. Upcoming deadlines will appear here.
-            </p>
-          )}
-        </Card>
-      </div>
+            </span>
+            <Badge tone={isOverdue(task) ? 'danger' : 'warning'}>
+              {isOverdue(task) ? 'Overdue' : task.status === 'blocked' ? 'Blocked' : 'Due soon'}
+            </Badge>
+          </Button>
+        ))}
+        {!overdue.length && !blocked.length && !dueSoon.length && (
+          <p className="section-empty [padding:30px_22px] [color:var(--muted)] [font-size:13px]">
+            No blocked or overdue tasks. Upcoming deadlines will appear here.
+          </p>
+        )}
+      </Card>
       <Card className="mt-7">
         <CardHeader>
           <h2>Recently updated topics</h2>
@@ -171,7 +169,7 @@ export default function Page() {
                 tone="row"
                 size="auto"
                 key={activity.id}
-
+                className="[&.action-row]:justify-start [&.action-row]:text-left"
                 onClick={() => {
                   const id =
                     activity.topicIds[0] ??
@@ -179,7 +177,7 @@ export default function Page() {
                   if (id) openTopic(id);
                 }}
               >
-                <span>
+                <span className="min-w-0 w-full text-left">
                   <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
                     {formatTimestamp(activity.eventAt)} · {human(activity.kind)}
                   </span>

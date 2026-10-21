@@ -1,13 +1,6 @@
 'use client';
-import {
-  IconArrowUpRight,
-  IconEdit,
-  IconFile,
-  IconLink,
-  IconPaperclip,
-  IconTrash,
-} from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconEdit, IconFile, IconLink, IconPaperclip, IconTrash } from '@tabler/icons-react';
+import { useState, type ReactNode } from 'react';
 import { topicTimeline } from '../application/queries';
 import { orderTasksForDisplay } from '../application/task-order';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
@@ -19,6 +12,7 @@ import { assignedNames } from '../domain/responsibles';
 import { TopicInactivityIndicator } from './topic-inactivity-indicator';
 import { CategoryTag } from './category-tag';
 import { ResourceTasks } from './resource-tasks';
+import { ResourceList } from './resource-list';
 import { TaskRow, type TaskRowProps } from './task-row';
 export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: string) => void }) {
   return topics.length ? (
@@ -92,25 +86,70 @@ export function TaskList({
   onOpenSource,
   onOpenFile,
   showContext = true,
-}: Omit<TaskRowProps, 'task'> & { tasks: TaskRowProps['task'][] }) {
+}: Omit<TaskRowProps, 'task' | 'childrenExpanded' | 'onToggleChildren'> & {
+  tasks: TaskRowProps['task'][];
+}) {
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const roots: TaskRowProps['task'][] = [];
+  const children = new Map<string, TaskRowProps['task'][]>();
+  const placed = new Set<string>();
+  for (const task of orderTasksForDisplay(tasks)) {
+    // Missing filtered parents become roots; only attach to already-placed parents
+    // so malformed cycles cannot hide tasks or create recursive branches.
+    if (task.parentId && placed.has(task.parentId)) {
+      const siblings = children.get(task.parentId) ?? [];
+      siblings.push(task);
+      children.set(task.parentId, siblings);
+    } else roots.push(task);
+    placed.add(task.id);
+  }
+  function branches(items: TaskRowProps['task'][]): ReactNode {
+    return items.map((task) => {
+      const descendants = children.get(task.id) ?? [];
+      const expanded = !collapsed.has(task.id);
+      return (
+        <li key={task.id} className="flex min-w-0 flex-col gap-[5px]">
+          <TaskRow
+            task={task}
+            workspace={w}
+            onEdit={onEdit}
+            onStatus={onStatus}
+            busy={busy}
+            onAddSubtask={onAddSubtask}
+            onDelete={onDelete}
+            onOpenSource={onOpenSource}
+            onOpenFile={onOpenFile}
+            showContext={showContext}
+            childrenExpanded={descendants.length ? expanded : undefined}
+            onToggleChildren={
+              descendants.length
+                ? () => {
+                    setCollapsed((previous) => {
+                      const next = new Set(previous);
+                      if (next.has(task.id)) next.delete(task.id);
+                      else next.add(task.id);
+                      return next;
+                    });
+                  }
+                : undefined
+            }
+          />
+          {descendants.length > 0 && expanded && (
+            <ul
+              aria-label={`Subtasks of ${task.title}`}
+              className="relative m-0 flex min-w-0 list-none flex-col gap-[5px] py-0 pr-0 [padding-left:calc(1.25rem_+_1px_+_0.75rem)] before:content-empty before:absolute before:inset-y-0 before:[left:calc(1.25rem_+_1px)] before:-translate-x-1/2 before:w-px before:[background:var(--border)] before:pointer-events-none"
+            >
+              {branches(descendants)}
+            </ul>
+          )}
+        </li>
+      );
+    });
+  }
   return tasks.length ? (
-    <div className="task-list [border:1px_solid_var(--border)] rounded-lg [background:var(--surface)] overflow-hidden">
-      {orderTasksForDisplay(tasks).map((task) => (
-        <TaskRow
-          key={task.id}
-          task={task}
-          workspace={w}
-          onEdit={onEdit}
-          onStatus={onStatus}
-          busy={busy}
-          onAddSubtask={onAddSubtask}
-          onDelete={onDelete}
-          onOpenSource={onOpenSource}
-          onOpenFile={onOpenFile}
-          showContext={showContext}
-        />
-      ))}
-    </div>
+    <ul className="task-list m-0 flex list-none flex-col gap-[5px] p-0" aria-label="Task hierarchy">
+      {branches(roots)}
+    </ul>
   ) : (
     <Empty title="No tasks in this view">Tasks added to a topic will appear here.</Empty>
   );
@@ -124,45 +163,23 @@ export function SourceList({
   onDelete: (id: string) => void;
   onOpen: (id: string) => void;
 }) {
-  return sources.length ? (
-    <div className="source-list [border:1px_solid_var(--border)] [border-radius:5px] [background:var(--surface)] overflow-hidden">
-      {sources.map((source) => (
-        <div
-          className="source-row flex items-center [gap:14px] w-full text-left [padding:18px] border-0 [border-bottom:1px_solid_var(--border)] [background:var(--surface)] [&:last-child]:[border-bottom:0] [&:hover]:[background:var(--surface-soft)] [&_strong]:[font-size:13px] [&_strong]:[font-weight:550]"
-          key={source.id}
-        >
-          <span className="entity-icon [width:35px] [height:35px] grid [place-items:center] [background:var(--surface-soft)] [border:1px_solid_var(--border)] [border-radius:5px] [color:var(--muted)]">
-            <IconLink size={18} />
-          </span>
-          <div className="flex-1 min-w-0">
-            <Button tone="link" size="auto" onClick={() => onOpen(source.id)}>
-              <strong>{source.title}</strong>
-            </Button>
-            <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-              {sourceKindLabel(source.kind)} · {source.platform || 'Manual reference'}
-              {source.identifier && ` · ${source.identifier}`}
-            </span>
-            <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere] truncate">
-              {source.notes}
-            </span>
-            <ResourceTasks sourceId={source.id} />
-          </div>
-          <span className="muted [color:var(--muted)] text-sm">{formatDate(source.eventAt)}</span>
-          <Button size="sm" aria-label={`View ${source.title}`} onClick={() => onOpen(source.id)}>
-            <IconArrowUpRight size={17} />
-          </Button>
-          <Button
-            size="sm"
-            aria-label={`Delete source ${source.title}`}
-            onClick={() => onDelete(source.id)}
-          >
-            <IconTrash size={16} />
-          </Button>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <Empty title="No references yet">Create a source from a task to see it here.</Empty>
+  return (
+    <ResourceList
+      emptyTitle="No references yet"
+      emptyDescription="Create a source from a task to see it here."
+      items={sources.map((source) => ({
+        id: source.id,
+        title: source.title,
+        icon: <IconLink size={18} />,
+        metadata: `${sourceKindLabel(source.kind)} · ${source.platform || 'Manual reference'}${source.identifier ? ` · ${source.identifier}` : ''}`,
+        description: source.notes,
+        date: source.eventAt,
+        tasks: <ResourceTasks sourceId={source.id} />,
+        onOpen: () => onOpen(source.id),
+        onDetails: () => onOpen(source.id),
+        onDelete: () => onDelete(source.id),
+      }))}
+    />
   );
 }
 export function Timeline({
@@ -348,38 +365,21 @@ export function FileList({
   open: (id: string) => void;
   manage: (id: string) => void;
 }) {
-  return files.length ? (
-    <div>
-      {files.map((file) => (
-        <div
-          key={file.id}
-          className="file-row flex items-center [gap:14px] [padding:16px] [border-bottom:1px_solid_var(--border)] [background:var(--surface)] [&_>_svg]:[color:var(--muted)] [@media(max-width:800px)]:flex-wrap"
-        >
-          <IconFile size={20} />
-          <div className="flex-1 min-w-0">
-            <Button tone="link" size="auto" onClick={() => open(file.id)}>
-              {file.originalName}
-            </Button>
-            <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-              {(file.size / 1024).toFixed(1)} KB · {file.mime || 'Unknown type'} · Added{' '}
-              {formatDate(file.addedAt)}
-            </div>
-            <ResourceTasks fileId={file.id} />
-          </div>
-          <Button size="sm" onClick={() => manage(file.id)}>
-            Details
-          </Button>
-          <Button
-            size="sm"
-            aria-label={`Delete file ${file.originalName}`}
-            onClick={() => onDelete(file.id)}
-          >
-            <IconTrash size={16} />
-          </Button>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <Empty title="No attached files">Upload files from a task to keep managed copies here.</Empty>
+  return (
+    <ResourceList
+      emptyTitle="No attached files"
+      emptyDescription="Upload files from a task to keep managed copies here."
+      items={files.map((file) => ({
+        id: file.id,
+        title: file.originalName,
+        icon: <IconFile size={18} />,
+        metadata: `${(file.size / 1024).toFixed(1)} KB · ${file.mime || 'Unknown type'}`,
+        date: file.addedAt,
+        tasks: <ResourceTasks fileId={file.id} />,
+        onOpen: () => open(file.id),
+        onDetails: () => manage(file.id),
+        onDelete: () => onDelete(file.id),
+      }))}
+    />
   );
 }

@@ -1,19 +1,11 @@
 'use client';
-import { FileList } from '../../components/work-lists';
-import { useWorklog } from '../../providers/worklog';
-import { WorkspaceSection } from '../../components/workspace-section';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 export default function Page() {
-  const { w, setFileId, openFile, askDelete } = useWorklog();
-  return (
-    <WorkspaceSection>
-      {
-        <FileList
-          files={w.attachments}
-          open={openFile}
-          manage={setFileId}
-          onDelete={(id) => askDelete({ kind: 'attachment', id })}
-        />
-      }
-    </WorkspaceSection>
-  );
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/resources');
+  }, [router]);
+  return null;
 }

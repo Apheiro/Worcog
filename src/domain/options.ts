@@ -1,4 +1,6 @@
-export const statuses = ['pending', 'in_progress', 'blocked', 'completed', 'canceled'] as const;
+export const statuses = ['in_progress', 'blocked', 'completed'] as const;
+export const statusFilter = (value: string | undefined) =>
+  statuses.find((status) => status === value) ?? '';
 export const priorities = ['low', 'normal', 'high', 'urgent'] as const;
 export const activityKinds = [
   'note',

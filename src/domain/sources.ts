@@ -19,7 +19,6 @@ export const sourceKindLabel = (kind: SourceKind) => human(sourceType(kind) ?? '
 export const sourceFields: Record<
   SourceType,
   {
-    platforms: string[];
     identifier?: string;
     link?: string;
     date?: string;
@@ -27,24 +26,20 @@ export const sourceFields: Record<
   }
 > = {
   mail: {
-    platforms: ['Outlook', 'Gmail'],
     date: 'Date',
     participants: 'Sender / recipients',
   },
   ticketing: {
-    platforms: ['InvGate', 'Jira', 'ServiceNow', 'Zendesk'],
     identifier: 'Ticket identifier',
     link: 'Ticket link',
     participants: 'Requester / contacts',
   },
   meeting: {
-    platforms: ['Teams', 'Google Meet', 'Zoom'],
     link: 'Meeting / recording link',
     date: 'Meeting date and time',
     participants: 'Attendees',
   },
   messaging: {
-    platforms: ['Teams', 'Slack', 'WhatsApp', 'Signal'],
     link: 'Message / conversation link',
     date: 'Date/Time',
     participants: 'Participants',

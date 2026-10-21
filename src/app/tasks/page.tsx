@@ -44,7 +44,7 @@ export default function Page() {
               ))}
             </div>
             <span className="muted [color:var(--muted)] text-sm ml-auto">
-              {tasks.length} tasks · grouped by parent
+              {tasks.length} tasks · tree view
             </span>
           </div>
           <TaskList
@@ -55,9 +55,14 @@ export default function Page() {
             workspace={w}
             busy={wb.busy}
             onEdit={(id) => setEditor({ kind: 'task', id })}
-            onStatus={(id, status) => {
-              void wb.update((value) => updateTask(value, id, { status }));
-            }}
+            onStatus={(id, status, blockReason) =>
+              wb.update((value) =>
+                updateTask(value, id, {
+                  status,
+                  ...(blockReason !== undefined ? { blockReason } : {}),
+                }),
+              )
+            }
             onAddSubtask={(task) =>
               setEditor({ kind: 'task', topicId: task.topicId, parentId: task.id })
             }

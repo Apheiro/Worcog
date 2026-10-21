@@ -2,12 +2,13 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { IconTrash } from '@tabler/icons-react';
 import { saveTaskWithResources, type TaskResourcesDraft } from '../application/task-resources';
-import type { Priority, Status, Task } from '../domain/model';
+import type { Priority, Task } from '../domain/model';
 import { assignedNames, responsibleDirectory } from '../domain/responsibles';
-import { priorities, statuses, selectOptions } from '../domain/options';
+import { priorities, selectOptions } from '../domain/options';
 import { errorMessage, native } from '../infrastructure/native';
 import type { EntityEditorProps } from './editors';
-import { Button, Field, Input, Modal, Select, Textarea } from './core';
+import { Button, DateInput, Field, Input, Modal, Select, Textarea } from './core';
+import { today } from '../domain/dates';
 import { ResponsiblePicker } from './responsible-picker';
 import { TaskResources } from './task-resources';
 
@@ -86,7 +87,7 @@ export function TaskEditor({
       title: get('title'),
       topicId,
       parentId,
-      status: get('status') as Status,
+      status: task?.status ?? 'in_progress',
       priority: get('priority') as Priority,
       responsibleNames: responsibles,
       description: get('description'),
@@ -129,22 +130,16 @@ export function TaskEditor({
           <Field label="Title">
             <Input name="title" autoFocus required maxLength={500} defaultValue={task?.title} />
           </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Status">
-              <Select
-                name="status"
-                defaultValue={task?.status ?? 'pending'}
-                options={selectOptions(statuses)}
-              />
-            </Field>
-            <Field label="Priority">
-              <Select
-                name="priority"
-                defaultValue={task?.priority ?? 'normal'}
-                options={selectOptions(priorities)}
-              />
-            </Field>
-          </div>
+          <Field label="Priority">
+            <Select
+              name="priority"
+              defaultValue={task?.priority ?? 'normal'}
+              options={selectOptions(priorities)}
+            />
+          </Field>
+          <Field label="Deadline">
+            <DateInput name="dueDate" defaultValue={task?.dueDate ?? ''} />
+          </Field>
           <ResponsiblePicker
             disabled={disabled}
             names={directory}
@@ -166,14 +161,12 @@ export function TaskEditor({
               <Field label="Description">
                 <Textarea name="description" rows={3} defaultValue={task?.description} />
               </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Start date">
-                  <Input name="startDate" type="date" defaultValue={task?.startDate ?? ''} />
-                </Field>
-                <Field label="End date">
-                  <Input name="dueDate" type="date" defaultValue={task?.dueDate ?? ''} />
-                </Field>
-              </div>
+              <Field label="Start date">
+                <DateInput
+                  name="startDate"
+                  defaultValue={task ? (task.startDate ?? '') : today()}
+                />
+              </Field>
               <Field label="Repeat">
                 <Select
                   name="recurrence"
@@ -182,7 +175,7 @@ export function TaskEditor({
                 />
               </Field>
               <p className="[color:var(--muted)]">
-                Repeating tasks require an end date. Each occurrence is a separate task.
+                Repeating tasks require a deadline. Each occurrence is a separate task.
               </p>
             </div>
           </details>

@@ -1,6 +1,6 @@
 import type { Activity, Attachment, Base, Source, Task, Topic, Workspace } from '../domain/model';
 import { applyWorkspaceChanges as changed } from './workspace-changes';
-import { isDateOnly, occurrenceDate, today } from '../domain/dates';
+import { calendarDate, isDateOnly, occurrenceDate, today } from '../domain/dates';
 type Input<T extends Base> = Partial<Omit<T, keyof Base>>;
 const stamp = (now: string) => ({ id: crypto.randomUUID(), createdAt: now, updatedAt: now });
 const clock = () => new Date().toISOString();
@@ -40,8 +40,8 @@ export function createTopic(
 ): Workspace {
   const topic: Topic = {
     summary: '',
-    category: 'General',
-    status: 'pending',
+    category: '',
+    status: 'in_progress',
     priority: 'normal',
     owner: '',
     participants: '',
@@ -84,6 +84,17 @@ export function updateTopic(
     now,
   );
 }
+function applyTaskWorkflow(task: Task, previous?: Task): Task {
+  if (task.status === 'pending') task.status = 'in_progress';
+  if (task.status === 'blocked') {
+    const reason = task.blockReason?.trim();
+    if (!reason && (previous?.status !== 'blocked' || task.blockReason !== undefined))
+      throw new Error('Enter a reason to block this task.');
+    if (reason) task.blockReason = reason;
+  } else delete task.blockReason;
+  return task;
+}
+
 export function createTask(
   workspace: Workspace,
   input: Input<Task> & Pick<Task, 'title' | 'topicId'>,
@@ -92,7 +103,7 @@ export function createTask(
   const task: Task = {
     description: '',
     parentId: null,
-    status: 'pending',
+    status: 'in_progress',
     priority: 'normal',
     owner: '',
     startDate: null,
@@ -107,7 +118,9 @@ export function createTask(
     ...input,
     ...stamp(now),
   };
+  applyTaskWorkflow(task);
   task.completedAt = task.status === 'completed' ? now : null;
+  task.startDate = input.startDate ?? calendarDate(now);
   return changed(workspace, { tasks: [...workspace.tasks, task] }, now);
 }
 export function updateTask(
@@ -126,6 +139,7 @@ export function updateTask(
       'This series already has occurrences. Create a new recurring task to change its schedule.',
     );
   const task = { ...previous, ...patch, id, createdAt: previous.createdAt, updatedAt: now };
+  applyTaskWorkflow(task, previous);
   task.completedAt = task.status === 'completed' ? (previous.completedAt ?? now) : null;
   return changed(
     workspace,
@@ -326,17 +340,19 @@ export function generateOccurrences(
       const dueDate = occurrenceDate(root.dueDate, root.recurrence, index);
       if (dueDate > through) break;
       if (dates.has(dueDate)) continue;
-      created.push({
-        ...root,
-        ...stamp(now),
-        status: 'pending',
-        completedAt: null,
-        startDate: null,
-        dueDate,
-        recurrence: 'none',
-        recurrenceRootId: root.id,
-        occurrenceDate: dueDate,
-      });
+      created.push(
+        applyTaskWorkflow({
+          ...root,
+          ...stamp(now),
+          status: 'in_progress',
+          completedAt: null,
+          startDate: calendarDate(now),
+          dueDate,
+          recurrence: 'none',
+          recurrenceRootId: root.id,
+          occurrenceDate: dueDate,
+        }),
+      );
       generated++;
     }
   }

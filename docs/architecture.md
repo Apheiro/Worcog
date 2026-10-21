@@ -45,9 +45,12 @@ or separate style maps.
 The requested CVA beta is published under the renamed `cva` package:
 `1.0.0-beta.12` (Apache-2.0). Its installed type definitions were checked and the
 app uses the actual `cva({ base, variants, defaultVariants })` API with TypeScript 6. `@kalyx/react` 1.4.7 was verified as MIT-licensed, React 19 compatible, with
-documented SSR support and a `DatePicker` API. It is optional and was not installed:
-native date and date-time inputs cover this version's controls without another
-date adapter or a young optional dependency. Mantine Hooks handles saved UI
+documented SSR support and a `DatePicker` API. The core `DateInput` uses its headless
+entry with `@kalyx/adapter-dayjs`, keeping dates as `YYYY-MM-DD` in forms and storage.
+UTC conversion is confined to the picker boundary. Its `withTime` mode uses Kalyx
+`DateTimePicker` with hour/minute selection and local datetime form values.
+New tasks default their start date to their creation date; `createdAt` is recorded
+automatically and preserved on edits. Mantine Hooks handles saved UI
 preferences and debounced input. Native collection operations cover the current
 queries, so `lodash-es` is unnecessary.
 

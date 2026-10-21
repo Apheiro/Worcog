@@ -1,5 +1,6 @@
 import type {
   ActivityKind,
+  Base,
   Priority,
   SourceKind,
   Status,
@@ -9,9 +10,9 @@ import type {
 } from '../domain/model';
 import { sourceType, sourceKindLabel } from '../domain/sources';
 import { assignedNames } from '../domain/responsibles';
-import { activityTopicIds, sourceTopicIds } from '../domain/relationships';
+import { activityTopicIds, attachmentTopicIds, sourceTopicIds } from '../domain/relationships';
 import { calendarDate, compareTimestamps, isOpen, isOverdue, today } from '../domain/dates';
-export type EntityType = 'topic' | 'task' | 'activity' | 'source';
+export type EntityType = 'topic' | 'task' | 'activity' | 'source' | 'file';
 export interface SearchFilter {
   query?: string;
   type?: EntityType | '';
@@ -201,12 +202,68 @@ export function searchWorkspace(
             source.participants,
           ].join(' '),
         );
+    if (!options.sourceKind)
+      for (const file of workspace.attachments)
+        add(
+          {
+            id: file.id,
+            type: 'file',
+            title: file.originalName,
+            text: file.mime,
+            date: file.addedAt,
+            topicIds: attachmentTopicIds(workspace, file),
+          },
+          `${file.originalName} ${file.mime}`,
+        );
   }
   return results.sort(
     (a, b) =>
       compareTimestamps(b.date, a.date) || a.type.localeCompare(b.type) || a.id.localeCompare(b.id),
   );
 }
+export interface HistoryEntry extends SearchResult {
+  key: string;
+  action: 'created' | 'updated' | 'activity';
+}
+
+/** Reconstruct only events supported by saved timestamps; deadlines are not movements. */
+export function workspaceHistory(workspace: Workspace, filter: SearchFilter = {}): HistoryEntry[] {
+  const entries: HistoryEntry[] = [];
+  const records = new Map<string, Base>();
+  for (const [type, items] of [
+    ['topic', workspace.topics],
+    ['task', workspace.tasks],
+    ['source', workspace.sources],
+    ['activity', workspace.activities],
+  ] as const) {
+    for (const item of items) records.set(`${type}:${item.id}`, item);
+  }
+  function add(result: SearchResult, date: string, action: HistoryEntry['action']) {
+    if (dateWithin(date, filter))
+      entries.push({ ...result, date, action, key: `${result.type}:${result.id}:${action}` });
+  }
+  for (const result of searchWorkspace(workspace, { ...filter, from: '', to: '' })) {
+    if (result.type === 'file') {
+      add(result, result.date, 'created');
+      continue;
+    }
+    const record = records.get(`${result.type}:${result.id}`);
+    if (!record) continue;
+    add(
+      result,
+      result.type === 'activity' ? result.date : record.createdAt,
+      result.type === 'activity' ? 'activity' : 'created',
+    );
+    if (
+      compareTimestamps(record.updatedAt, record.createdAt) > 0 &&
+      (result.type !== 'activity' || compareTimestamps(record.updatedAt, result.date) !== 0)
+    ) {
+      add(result, record.updatedAt, 'updated');
+    }
+  }
+  return entries.sort((a, b) => compareTimestamps(b.date, a.date) || a.key.localeCompare(b.key));
+}
+
 export interface TimelineEntry {
   id: string;
   type: 'activity' | 'source';

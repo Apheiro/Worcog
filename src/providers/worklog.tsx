@@ -6,8 +6,7 @@ import {
   IconFiles,
   IconFolders,
   IconLayoutDashboard,
-  IconLink,
-  IconSearch,
+  IconHistory,
   IconSettings,
 } from '@tabler/icons-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -19,6 +18,7 @@ import {
   type TopicInactivitySettings,
 } from '../application/topic-inactivity';
 import { type SearchFilter } from '../application/queries';
+import { statusFilter } from '../domain/options';
 import { deleteTask, planTaskDeletion } from '../application/task-deletion';
 import { updateTopic } from '../application/workspace';
 import type { StorageInfo } from '../domain/model';
@@ -27,8 +27,7 @@ import { notifications } from '../infrastructure/notifications';
 import { useUpdates } from '../infrastructure/use-updates';
 import { useWorkspace } from '../infrastructure/use-workspace';
 import type { Editor } from '../components/editors';
-type Page =
-  'overview' | 'topics' | 'tasks' | 'sources' | 'search' | 'files' | 'archive' | 'settings';
+type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'search' | 'archive' | 'settings';
 type Confirmation = {
   title: string;
   description: string;
@@ -40,11 +39,10 @@ export const navigation = [
   { id: 'overview', label: 'Overview', icon: IconLayoutDashboard },
   { id: 'topics', label: 'Topics', icon: IconFolders },
   { id: 'tasks', label: 'Tasks', icon: IconChecklist },
-  { id: 'sources', label: 'Sources', icon: IconLink },
-  { id: 'search', label: 'Search everything', icon: IconSearch },
-  { id: 'files', label: 'Files', icon: IconFiles },
+  { id: 'resources', label: 'Resources', icon: IconFiles },
+  { id: 'search', label: 'History', icon: IconHistory },
   { id: 'archive', label: 'Archive', icon: IconArchive },
-  { id: 'settings', label: 'Storage & backups', icon: IconSettings },
+  { id: 'settings', label: 'Settings', icon: IconSettings },
 ] as const;
 
 function useWorklogController() {
@@ -80,9 +78,22 @@ function useWorklogController() {
     deserialize: deserializeTopicInactivity,
   });
   const [taskView, setTaskView] = useState('open');
+  const [textureEnabled, setTextureEnabled] = useLocalStorage<boolean>({
+    key: 'worklog.texture-enabled',
+    defaultValue: true,
+  });
+  const [textureOpacity, setTextureOpacity] = useLocalStorage<number>({
+    key: 'worklog.texture-opacity',
+    defaultValue: 50,
+    deserialize: (value) => {
+      const opacity = Number(value);
+      return Number.isFinite(opacity) ? Math.max(0, Math.min(100, opacity)) : 50;
+    },
+  });
   const filter = filters[page] ?? {};
   const [debouncedQuery] = useDebouncedValue(filter.query ?? '', 150);
   const effective = { ...filter, query: debouncedQuery };
+  effective.status = statusFilter(filter.status);
   const setFilter = (patch: Partial<SearchFilter>) =>
     setFilters((current) => ({ ...current, [page]: { ...current[page], ...patch } }));
   const selectedTopic = w.topics.find((t) => t.id === topicId);
@@ -274,6 +285,10 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     setInactivitySettings,
     taskView,
     setTaskView,
+    textureEnabled,
+    setTextureEnabled,
+    textureOpacity,
+    setTextureOpacity,
     filter,
     debouncedQuery,
     effective,

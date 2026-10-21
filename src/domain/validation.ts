@@ -48,6 +48,7 @@ export const taskSchema = z
     topicId: id,
     parentId: id.nullable(),
     status: statusSchema,
+    blockReason: z.string().trim().max(10000).optional(),
     priority,
     owner: z.string().max(500),
     responsibleNames: responsibleNames.optional(),

@@ -43,7 +43,7 @@ export function ReleaseNotes({ notes }: { notes: string }) {
 export function ApplicationUpdates({ updates: u }: { updates: UpdateController }) {
   const [token, setToken] = useState('');
   return (
-    <Card className="mt-6">
+    <Card>
       <CardHeader>
         <h2>Application updates</h2>
       </CardHeader>
@@ -72,57 +72,62 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
             Downloading application updates is supported on Windows x64.
           </p>
         )}
-        <form
-          className="mt-5"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void u.saveToken(token).then((saved) => {
-              if (saved) setToken('');
-            });
-          }}
-        >
-          <Field
-            label="GitHub token (optional)"
-            hint="Leave this empty unless you want to replace the saved token. Its value cannot be retrieved here."
+        <details className="mt-5 rounded [border:1px_solid_var(--border)] p-4">
+          <summary className="cursor-pointer text-xs font-medium">
+            Private repository access
+          </summary>
+          <form
+            className="mt-5"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void u.saveToken(token).then((saved) => {
+                if (saved) setToken('');
+              });
+            }}
           >
-            <Input
-              type="password"
-              value={token}
-              onChange={(event) => setToken(event.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-              disabled={!!u.busy || !u.status?.credentialSupported}
-            />
-          </Field>
-          <p className="muted [color:var(--muted)] text-sm my-3">
-            Public repositories work without a token. For a private repository, use a fine-grained
-            personal access token restricted to Apheiro/Worklog with Contents: Read. This also
-            permits reading repository source code; GitHub does not provide a releases-only read
-            permission here. Production tokens stay in Windows Credential Manager.
-          </p>
-          {u.status?.profile === 'development' && (
-            <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] my-3">
-              Development profile: this token is stored unencrypted in this browser&apos;s separate
-              localStorage entry. It is never copied to or from Windows production credentials.
-              Requests still go to the real GitHub repository through Rust.
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <Button type="submit" disabled={!!u.busy || !token || !u.status?.credentialSupported}>
-              {u.busy === 'credential' ? 'Saving…' : 'Save / replace token'}
-            </Button>
-            <Button
-              type="button"
-              disabled={!!u.busy || !u.status?.tokenSaved}
-              onClick={() => {
-                setToken('');
-                void u.saveToken(null);
-              }}
+            <Field
+              label="GitHub token (optional)"
+              hint="Leave this empty unless you want to replace the saved token. Its value cannot be retrieved here."
             >
-              Remove token
-            </Button>
-          </div>
-        </form>
+              <Input
+                type="password"
+                value={token}
+                onChange={(event) => setToken(event.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+                disabled={!!u.busy || !u.status?.credentialSupported}
+              />
+            </Field>
+            <p className="muted [color:var(--muted)] text-sm my-3">
+              Public repositories work without a token. For a private repository, use a fine-grained
+              personal access token restricted to Apheiro/Worklog with Contents: Read. This also
+              permits reading repository source code; GitHub does not provide a releases-only read
+              permission here. Production tokens stay in Windows Credential Manager.
+            </p>
+            {u.status?.profile === 'development' && (
+              <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] my-3">
+                Development profile: this token is stored unencrypted in this browser&apos;s
+                separate localStorage entry. It is never copied to or from Windows production
+                credentials. Requests still go to the real GitHub repository through Rust.
+              </p>
+            )}
+            <div className="flex flex-wrap gap-3">
+              <Button type="submit" disabled={!!u.busy || !token || !u.status?.credentialSupported}>
+                {u.busy === 'credential' ? 'Saving…' : 'Save / replace token'}
+              </Button>
+              <Button
+                type="button"
+                disabled={!!u.busy || !u.status?.tokenSaved}
+                onClick={() => {
+                  setToken('');
+                  void u.saveToken(null);
+                }}
+              >
+                Remove token
+              </Button>
+            </div>
+          </form>
+        </details>
         {u.error && (
           <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] mt-4">
             {u.error}

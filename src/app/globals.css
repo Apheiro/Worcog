@@ -33,6 +33,7 @@
   --danger-fill: #aa3030;
   --danger-fill-hover: #8d2525;
   --warning-ink: #775117;
+  --blocked-ink: #a16207;
   --warning-bg: #faf4e8;
   --warning-border: #dfd0b2;
   --danger-ink: #a33c36;
@@ -63,6 +64,7 @@
   --danger-fill: #555555;
   --danger-fill-hover: #444444;
   --warning-ink: #dedede;
+  --blocked-ink: #fbbf24;
   --warning-bg: #282828;
   --warning-border: #606060;
   --danger-ink: #f0f0f0;

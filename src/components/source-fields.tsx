@@ -11,7 +11,7 @@ import {
   type SourceFormValues,
 } from '../domain/sources';
 import { selectOptions, sourceKinds } from '../domain/options';
-import { Field, Input, MultiSelect, Select, Textarea } from './core';
+import { DateInput, Field, Input, MultiSelect, Select, Textarea } from './core';
 
 /** Shared fields for task-owned source creation and source metadata editing. */
 export function SourceFields({
@@ -28,7 +28,6 @@ export function SourceFields({
   const [createdPlatforms, setCreatedPlatforms] = useState<string[]>([]);
   const fields = value.kind ? sourceFields[value.kind] : undefined;
   const names = [
-    ...(fields?.platforms ?? []),
     ...sources
       .filter((source) => sourceType(source.kind) === value.kind)
       .map(initialSourcePlatform),
@@ -94,10 +93,10 @@ export function SourceFields({
           )}
           {fields.date && (
             <Field label={fields.date}>
-              <Input
-                type="datetime-local"
+              <DateInput
+                withTime
                 value={value.eventAt}
-                onChange={(event) => onChange({ eventAt: event.target.value })}
+                onValueChange={(eventAt) => onChange({ eventAt })}
               />
             </Field>
           )}

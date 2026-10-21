@@ -16,7 +16,7 @@ import { ResponsiblePicker } from './responsible-picker';
 import { assignedNames, responsibleDirectory } from '../domain/responsibles';
 import { toTimestamp } from '../domain/dates';
 import type { ActivityKind, Priority, Source, Status, Topic, Workspace } from '../domain/model';
-import { Button, Field, Input, Modal, Select, Textarea } from './core';
+import { Button, DateInput, Field, Input, Modal, MultiSelect, Select, Textarea } from './core';
 import { selectOptions, activityKinds, priorities, statuses } from '../domain/options';
 export type Editor = {
   kind: 'topic' | 'task' | 'source' | 'activity';
@@ -96,12 +96,20 @@ function RecordEditor({
     participants: source?.participants ?? '',
     notes: source?.notes ?? '',
   }));
-  const [category, setCategory] = useState(topic?.category ?? 'General');
+  const [category, setCategory] = useState(topic?.category ?? '');
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>({});
   const categoryColor =
     categoryColors[category.trim()] ?? w.categoryColors?.[category.trim()] ?? '#64748b';
   const [responsibles, setResponsibles] = useState(topic ? assignedNames(topic) : []);
   const [createdNames, setCreatedNames] = useState<string[]>([]);
+  const [priority, setPriority] = useState<Priority>(topic?.priority ?? 'normal');
+  const [targetDate, setTargetDate] = useState(topic?.targetDate ?? '');
+  const elevatedPriority = priority === 'high' || priority === 'urgent';
+  const targetDateField = (
+    <Field label={elevatedPriority ? 'Deadline' : 'Target date'}>
+      <DateInput name="targetDate" value={targetDate} onValueChange={setTargetDate} />
+    </Field>
+  );
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -119,7 +127,10 @@ function RecordEditor({
         current = {
           ...current,
           responsibleNames: [...new Set([...responsibleDirectory(current), ...createdNames])],
-          categoryColors: { ...current.categoryColors, [get('category')]: categoryColor },
+          categoryColors: {
+            ...current.categoryColors,
+            ...(get('category') ? { [get('category')]: categoryColor } : {}),
+          },
         };
         const input = {
           ...common,
@@ -206,7 +217,10 @@ function RecordEditor({
                 <Field label="Status">
                   <Select
                     name="status"
-                    defaultValue={(item as Topic | undefined)?.status ?? 'pending'}
+                    defaultValue={
+                      statuses.find((status) => status === topic?.status) ??
+                      (topic?.status === 'canceled' ? 'completed' : 'in_progress')
+                    }
                     options={selectOptions(statuses)}
                   />
                 </Field>
@@ -222,66 +236,62 @@ function RecordEditor({
             )}
             {editor.kind === 'topic' && (
               <>
-                <Field label="Category">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      name="category"
-                      aria-label="Category"
-                      className="min-w-0 flex-1"
-                      value={category}
-                      onChange={(event) => setCategory(event.target.value)}
-                      maxLength={200}
-                      required
-                      list="categories"
-                    />
-                    <Input
-                      type="color"
-                      value={categoryColor}
-                      aria-label="Category color"
-                      title="Category color — shared by all topics in this category"
-                      className="h-9 w-9 shrink-0 cursor-pointer [&[type=color]]:[padding:3px]"
-                      onChange={(event) =>
-                        setCategoryColors((colors) => ({
-                          ...colors,
-                          [category.trim()]: event.target.value,
-                        }))
-                      }
+                <div className="mb-4 flex items-end gap-2">
+                  <input type="hidden" name="category" value={category} />
+                  <div className="min-w-0 flex-1 [&_>_div]:mb-0">
+                    <MultiSelect
+                      label="Category"
+                      options={[
+                        ...new Set([
+                          ...w.topics.map((t) => t.category),
+                          ...Object.keys(w.categoryColors ?? {}),
+                          ...Object.keys(categoryColors),
+                          category,
+                        ]),
+                      ].filter(Boolean)}
+                      value={category ? [category] : []}
+                      onValueChange={(values) => setCategory(values[0] ?? category)}
+                      onCreate={setCategory}
+                      multiple={false}
+                      disabled={busy}
                     />
                   </div>
-                  <datalist id="categories">
-                    {[
-                      ...new Set([
-                        'Project',
-                        'Incident',
-                        'Vulnerability',
-                        'Request',
-                        'Improvement',
-                        'Vendor follow-up',
-                        ...w.topics.map((t) => t.category),
-                      ]),
-                    ].map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </datalist>
-                </Field>
+                  <Input
+                    type="color"
+                    value={categoryColor}
+                    aria-label="Category color"
+                    title="Category color — shared by all topics in this category"
+                    disabled={busy}
+                    className="h-9 w-9 shrink-0 cursor-pointer overflow-hidden [&[type=color]]:p-0 [&[type=color]]:border-0 [&::-webkit-color-swatch-wrapper]:[padding:0px] [&::-webkit-color-swatch]:[border:0px] [&::-moz-color-swatch]:[border-style:none]"
+                    onChange={(event) =>
+                      setCategoryColors((colors) => ({
+                        ...colors,
+                        [category.trim()]: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
                 <details className="mb-4 text-xs rounded-lg [border:1px_solid_var(--border)] p-4">
                   <summary className="cursor-pointer font-medium">Advanced fields</summary>
                   <div className="pt-4">
-                    <Field label="Target date">
-                      <Input type="date" name="targetDate" defaultValue={topic?.targetDate ?? ''} />
-                    </Field>
+                    {!elevatedPriority && targetDateField}
                     <Field label="Summary">
                       <Textarea name="summary" rows={4} defaultValue={topic?.summary} />
                     </Field>
                     <Field label="Priority">
                       <Select
                         name="priority"
-                        defaultValue={(item as Topic | undefined)?.priority ?? 'normal'}
+                        value={priority}
+                        onValueChange={(value) => {
+                          const selected = priorities.find((option) => option === value);
+                          if (selected) setPriority(selected);
+                        }}
                         options={selectOptions(priorities)}
                       />
                     </Field>
                   </div>
                 </details>
+                {elevatedPriority && targetDateField}
               </>
             )}
             {editor.kind === 'activity' && (
@@ -294,8 +304,8 @@ function RecordEditor({
                   />
                 </Field>
                 <Field label="Event date and time (local)">
-                  <Input
-                    type="datetime-local"
+                  <DateInput
+                    withTime
                     name="eventAt"
                     required
                     defaultValue={localTime(activity?.eventAt)}

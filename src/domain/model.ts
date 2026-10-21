@@ -42,6 +42,7 @@ export interface Task extends Base {
   topicId: string;
   parentId: string | null;
   status: Status;
+  blockReason?: string;
   priority: Priority;
   /** Legacy import compatibility; use responsibleNames for assignments. */
   owner: string;

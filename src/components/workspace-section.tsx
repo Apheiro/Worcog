@@ -20,15 +20,13 @@ export function WorkspaceSection({ children }: { children: ReactNode }) {
               ? 'Every matter, its context, and the next step.'
               : page === 'tasks'
                 ? 'Track outcomes, deadlines, and recurring work.'
-                : page === 'sources'
-                  ? 'Sources created from tasks and their relationships.'
+                : page === 'resources'
+                  ? 'Sources, managed files and the tasks they belong to.'
                   : page === 'archive'
                     ? 'Preserved topics and their complete history.'
-                    : page === 'files'
-                      ? 'Managed files uploaded from tasks and their relationships.'
-                      : page === 'search'
-                        ? 'Find topics, tasks, annotations and external identifiers.'
-                        : 'Persistent data, portable archives and recovery.'}
+                    : page === 'search'
+                      ? 'Browse your workspace history, newest first. Search or filter any movement.'
+                      : 'Appearance, topic activity, storage and application updates.'}
           </p>
         </div>
         {page === 'topics' && (
@@ -37,14 +35,20 @@ export function WorkspaceSection({ children }: { children: ReactNode }) {
           </Button>
         )}
       </div>
-      {['topics', 'tasks', 'sources', 'search', 'archive'].includes(page) && (
+      {['topics', 'tasks', 'resources', 'search', 'archive'].includes(page) && (
         <WorkspaceFilters
           key={page}
           page={page}
           workspace={w}
           filter={filter}
           onChange={setFilter}
-          onClear={() => setFilters((current) => ({ ...current, [page]: {} }))}
+          onClear={() =>
+            setFilters((current) => ({
+              ...current,
+              [page]:
+                page === 'resources' ? { type: filter.type === 'file' ? 'file' : 'source' } : {},
+            }))
+          }
         />
       )}
       {children}

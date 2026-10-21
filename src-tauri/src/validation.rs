@@ -98,6 +98,15 @@ pub fn validate(w: &Value) -> Result<()> {
                 "attachments" => "id originalName managedName mime size addedAt topicIds taskIds activityIds sourceIds", _ => ""
             };
             let mut fields: HashSet<_> = allowed.split(' ').collect();
+            if kind == "tasks" && e.get("blockReason").is_some() {
+                fields.insert("blockReason");
+                let reason = string(e, "blockReason")?;
+                if reason.chars().count() > 10_000
+                    || (e["status"] == "blocked" && reason.trim().is_empty())
+                {
+                    return Err("A valid reason is required for blocked tasks".into());
+                }
+            }
             if ["tasks", "topics"].contains(&kind) && e.get("responsibleNames").is_some() {
                 fields.insert("responsibleNames");
                 validate_names(&e["responsibleNames"])?;

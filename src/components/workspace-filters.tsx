@@ -4,8 +4,8 @@ import { IconChevronDown, IconFilter, IconSearch } from '@tabler/icons-react';
 import { useId, useState } from 'react';
 import type { SearchFilter } from '../application/queries';
 import type { Priority, SourceKind, Status, Workspace } from '../domain/model';
-import { Button, Field, Input, Select } from './core';
-import { selectOptions, priorities, sourceKinds, statuses } from '../domain/options';
+import { Button, DateInput, Field, Input, Select } from './core';
+import { selectOptions, priorities, sourceKinds, statuses, statusFilter } from '../domain/options';
 export function WorkspaceFilters({
   page,
   workspace: w,
@@ -22,17 +22,19 @@ export function WorkspaceFilters({
   const [expanded, setExpanded] = useState(false);
   const controlsId = useId();
   const activeCount = Object.entries(filter).filter(
-    ([key, value]) => key !== 'query' && value?.trim(),
+    ([key, value]) => key !== 'query' && !(page === 'resources' && key === 'type') && value?.trim(),
   ).length;
   return (
-    <Card className="filters mb-6" aria-label="Search and filters">
+    <Card className="filters mb-6 [&.card]:overflow-visible" aria-label="Search and filters">
       <div className="filters-header flex items-stretch">
         <div className="search-field flex flex-1 min-w-0 [gap:10px] items-center [padding:3px_15px] [color:var(--muted)] [&_>_svg]:shrink-0 [&_input]:border-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:[padding:10px_0] [&_input]:[background:none]">
           <IconSearch size={17} />
           <Input
             aria-label="Search text"
             placeholder={
-              page === 'sources' ? 'Search title, identifier, platform…' : 'Search your work…'
+              page === 'resources'
+                ? 'Search resources, filenames, identifiers…'
+                : 'Search your work…'
             }
             className="focus:outline-none"
             value={filter.query ?? ''}
@@ -64,10 +66,14 @@ export function WorkspaceFilters({
           <Field label="Entity">
             <Select
               value={filter.type ?? ''}
-              onValueChange={(e) => setFilter({ type: e as SearchFilter['type'] })}
+              onValueChange={(e) =>
+                setFilter({
+                  type: e as SearchFilter['type'],
+                })
+              }
               options={[
                 { value: '', label: 'All entities' },
-                ...selectOptions(['topic', 'task', 'activity', 'source']),
+                ...selectOptions(['topic', 'task', 'activity', 'source', 'file']),
               ]}
             />
           </Field>
@@ -82,11 +88,11 @@ export function WorkspaceFilters({
             ]}
           />
         </Field>
-        {page !== 'sources' && (
+        {page !== 'resources' && (
           <>
             <Field label="Status">
               <Select
-                value={filter.status ?? ''}
+                value={statusFilter(filter.status)}
                 onValueChange={(e) => setFilter({ status: e as Status | '' })}
                 options={[{ value: '', label: 'All statuses' }, ...selectOptions(statuses)]}
               />
@@ -107,7 +113,7 @@ export function WorkspaceFilters({
             </Field>
           </>
         )}
-        {(page === 'sources' || page === 'tasks' || page === 'search') && (
+        {(page === 'resources' || page === 'tasks' || page === 'search') && (
           <Field label="Topic">
             <Select
               value={filter.topicId ?? ''}
@@ -119,7 +125,7 @@ export function WorkspaceFilters({
             />
           </Field>
         )}
-        {page === 'sources' && (
+        {page === 'resources' && filter.type !== 'file' && (
           <Field label="Source type">
             <Select
               value={filter.sourceKind ?? ''}
@@ -137,18 +143,10 @@ export function WorkspaceFilters({
                 : 'Date from'
           }
         >
-          <Input
-            type="date"
-            value={filter.from ?? ''}
-            onChange={(e) => setFilter({ from: e.target.value })}
-          />
+          <DateInput value={filter.from ?? ''} onValueChange={(from) => setFilter({ from })} />
         </Field>
         <Field label="To">
-          <Input
-            type="date"
-            value={filter.to ?? ''}
-            onChange={(e) => setFilter({ to: e.target.value })}
-          />
+          <DateInput value={filter.to ?? ''} onValueChange={(to) => setFilter({ to })} />
         </Field>
         <Button size="sm" onClick={onClear}>
           Clear

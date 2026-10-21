@@ -1,13 +1,15 @@
 'use client';
 import { Card, CardHeader, CardContent } from '../../components/core/card';
 import { IconDatabase, IconDownload, IconUpload } from '@tabler/icons-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/core/tabs';
 import { native } from '../../infrastructure/native';
 import { notifications } from '../../infrastructure/notifications';
 import { TopicInactivitySettingsForm } from '../../components/topic-inactivity-settings';
 import { ApplicationUpdates } from '../../components/application-updates';
-import { Button } from '../../components/core';
+import { Button, Checkbox, Input } from '../../components/core';
 import { useWorklog } from '../../providers/worklog';
 import { WorkspaceSection } from '../../components/workspace-section';
+import { ThemeControl } from '../../components/theme-control';
 export default function Page() {
   const {
     wb,
@@ -19,27 +21,90 @@ export default function Page() {
     inspectImport,
     inactivitySettings,
     setInactivitySettings,
+    textureEnabled,
+    setTextureEnabled,
+    textureOpacity,
+    setTextureOpacity,
   } = useWorklog();
   return (
     <WorkspaceSection>
-      {
-        <div className="settings [max-width:900px]">
-          <ApplicationUpdates updates={updates} />
+      <Tabs defaultValue="general" className="settings max-w-5xl">
+        <TabsList aria-label="Settings sections">
+          {[
+            { value: 'general', label: 'General' },
+            { value: 'storage', label: 'Storage & backups' },
+            { value: 'updates', label: 'Updates' },
+          ].map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent forceMount value="general" className="flex flex-col gap-5">
+          <Card>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h2>Appearance</h2>
+                  <p className="text-xs [color:var(--muted)]">Choose a theme for this device.</p>
+                </div>
+                <ThemeControl />
+              </div>
+              <div className="flex items-center justify-between gap-4 pt-4 [border-top:1px_solid_var(--border)]">
+                <div className="flex flex-col gap-1">
+                  <p id="texture-preference-label" className="text-sm font-medium">
+                    Texture overlay
+                  </p>
+                  <p className="text-xs [color:var(--muted)]">Add a subtle grain across the app.</p>
+                </div>
+                <Checkbox
+                  aria-labelledby="texture-preference-label"
+                  checked={textureEnabled}
+                  onCheckedChange={(checked) => setTextureEnabled(checked === true)}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <label htmlFor="texture-opacity" className="text-xs [color:var(--secondary)]">
+                  Texture opacity
+                </label>
+                <Input
+                  id="texture-opacity"
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={textureOpacity}
+                  aria-valuetext={`${textureOpacity}%`}
+                  disabled={!textureEnabled}
+                  onChange={(event) => setTextureOpacity(Number(event.target.value))}
+                  className="min-w-24 max-w-64 flex-1 h-5 cursor-pointer [&.control]:p-0 [&.control]:border-0 [&.control]:bg-transparent [accent-color:var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed"
+                />
+                <output
+                  htmlFor="texture-opacity"
+                  className="w-9 text-right text-xs tabular-nums [color:var(--muted)]"
+                >
+                  {textureOpacity}%
+                </output>
+              </div>
+            </CardContent>
+          </Card>
           <TopicInactivitySettingsForm
             key={JSON.stringify(inactivitySettings)}
             settings={inactivitySettings}
             onSave={setInactivitySettings}
           />
+        </TabsContent>
+        <TabsContent forceMount value="storage" className="flex flex-col gap-5">
           <Card>
             <CardHeader>
               <h2>Back up and recover</h2>
             </CardHeader>
-            <CardContent className="settings-body">
-              <p>
+            <CardContent className="flex flex-col gap-4">
+              <p className="text-sm [color:var(--muted)]">
                 Backups and exports contain a versioned JSON manifest and all managed files in a ZIP
                 archive. Keep an export on another device for protection against disk loss.
               </p>
-              <div className="flex flex-wrap gap-3 my-5">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   disabled={!enabled}
                   onClick={() => {
@@ -72,14 +137,14 @@ export default function Page() {
                   <IconUpload size={17} /> Import / restore…
                 </Button>
               </div>
-              <p className="muted [color:var(--muted)] text-sm">
+              <p className="text-xs [color:var(--muted)]">
                 Restore validates the archive, shows a summary, requests confirmation, and creates a
                 safety backup before replacing the workspace. It does not merge records. Archives
                 are unencrypted; store them privately.
               </p>
             </CardContent>
           </Card>
-          <Card className="mt-6">
+          <Card>
             <CardHeader>
               <h2>Storage locations</h2>
               <Button
@@ -92,7 +157,7 @@ export default function Page() {
                 Show locations
               </Button>
             </CardHeader>
-            <CardContent className="settings-body">
+            <CardContent className="flex flex-col gap-4">
               {storage ? (
                 <dl className="metadata grid [grid-template-columns:100px_minmax(0,_1fr)] [font-size:12px] [gap:10px_15px] [&_dt]:[color:var(--muted)] [&_dd]:m-0">
                   {Object.entries(storage).map(([key, value]) => (
@@ -107,24 +172,24 @@ export default function Page() {
                   Locations are resolved by Tauri for the current operating system.
                 </p>
               )}
-              <p className="mt-4 text-sm">
+              <p className="text-xs [color:var(--muted)]">
                 SQLite and managed attachments live in persistent application data. Cache is
                 separate and contains no primary records. Unlinking files preserves their managed
                 copies.
               </p>
             </CardContent>
           </Card>
-          <Card className="mt-6">
+          <Card className="[border-color:var(--danger-border)]">
             <CardHeader>
-              <h2>Permanent deletion</h2>
+              <h2 className="[color:var(--danger-ink)]">Permanent deletion</h2>
             </CardHeader>
-            <CardContent className="settings-body">
-              <p>
+            <CardContent className="flex flex-col gap-4">
+              <p className="text-sm [color:var(--muted)]">
                 Delete individual items using their trash buttons. Delete all removes every topic,
                 task, source, annotation and managed file. You can also include local backups in the
                 confirmation.
               </p>
-              <div className="flex flex-wrap gap-3 my-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <Button
                   disabled={!enabled}
                   onClick={() => {
@@ -150,8 +215,11 @@ export default function Page() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      }
+        </TabsContent>
+        <TabsContent forceMount value="updates">
+          <ApplicationUpdates updates={updates} />
+        </TabsContent>
+      </Tabs>
     </WorkspaceSection>
   );
 }

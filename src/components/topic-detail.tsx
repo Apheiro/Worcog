@@ -127,9 +127,14 @@ export function TopicDetail({
             workspace={w}
             busy={wb.busy}
             onEdit={(id) => edit({ kind: 'task', id })}
-            onStatus={(id, status) => {
-              void wb.update((value) => updateTask(value, id, { status }));
-            }}
+            onStatus={(id, status, blockReason) =>
+              wb.update((value) =>
+                updateTask(value, id, {
+                  status,
+                  ...(blockReason !== undefined ? { blockReason } : {}),
+                }),
+              )
+            }
             onAddSubtask={(task) => edit({ kind: 'task', topicId: topic.id, parentId: task.id })}
           />
         </Tabs.Content>
