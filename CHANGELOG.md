@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/Apheiro/Worklog/compare/v0.3.1...v0.4.0) (2026-10-21)
+
+
+### Features
+
+* **ui:** add shared date, action menu and tab controls [skip release] ([d8e2ce1](https://github.com/Apheiro/Worklog/commit/d8e2ce1d672154c69a697d26b532f38ec629f1a9))
+* **workspace:** refine tasks, resources and settings [skip release] ([7f2cbe7](https://github.com/Apheiro/Worklog/commit/7f2cbe7b0a66c5c3843c8b4027a5bbe00da57250))
+
+
+### Bug Fixes
+
+* **icons:** improve small-size rendering and organize assets [skip release] ([d61b39e](https://github.com/Apheiro/Worklog/commit/d61b39e63f6f920fb827b14e2c7688e25c295e52))
+* **release:** trigger release for workspace and UI improvements ([43806b4](https://github.com/Apheiro/Worklog/commit/43806b42e2b249d269baf3e617b0fcd15ce790d1))
+
 ## [0.3.1](https://github.com/Apheiro/Worklog/compare/v0.3.0...v0.3.1) (2026-10-19)
 
 
