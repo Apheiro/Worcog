@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src-tauri/icons/icon.png" alt="Worklog icon" width="128" height="128" />
+  <img src="public/assets/icons/ico.svg" alt="Worklog icon" width="128" height="128" />
 </p>
 
 <h1 align="center">Worklog</h1>

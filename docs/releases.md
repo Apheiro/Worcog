@@ -105,11 +105,12 @@ publication, private-access and manual replacement requirements.
 
 ## Refresh application icons without a new release
 
-The source artwork is `ico.svg`. Generate the desktop and mobile icon variants
-with `pnpm tauri icon ico.svg --fit contain --output src-tauri/icons`. The
-transparent contain fit preserves the proportions of the original artwork.
+The original artwork is `public/assets/icons/ico.svg`; the simplified application
+icon is `public/assets/icons/ico-small.svg`. Generate desktop and mobile variants
+with `pnpm tauri icon public/assets/icons/ico-small.svg --fit contain --output src-tauri/icons`.
+The transparent contain fit preserves the proportions of the artwork.
 `src/app/favicon.ico` and `src/app/icon.png` mirror the generated ICO and PNG
-for the webview/browser icon.
+for the webview/browser icon (use `64x64.png` for `src/app/icon.png`).
 
 Include `[skip release]` in an icon-only commit message to skip the Release
 Please job for that push. Other workflows remain enabled, and the manual
