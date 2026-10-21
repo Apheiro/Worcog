@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { Checkbox } from './checkbox';
 import { Select } from './select';
+import { DateInput } from './date-input';
 
 const input = cva({
   base: [
@@ -51,6 +52,7 @@ export function Field({
     isValidElement<{ 'aria-labelledby'?: string; 'aria-describedby'?: string }>(child) &&
     ((typeof child.type === 'string' && ['input', 'textarea', 'select'].includes(child.type)) ||
       child.type === Input ||
+      child.type === DateInput ||
       child.type === Checkbox ||
       child.type === Select ||
       child.type === Textarea)

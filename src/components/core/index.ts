@@ -8,3 +8,7 @@ export * from './dialog';
 export * from './badge';
 export * from './empty';
 export * from './multi-select';
+export * from './date-input';
+export * from './action-menu';
+export * from './tooltip';
+export * from './tabs';
