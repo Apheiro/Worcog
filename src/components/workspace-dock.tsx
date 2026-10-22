@@ -1,0 +1,46 @@
+'use client';
+
+import { useResizeObserver } from '@mantine/hooks';
+import { IconDownload, IconX } from '@tabler/icons-react';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useWorklog } from '../providers/worklog';
+import { Button, Tooltip } from './core';
+
+export function WorkspaceDock() {
+  const { documents, attachmentExport, wb } = useWorklog();
+  const minimized = documents.windows.filter((instance) => instance.id !== documents.activeId);
+  const visible = minimized.length > 0 || attachmentExport.selected.length > 0;
+  const [ref, bounds] = useResizeObserver<HTMLDivElement>();
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--worklog-dock-height', `${visible && bounds.height ? bounds.height + 12 : 0}px`);
+    return () => { root.style.removeProperty('--worklog-dock-height'); };
+  }, [bounds.height, visible]);
+  if (!visible) return null;
+  return createPortal(
+    <div ref={ref} aria-label="Workspace actions" className="fixed bottom-5 right-5 z-50 flex max-w-[calc(100vw-40px)] flex-col items-end gap-2">
+      {attachmentExport.selected.length > 0 && (
+        <div className="flex items-center gap-1 rounded-full p-1 [border:1px_solid_var(--border)] [background:var(--surface)] [box-shadow:0_4px_16px_#0002]">
+          <Button tone="ghost" size="sm" className="rounded-full" disabled={wb.busy} onClick={() => void attachmentExport.exportFiles()}>
+            <IconDownload size={15} aria-hidden="true" /> Export ({attachmentExport.selected.length})
+          </Button>
+          <Button tone="ghost" size="icon" className="rounded-full" disabled={wb.busy} aria-label="Clear file selection" title="Clear selection" onClick={attachmentExport.clear}>
+            <IconX size={15} aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+      {minimized.length > 0 && (
+        <div aria-label="Minimized documents" className="flex max-w-full flex-wrap items-center justify-end gap-1 rounded-full p-1 [border:1px_solid_var(--border)] [background:var(--surface)] [box-shadow:0_4px_16px_#0002]">
+          {minimized.map((instance, index) => (
+            <Tooltip key={instance.id} content={instance.file.originalName}>
+              <Button tone="ghost" size="icon" className="rounded-full" aria-label={`Restore ${instance.file.originalName}, window ${index + 1}`} onClick={() => documents.restore(instance.id)}>
+                <span aria-hidden="true" className="h-2 w-2 rounded-full [background:var(--ink)]" />
+              </Button>
+            </Tooltip>
+          ))}
+        </div>
+      )}
+    </div>, document.body,
+  );
+}

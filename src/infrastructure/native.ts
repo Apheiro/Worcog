@@ -37,6 +37,7 @@ export const native = {
   attach: (path?: string) => invoke<Attachment | null>('attach_file', { path }),
   discardDraft: (managedName: string) => invoke<void>('discard_draft_attachment', { managedName }),
   openFile: (id: string) => invoke<void>('open_attachment', { id }),
+  exportFiles: (ids: string[]) => invoke<string | null>('export_attachments', { ids }),
   attachmentStatuses: (id?: string) => invoke<Record<string, AttachmentStatus>>('attachment_statuses', { id }),
   readDocument: (id: string) => invoke<ArrayBuffer>('read_document', { id }),
   saveDocument: async (id: string, version: string, bytes: ArrayBuffer): Promise<WorkspaceResult> =>

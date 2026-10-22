@@ -31,6 +31,7 @@ import { useWorkspace } from '../infrastructure/use-workspace';
 import { useDocumentWindows } from '../infrastructure/use-document-windows';
 import { documentFormat } from '../infrastructure/document-editor';
 import { useAttachmentAccess } from '../infrastructure/use-attachment-access';
+import { useAttachmentExport } from '../infrastructure/use-attachment-export';
 import { errorMessage } from '../infrastructure/native';
 import type { Editor } from '../components/editors';
 type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'contacts' | 'search' | 'archive' | 'settings';
@@ -57,6 +58,7 @@ function useWorklogController() {
   const updates = useUpdates();
   const w = wb.workspace;
   const attachmentAccess = useAttachmentAccess(w.attachments);
+  const attachmentExport = useAttachmentExport(w, wb);
   const documents = useDocumentWindows();
   const [documentEditorEnabled, setDocumentEditorEnabled] = useLocalStorage<boolean>({
     key: 'worklog.document-editor-enabled',
@@ -336,6 +338,7 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     openTopic,
     openFile,
     attachmentAccess,
+    attachmentExport,
     documents,
     documentEditorEnabled,
     setDocumentEditorEnabled,

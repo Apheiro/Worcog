@@ -136,6 +136,31 @@ async fn open_attachment(
     })
 }
 #[tauri::command]
+async fn export_attachments(
+    ids: Vec<String>,
+    app: tauri::AppHandle,
+    webview: tauri::Webview,
+    state: State<'_, AppState>,
+) -> Result<Option<String>> {
+    if webview.label() != "main" { return Err("Only the workspace can export attachments.".into()); }
+    let name = state.store.with(|store| crate::attachment_export::suggested_name(store, &ids))?;
+    let extension = std::path::Path::new(&name).extension().and_then(|value| value.to_str()).ok_or("Missing file extension")?;
+    let Some(file) = rfd::AsyncFileDialog::new()
+        .set_title(if ids.len() == 1 { "Export file copy" } else { "Export selected files as ZIP" })
+        .set_file_name(&name)
+        .add_filter("Exported file", &[extension])
+        .save_file()
+        .await
+    else { return Ok(None); };
+    let destination = file.path().to_path_buf();
+    let path = destination.to_string_lossy().into_owned();
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        state.store.with(|store| crate::attachment_export::export(store, &ids, &destination))
+    }).await.map_err(|_| "File export worker failed.".to_string())??;
+    Ok(Some(path))
+}
+#[tauri::command]
 fn open_reference(url: String, app: tauri::AppHandle) -> Result<()> {
     validation::validate_url(&url)?;
     app.opener()
@@ -293,6 +318,7 @@ pub fn run() {
             attach_file,
             discard_draft_attachment,
             open_attachment,
+            export_attachments,
             open_reference,
             create_backup,
             export_workspace,

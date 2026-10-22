@@ -14,6 +14,7 @@ const UpdateDialog = dynamic(() =>
 import { Button, Checkbox, Confirm } from '../components/core';
 import { ScrollArea } from '../components/core/scroll-area';
 const DocumentWindows = dynamic(() => import('../components/document-windows').then((m) => m.DocumentWindows), { ssr: false });
+const WorkspaceDock = dynamic(() => import('../components/workspace-dock').then((m) => m.WorkspaceDock), { ssr: false });
 
 const navigationItem = cva({
   base: [
@@ -149,6 +150,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
         </ScrollArea>
       </main>
       <DocumentWindows />
+      <WorkspaceDock />
       {updates.open && <UpdateDialog updates={updates} />}
       {editor && (
         <EntityEditor

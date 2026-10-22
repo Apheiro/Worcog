@@ -37,6 +37,16 @@ does not replace an antivirus scanner or make arbitrary documents trustworthy.
 
 ## Create a backup or portable export
 
+To share individual attachments, Ctrl+click their file chips on task cards
+(Command+click is also supported). The selection persists while navigating the
+workspace. The floating **Export** control saves one file as a copy, or multiple
+files as a ZIP containing only those documents. Duplicate filenames receive a
+numeric suffix inside the ZIP. Canceling the save dialog retains the selection;
+successful export clears it. Missing or inaccessible files stop the export with
+an error and retain the selection. Choose a new destination filename; existing
+files are never overwritten. This export uses saved local versions, so save any
+pending embedded-editor changes first. It is separate from a workspace backup.
+
 Use **Backup** to create a local archive in the backups directory. Use **Export**
 to select a destination outside the app directory. Choose a new filename:
 export refuses an existing destination to avoid overwriting another file.

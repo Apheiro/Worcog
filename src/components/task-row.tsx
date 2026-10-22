@@ -67,7 +67,7 @@ export function TaskRow({
   childrenExpanded,
   onToggleChildren,
 }: TaskRowProps) {
-  const { inactivitySettings } = useWorklog();
+  const { inactivitySettings, attachmentExport } = useWorklog();
   const parent = w.tasks.find((t) => t.id === task.parentId);
   const sources = w.sources.filter((source) => task.sourceIds.includes(source.id));
   const files = w.attachments.filter((file) => file.taskIds.includes(task.id));
@@ -195,10 +195,21 @@ export function TaskRow({
                     tone="chip"
                     size="auto"
                     type="button"
-                    className="task-resource max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label={`Open file ${file.originalName}`}
+                    className={`task-resource max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${attachmentExport.selectedIds.has(file.id) ? '[&.button]:[background:var(--selected)] [&.button]:[border-color:var(--ink)] [&.button]:[color:var(--ink)]' : ''}`}
+                    aria-label={`Open file ${file.originalName}. Ctrl+click to select for export.`}
+                    aria-pressed={attachmentExport.selectedIds.has(file.id)}
+                    title="Ctrl+click to select or deselect for export"
                     disabled={busy}
-                    onClick={() => onOpenFile(file.id)}
+                    onClick={(event) => {
+                      if (event.ctrlKey || event.metaKey) attachmentExport.toggle(file.id);
+                      else onOpenFile(file.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if ((event.ctrlKey || event.metaKey) && (event.key === 'Enter' || event.key === ' ')) {
+                        event.preventDefault();
+                        if (!event.repeat) attachmentExport.toggle(file.id);
+                      }
+                    }}
                   >
                     <IconPaperclip size={13} aria-hidden="true" />
                     <span>{file.originalName}<AttachmentStatus id={file.id} /></span>

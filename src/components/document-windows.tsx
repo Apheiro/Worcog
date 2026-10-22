@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Button, Card, Tooltip } from './core';
+import { Button, Card } from './core';
 import { FloatingWindow } from './core/floating-window';
 import { useWorklog } from '../providers/worklog';
 import type { DocumentWindow } from '../infrastructure/use-document-windows';
@@ -100,23 +99,11 @@ function DocumentInstance({ instance, active }: { instance: DocumentWindow; acti
 
 export function DocumentWindows() {
   const { documents } = useWorklog();
-  const minimized = documents.windows.filter((instance) => instance.id !== documents.activeId);
   return (
     <>
       {documents.windows.map((instance) => (
         <DocumentInstance key={instance.id} instance={instance} active={documents.activeId === instance.id} />
       ))}
-      {minimized.length > 0 && createPortal(
-        <div aria-label="Minimized documents" className="fixed bottom-5 right-5 z-50 flex max-w-[calc(100vw-40px)] flex-wrap items-center gap-1 rounded-full p-1 [border:1px_solid_var(--border)] [background:var(--surface)] [box-shadow:0_4px_16px_#0002]">
-          {minimized.map((instance, index) => (
-            <Tooltip key={instance.id} content={instance.file.originalName}>
-              <Button tone="ghost" size="icon" className="rounded-full" aria-label={`Restore ${instance.file.originalName}, window ${index + 1}`} onClick={() => documents.restore(instance.id)}>
-                <span aria-hidden="true" className="h-2 w-2 rounded-full [background:var(--ink)]" />
-              </Button>
-            </Tooltip>
-          ))}
-        </div>, document.body,
-      )}
     </>
   );
 }
