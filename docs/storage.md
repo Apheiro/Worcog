@@ -10,6 +10,7 @@ path or move an active SQLite database manually.
 | `app_data_dir()/workspace.sqlite3` | Primary SQLite database                                        |
 | `app_data_dir()/attachments/`      | App-managed document copies                                    |
 | `app_data_dir()/backups/`          | Local backup archives, including safety backups before restore |
+| `app_data_dir()/sounds/`           | App-managed custom reminder audio, independent of workspace exports |
 | `app_cache_dir()`                  | Regenerable cache only                                         |
 
 Primary records and documents are kept outside cache because operating systems
@@ -66,6 +67,16 @@ its assignments and requester references; deleting one removes those references,
 without deleting tasks or topics. Migration 5 stores contact details in SQLite
 metadata. Backups and exports include the `contacts` directory and each topic's
 optional `requesterName`; older archives without these fields remain supported.
+
+Migration 6 adds a device-only `desktop_preferences` table and an index for
+scheduled task reminders. Tray and reminder notifications default to disabled.
+Task `reminderAt` and `reminderDismissedAt` timestamps are optional fields in
+the workspace format and are backed up with tasks. Dismissal is transactional;
+saving a form opened before dismissal cannot restore the old pending alert.
+Device tray/audio preferences and managed `sounds/` copies are excluded from
+workspace archives and remain when workspace records are cleared. A custom
+sound is validated and copied before replacing the saved preference; failed
+imports preserve the previous choice.
 
 The exporter reads a consistent logical snapshot of SQLite while holding the
 same native lock used by writes, and packages immutable managed document copies.

@@ -39,6 +39,8 @@ export interface Topic extends Base {
   relatedTopicIds: string[];
 }
 export interface Task extends Base {
+  reminderAt?: string | null;
+  reminderDismissedAt?: string | null;
   order?: number;
   title: string;
   description: string;

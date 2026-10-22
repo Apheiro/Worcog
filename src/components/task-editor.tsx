@@ -8,8 +8,10 @@ import { taskPriorities, taskPriority, selectOptions } from '../domain/options';
 import { errorMessage, native } from '../infrastructure/native';
 import { notifications } from '../infrastructure/notifications';
 import type { EntityEditorProps } from './editors';
-import { Button, DateInput, Field, Input, Modal, Select, Textarea } from './core';
-import { today } from '../domain/dates';
+import { Button, DateInput, Field, Input, Modal, Select, Switch, Textarea } from './core';
+import { today, toTimestamp } from '../domain/dates';
+import dayjs from 'dayjs';
+import { useWorklog } from '../providers/worklog';
 import { ResponsiblePicker, useResponsibleDraft } from './responsible-picker';
 import { TaskResources, type TaskResourcesHandle } from './task-resources';
 
@@ -24,6 +26,12 @@ export function TaskEditor({
   onSave,
 }: EntityEditorProps) {
   const task = w.tasks.find((item) => item.id === editor.id);
+  const { reminders } = useWorklog();
+  const initialReminder = task?.reminderAt ? dayjs(task.reminderAt).format('YYYY-MM-DDTHH:mm') : '';
+  const [reminderEnabled, setReminderEnabled] = useState(!!task?.reminderAt);
+  const [reminderDate, setReminderDate] = useState(initialReminder);
+  const reminderUnavailable = !reminders.enabled;
+  const finished = task?.status === 'completed' || task?.status === 'canceled';
   const formId = useId();
   const resourcesEditor = useRef<TaskResourcesHandle>(null);
   const parent = w.tasks.find((item) => item.id === editor.parentId);
@@ -88,6 +96,19 @@ export function TaskEditor({
     }
     const data = new FormData(event.currentTarget);
     const get = (name: string) => String(data.get(name) ?? '').trim();
+    let reminderAt = reminderEnabled ? (reminderDate === initialReminder && task?.reminderAt ? task.reminderAt : '') : null;
+    if (reminderEnabled && !reminderAt) {
+      if (reminderUnavailable) {
+        setLocalError('Cannot enable a reminder. Enable both Tray icon and Reminder notifications in Settings → General first.');
+        notifications.warning('Enable Tray icon and Reminder notifications in Settings → General before scheduling a reminder.');
+        return;
+      }
+      if (!reminderDate || !dayjs(reminderDate).isValid() || !dayjs(reminderDate).isAfter(dayjs())) {
+        setLocalError('Choose a future date and time for the reminder.'); return;
+      }
+      if (finished) { setLocalError('Reopen this task before scheduling a reminder.'); return; }
+      reminderAt = toTimestamp(reminderDate);
+    }
     const input = {
       title: get('title'),
       topicId,
@@ -98,6 +119,7 @@ export function TaskEditor({
       description: get('description'),
       startDate: get('startDate') || null,
       dueDate: get('dueDate') || null,
+      reminderAt,
       recurrence: get('recurrence') as Task['recurrence'],
     };
     locked.current = true;
@@ -158,6 +180,25 @@ export function TaskEditor({
           <Field label="Deadline">
             <DateInput name="dueDate" defaultValue={task?.dueDate ?? ''} />
           </Field>
+          <div className="mb-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-4">
+              <span id={`${formId}-reminder-label`} className="text-xs font-medium [color:var(--secondary)]">Reminder</span>
+              <Switch disabled={disabled} aria-labelledby={`${formId}-reminder-label`} aria-describedby={`${formId}-reminder-help`} checked={reminderEnabled} onCheckedChange={(checked) => {
+                if (checked && (reminderUnavailable || finished)) {
+                  const message = finished ? 'Reopen this task before scheduling a reminder.' : 'Cannot enable a reminder. Enable both Tray icon and Reminder notifications in Settings → General first.';
+                  setLocalError(message); notifications.warning(message); return;
+                }
+                setReminderEnabled(checked);
+              }} />
+            </div>
+            <p id={`${formId}-reminder-help`} className="text-xs [color:var(--muted)]">
+              {reminderUnavailable ? 'Reminders are paused. Enable Tray icon and Reminder notifications in Settings → General to schedule one.' : 'An independent date and time. The alert keeps sounding until you dismiss it.'}
+            </p>
+            {reminderEnabled && <Field label="Reminder date and time">
+              <DateInput withTime value={reminderDate} onValueChange={setReminderDate} disabled={disabled || reminderUnavailable || finished} />
+            </Field>}
+            {reminderEnabled && task?.reminderDismissedAt && reminderDate === initialReminder && <p className="text-xs [color:var(--muted)]">This reminder was dismissed. Choose a new future date to schedule it again.</p>}
+          </div>
           <ResponsiblePicker
             disabled={disabled}
             workspace={w}

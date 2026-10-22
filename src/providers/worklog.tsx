@@ -11,7 +11,8 @@ import {
   IconUsers,
 } from '@tabler/icons-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useEffectEvent, type ReactNode } from 'react';
+import { listen } from '@tauri-apps/api/event';
 import { deleteEntity, deletionPreview, type DeletionTarget } from '../application/deletion';
 import {
   defaultTopicInactivitySettings,
@@ -32,6 +33,9 @@ import { useDocumentWindows } from '../infrastructure/use-document-windows';
 import { documentFormat } from '../infrastructure/document-editor';
 import { useAttachmentAccess } from '../infrastructure/use-attachment-access';
 import { useAttachmentExport } from '../infrastructure/use-attachment-export';
+import { useReminders } from '../infrastructure/use-reminders';
+import { reminderApi } from '../infrastructure/reminders';
+import { desktopAvailable } from '../infrastructure/native';
 import { errorMessage } from '../infrastructure/native';
 import type { Editor } from '../components/editors';
 type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'contacts' | 'search' | 'archive' | 'settings';
@@ -55,6 +59,7 @@ export const navigation = [
 
 function useWorklogController() {
   const wb = useWorkspace();
+  const reminders = useReminders();
   const updates = useUpdates();
   const w = wb.workspace;
   const attachmentAccess = useAttachmentAccess(w.attachments);
@@ -75,6 +80,32 @@ function useWorklogController() {
     else if (page === 'topics') router.push('/topics');
   }
   const [editor, setEditor] = useState<Editor | null>(null);
+  const exitGuard = editor !== null || documents.windows.length > 0 || wb.busy || reminders.busy;
+  useEffect(() => {
+    if (!desktopAvailable()) return;
+    void reminderApi.setExitGuard(exitGuard).catch((cause) => notifications.error(errorMessage(cause)));
+  }, [exitGuard]);
+  const openReminder = useEffectEvent(async (id: string) => {
+    if (editor || wb.busy) {
+      notifications.warning('Save or close the current form and finish the current operation before opening the reminder task.');
+      return;
+    }
+    await wb.refresh();
+    setEditor({ kind: 'task', id });
+  });
+  const reminderDismissed = useEffectEvent(() => { void wb.refresh(); });
+  useEffect(() => {
+    if (!desktopAvailable()) return;
+    let disposed = false;
+    const stops: (() => void)[] = [];
+    const subscribe = (promise: Promise<() => void>) => {
+      void promise.then((stop) => { if (disposed) stop(); else stops.push(stop); })
+        .catch((cause) => { if (!disposed) notifications.error(errorMessage(cause)); });
+    };
+    subscribe(listen<string>('open-reminder-task', ({ payload }) => { if (!disposed) void openReminder(payload); }));
+    subscribe(listen('reminder-dismissed', () => { if (!disposed) reminderDismissed(); }));
+    return () => { disposed = true; stops.forEach((stop) => stop()); };
+  }, []);
   const [sourceId, setSourceId] = useState('');
   const [fileId, setFileId] = useState('');
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
@@ -293,6 +324,7 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
 
   return {
     wb,
+    reminders,
     updates,
     w,
     page,

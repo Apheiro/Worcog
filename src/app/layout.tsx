@@ -1,12 +1,9 @@
 import { Suspense } from 'react';
-import { WorklogProvider } from '../providers/worklog';
-import { WindowFrame } from './window-frame';
-import { WorkspaceLayout } from './workspace-layout';
+import { ApplicationShell } from './application-shell';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import './globals.css';
-import { Notifications } from '../components/notifications';
 import { themeInitializationScript } from '../infrastructure/theme';
 export const metadata: Metadata = {
   title: 'Worklog · Personal operations',
@@ -25,14 +22,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           Skip to content
         </a>
-        <WindowFrame>
-          <Suspense fallback={<p role="status">Opening workspace…</p>}>
-            <WorklogProvider>
-              <WorkspaceLayout>{children}</WorkspaceLayout>
-            </WorklogProvider>
-          </Suspense>
-        </WindowFrame>
-        <Notifications />
+        <Suspense fallback={<p role="status">Opening workspace…</p>}>
+          <ApplicationShell>{children}</ApplicationShell>
+        </Suspense>
       </body>
     </html>
   );

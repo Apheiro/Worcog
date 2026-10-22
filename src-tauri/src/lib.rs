@@ -6,6 +6,14 @@ mod attachment_access;
 mod attachment_export;
 #[cfg(feature = "desktop")]
 mod desktop;
+#[cfg(feature = "desktop")]
+mod desktop_preferences;
+#[cfg(feature = "desktop")]
+mod reminder_audio;
+#[cfg(feature = "desktop")]
+mod reminders;
+#[cfg(feature = "desktop")]
+mod reminder_commands;
 #[cfg(any(feature = "desktop", test))]
 mod document_files;
 #[cfg(any(feature = "desktop", test))]

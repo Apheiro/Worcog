@@ -12,6 +12,15 @@ native load is shown as a recoverable error, not replaced with sample data or
 browser-only persistence. Keep synthetic test fixtures separate from the real
 application-data directory.
 
+Native reminder audio uses Rodio/CPAL. Linux development also needs ALSA
+development libraries, for example `libasound2-dev` on Debian/Ubuntu. Windows
+audio uses the system backend and works with the portable executable. The
+reminder webview is a separate static route with a restricted event capability;
+it must not mount the workspace providers, updater or main window controls.
+Task schedules belong to workspace data; tray/audio preferences belong to the
+device-only native preferences table. Keep this distinction when changing
+backup, restore, task completion or recurrence generation.
+
 ## Validation commands
 
 | Command                           | Purpose                                                 |

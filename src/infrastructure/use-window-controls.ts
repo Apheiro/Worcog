@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { invoke } from '@tauri-apps/api/core';
 import { desktopAvailable, errorMessage } from './native';
 import { notifications } from './notifications';
 
@@ -47,7 +48,8 @@ export function useWindowControls() {
     if (!desktop) return;
     try {
       const window = getCurrentWindow();
-      await window[action]();
+      if (action === 'minimize') await invoke('minimize_workspace');
+      else await window[action]();
       if (action === 'toggleMaximize') setMaximized(await window.isMaximized());
     } catch (cause) {
       notifications.error(`Window controls: ${errorMessage(cause)}`);

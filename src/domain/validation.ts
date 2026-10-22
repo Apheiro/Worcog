@@ -50,6 +50,8 @@ export const topicSchema = z
   .strict();
 export const taskSchema = z
   .object({
+    reminderAt: timestamp.nullable().optional(),
+    reminderDismissedAt: timestamp.nullable().optional(),
     order: z.number().int().nonnegative().safe().optional(),
     ...base,
     title,
@@ -71,7 +73,8 @@ export const taskSchema = z
     recurrenceRootId: id.nullable(),
     occurrenceDate: date.nullable(),
   })
-  .strict();
+  .strict()
+  .refine((task) => !task.reminderDismissedAt || !!task.reminderAt, 'A dismissed reminder requires a scheduled time.');
 export const activitySchema = z
   .object({
     ...base,

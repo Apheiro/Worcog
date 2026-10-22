@@ -181,6 +181,8 @@ export function updateTask(
     );
   const task = { ...previous, ...patch, id, createdAt: previous.createdAt, updatedAt: now };
   applyTaskWorkflow(task, previous);
+  if (task.reminderAt !== previous.reminderAt) task.reminderDismissedAt = null;
+  if (task.reminderAt && ['completed', 'canceled'].includes(task.status)) task.reminderDismissedAt = now;
   task.completedAt = task.status === 'completed' ? (previous.completedAt ?? now) : null;
   return changed(
     workspace,
@@ -392,6 +394,8 @@ export function generateOccurrences(
           ...stamp(now),
           status: 'in_progress',
           completedAt: null,
+          reminderAt: null,
+          reminderDismissedAt: null,
           startDate: calendarDate(now),
           dueDate,
           recurrence: 'none',

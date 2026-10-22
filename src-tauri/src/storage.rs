@@ -21,7 +21,7 @@ impl Store {
         let version: u32 = db
             .query_row("PRAGMA user_version", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        if version > 5 {
+        if version > 6 {
             return Err("Database was created by a newer application".into());
         }
         if version == 0 {
@@ -46,6 +46,9 @@ impl Store {
         }
         if version < 5 {
             db.execute_batch("BEGIN IMMEDIATE; ALTER TABLE metadata ADD COLUMN contacts TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(contacts)); PRAGMA user_version=5; COMMIT;").map_err(|e| e.to_string())?;
+        }
+        if version < 6 {
+            db.execute_batch("BEGIN IMMEDIATE; CREATE TABLE desktop_preferences(id INTEGER PRIMARY KEY CHECK(id=1),payload TEXT NOT NULL CHECK(json_valid(payload))); CREATE INDEX tasks_reminder ON tasks(json_extract(payload,'$.reminderAt')) WHERE json_extract(payload,'$.reminderAt') IS NOT NULL; PRAGMA user_version=6; COMMIT;").map_err(|e| e.to_string())?;
         }
         Ok(Self { db, root })
     }

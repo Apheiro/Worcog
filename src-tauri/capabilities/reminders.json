@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "reminders",
+  "description": "Worklog's own reminder window; native commands restrict access by window label.",
+  "webviews": ["reminders"],
+  "permissions": ["core:event:allow-listen", "core:event:allow-unlisten"]
+}

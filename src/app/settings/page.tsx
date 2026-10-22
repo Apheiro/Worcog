@@ -7,6 +7,7 @@ import { notifications } from '../../infrastructure/notifications';
 import { TopicInactivitySettingsForm } from '../../components/topic-inactivity-settings';
 import { ApplicationUpdates } from '../../components/application-updates';
 import { Button, Switch, Input } from '../../components/core';
+import { ReminderSettings } from '../../components/reminder-settings';
 import { useWorklog } from '../../providers/worklog';
 import { WorkspaceSection } from '../../components/workspace-section';
 import { ThemeControl } from '../../components/theme-control';
@@ -115,6 +116,7 @@ export default function Page() {
             settings={inactivitySettings}
             onSave={setInactivitySettings}
           />
+          <ReminderSettings />
         </TabsContent>
         <TabsContent forceMount value="storage" className="flex flex-col gap-5">
           <Card>

@@ -7,8 +7,9 @@ use std::{
 use tauri::{Manager, State};
 use tauri_plugin_opener::OpenerExt;
 use validation::{string, Result};
-struct AppState {
-    store: storage::StoreAccess,
+pub(crate) struct AppState {
+    pub(crate) store: storage::StoreAccess,
+    pub(crate) reminders: Arc<crate::reminders::Service>,
     staged: Mutex<Option<archive::StagedImport>>,
     cache: std::path::PathBuf,
     updates: Arc<crate::updates::Updates>,
@@ -25,7 +26,7 @@ async fn load_workspace(
 }
 #[tauri::command]
 async fn save_workspace(
-    workspace: Value,
+    mut workspace: Value,
     purge_workspace_files: Option<bool>,
     purge_backups: Option<bool>,
     state: State<'_, AppState>,
@@ -38,11 +39,13 @@ async fn save_workspace(
         None
     };
     let result = state.store.with(|store| {
+        crate::reminders::validate_schedule(store, &mut workspace)?;
         store.save_with_cleanup(workspace, cleared, purge_backups.unwrap_or(false))
     })?;
     if let Some(ref mut pending) = staged {
         **pending = None;
     }
+    state.reminders.wake();
     Ok(result)
 }
 #[tauri::command]
@@ -285,13 +288,16 @@ fn open_update_folder(app: tauri::AppHandle, state: State<'_, AppState>) -> Resu
 }
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| { let _ = crate::reminders::show_main(app); }))
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let root = app.path().app_data_dir()?;
             let cache = app.path().app_cache_dir()?;
             // Cache is regenerable; a failure must not prevent access to primary data.
             let _ = fs::create_dir_all(&cache);
+            let (reminders, receiver) = crate::reminders::Service::new();
             app.manage(AppState {
+                reminders: Arc::new(reminders),
                 store: storage::StoreAccess::new(root),
                 staged: Mutex::new(None),
                 updates: Arc::new(crate::updates::Updates::new(
@@ -300,9 +306,34 @@ pub fn run() {
                 )),
                 cache,
             });
+            crate::reminders::start(app.handle().clone(), receiver);
             Ok(())
         })
+        .on_window_event(|window, event| {
+            if window.label() == "main" && matches!(event, tauri::WindowEvent::Resized(_))
+                && window.app_handle().tray_by_id("worklog").is_some()
+                && window.is_minimized().unwrap_or(false) {
+                let _ = window.hide();
+            }
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                if window.label() == "main" {
+                    if window.app_handle().tray_by_id("worklog").is_some() { let _ = window.hide(); }
+                    else { crate::reminders::request_exit(window.app_handle()); }
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
+            crate::reminder_commands::reminder_status,
+            crate::reminder_commands::set_reminder_preferences,
+            crate::reminder_commands::choose_reminder_sound,
+            crate::reminder_commands::reset_reminder_sound,
+            crate::reminder_commands::preview_reminder_sound,
+            crate::reminder_commands::reminder_window_ready,
+            crate::reminder_commands::set_exit_guard,
+            crate::reminder_commands::dismiss_reminder,
+            crate::reminder_commands::open_reminder_task,
+            crate::reminder_commands::minimize_workspace,
             attachment_statuses,
             read_document,
             save_document,

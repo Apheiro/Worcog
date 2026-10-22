@@ -121,6 +121,18 @@ pub fn validate(w: &Value) -> Result<()> {
                 "attachments" => "id originalName managedName mime size addedAt topicIds taskIds activityIds sourceIds", _ => ""
             };
             let mut fields: HashSet<_> = allowed.split(' ').collect();
+            if kind == "tasks" {
+                for key in ["reminderAt", "reminderDismissedAt"] {
+                    if e.get(key).is_some() {
+                        fields.insert(key);
+                        optional_date(e, key, true)?;
+                    }
+                }
+                if e.get("reminderDismissedAt").is_some_and(|value| !value.is_null())
+                    && e.get("reminderAt").is_none_or(|value| value.is_null()) {
+                    return Err("A dismissed reminder requires a scheduled time".into());
+                }
+            }
             if kind == "topics" && e.get("requesterName").is_some() {
                 fields.insert("requesterName");
                 string(e, "requesterName")?;
