@@ -65,8 +65,11 @@ This builds only the portable application executable using the committed Cargo
 lockfile. Bundling is disabled in Tauri configuration as well. The workflow creates:
 
 - `worklog-v<version>-windows-x64.exe`: portable application executable.
-- `SHA256SUMS.txt`: SHA-256 hash of the executable.
-- `BUILD-INFO.txt`: exact source commit, version, target release and workflow run.
+
+No checksum or build-info text files are generated. The build passes the executable
+name and SHA-256 through job outputs; the publication job verifies the downloaded
+artifact against those values before uploading it. Source commit and workflow
+details remain available in the Actions run.
 
 Download the `worklog-windows-x64-v<version>` artifact from the run's
 **Artifacts** section; it expires after 14 days. Publication failure leaves
@@ -75,8 +78,8 @@ the release/tag still exists without Windows assets; fix the error and rerun
 the appropriate job/workflow. Do not create a second release manually.
 
 The publish job checks that the release exists and uses `gh release upload
---clobber`: retrying intentionally replaces assets of the same name, including
-the checksum file. It does not create releases or move tags. All other release
+--clobber`: retrying intentionally replaces the executable of the same name.
+It does not create releases or move tags. All other release
 assets remain untouched. Runs for the same build ref/tag are serialized with
 cancellation disabled.
 

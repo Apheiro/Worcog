@@ -39,6 +39,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
     outputs:
       artifact_name: worklog-windows-x64-v${{ steps.versions.outputs.version }}
+      binary_file: ${{ steps.assets.outputs.binary_file }}
+      binary_sha256: ${{ steps.assets.outputs.binary_sha256 }}
     steps:
       - name: Check out the selected tag or ref
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -74,13 +76,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "The target GitHub release does not exist." }
       - name: Build unsigned portable Windows x64 executable
         run: pnpm tauri build --target x86_64-pc-windows-msvc --no-bundle -- --locked
-      - name: Prepare portable executable and checksums
+      - name: Prepare portable executable
         id: assets
         shell: pwsh
         env:
           APP_VERSION: ${{ steps.versions.outputs.version }}
           BINARY_NAME: ${{ steps.versions.outputs.binary_name }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           $release = Join-Path $env:GITHUB_WORKSPACE "src-tauri/target/x86_64-pc-windows-msvc/release"
           $exe = Join-Path $release "$($env:BINARY_NAME).exe"
@@ -89,28 +90,18 @@ jobs:
           }
           $assets = Join-Path $env:RUNNER_TEMP "worklog-assets"
           New-Item -ItemType Directory -Path $assets -Force | Out-Null
-          $sourceCommit = git rev-parse HEAD
-          if ($LASTEXITCODE -ne 0) { throw "Unable to identify the source commit." }
-          @(
-            "repository=$env:GITHUB_REPOSITORY"
-            "source_commit=$sourceCommit"
-            "version=$env:APP_VERSION"
-            "release_tag=$env:RELEASE_TAG"
-            "run=https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
-          ) | Set-Content -LiteralPath (Join-Path $assets "BUILD-INFO.txt") -Encoding utf8
           $prefix = "worklog-v$($env:APP_VERSION)-windows-x64"
-          Copy-Item -LiteralPath $exe -Destination (Join-Path $assets "$prefix.exe")
-          $checksums = Get-ChildItem -LiteralPath $assets -Filter "*.exe" -File | Sort-Object Name | ForEach-Object {
-            $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            "$hash  $($_.Name)"
-          }
-          $checksums | Set-Content -LiteralPath (Join-Path $assets "SHA256SUMS.txt") -Encoding utf8
+          $binary = Join-Path $assets "$prefix.exe"
+          Copy-Item -LiteralPath $exe -Destination $binary
+          $hash = (Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash.ToLowerInvariant()
           "directory=$assets" >> $env:GITHUB_OUTPUT
+          "binary_file=$prefix.exe" >> $env:GITHUB_OUTPUT
+          "binary_sha256=$hash" >> $env:GITHUB_OUTPUT
       - name: Upload Windows assets
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: worklog-windows-x64-v${{ steps.versions.outputs.version }}
-          path: ${{ steps.assets.outputs.directory }}/*
+          path: ${{ steps.assets.outputs.directory }}/*.exe
           if-no-files-found: error
           retention-days: 14
           overwrite: true
@@ -128,13 +119,15 @@ jobs:
         with:
           name: ${{ needs.build.outputs.artifact_name }}
           path: windows-assets
-      - name: Verify checksums and attach assets to the existing release
+      - name: Verify executable and attach it to the existing release
         working-directory: windows-assets
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          BINARY_FILE: ${{ needs.build.outputs.binary_file }}
+          BINARY_SHA256: ${{ needs.build.outputs.binary_sha256 }}
         run: |
-          sha256sum --check SHA256SUMS.txt
+          printf '%s  %s\n' "$BINARY_SHA256" "$BINARY_FILE" | sha256sum --check -
           gh release view "$RELEASE_TAG" --json tagName
-          gh release upload "$RELEASE_TAG" ./*.exe SHA256SUMS.txt BUILD-INFO.txt --clobber
+          gh release upload "$RELEASE_TAG" "$BINARY_FILE" --clobber

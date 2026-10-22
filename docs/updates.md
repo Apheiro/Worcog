@@ -29,8 +29,8 @@ are displayed in full, within the 2 MiB metadata-response limit.
 A release can exist while its Windows build is still running. It is not announced
 until its executable is uploaded with size and digest metadata. Check again after
 the build finishes. If an old asset has no digest, upload a new asset using the
-existing publication flow. `SHA256SUMS.txt` is useful for manual verification but
-is not substituted for the digest returned by GitHub.
+existing publication flow. The Windows workflow verifies the executable between
+jobs without publishing extra checksum files; the app uses GitHub's asset digest.
 
 ## Public and private repositories
 
