@@ -12,3 +12,4 @@ export * from './date-input';
 export * from './action-menu';
 export * from './tooltip';
 export * from './tabs';
+export * from './floating-window';

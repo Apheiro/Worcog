@@ -1,5 +1,5 @@
 use crate::validation::{self, list, string, Result, COLLECTIONS};
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use std::{
     fs,
@@ -110,11 +110,19 @@ impl Store {
                 .root
                 .join("attachments")
                 .join(string(a, "managedName")?);
-            if !path.is_file()
-                || fs::metadata(path).map_err(|e| e.to_string())?.len()
-                    != a["size"].as_u64().unwrap_or(0)
-            {
-                return Err("Attachment is missing or changed; save canceled".into());
+            let accessible = fs::metadata(path).is_ok_and(|metadata|
+                metadata.is_file() && metadata.len() == a["size"].as_u64().unwrap_or(0));
+            if !accessible {
+                let previous: Option<String> = self.db.query_row(
+                    "SELECT payload FROM attachments WHERE id=?1", [string(a, "id")?],
+                    |row| row.get(0),
+                ).optional().map_err(|e| e.to_string())?;
+                let previous = previous.and_then(|value| serde_json::from_str::<Value>(&value).ok());
+                let unchanged = previous.is_some_and(|old|
+                    old["managedName"] == a["managedName"] && old["size"] == a["size"]);
+                if !unchanged {
+                    return Err("File not found or inaccessible; the new attachment was not saved.".into());
+                }
             }
         }
         let tx = self.db.transaction().map_err(|e| e.to_string())?;

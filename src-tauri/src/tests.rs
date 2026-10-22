@@ -7,6 +7,53 @@ fn topic() -> Value {
     json!({"id":"00000000-0000-4000-8000-000000000001","createdAt":"2026-01-01T12:00:00Z","updatedAt":"2026-01-01T12:00:00Z","title":"Fixture","summary":"","category":"incident","status":"pending","priority":"normal","owner":"","participants":"","tags":[],"nextAction":"","targetDate":null,"closedAt":null,"archived":false,"relatedTopicIds":[]})
 }
 #[test]
+fn attachment_access_regression_missing_files_and_replaced_versions() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let mut db = Store::open(dir.path().into()).unwrap();
+    let id = "00000000-0000-4000-8000-000000000002";
+    let name = format!("{id}.csv");
+    let missing = "00000000-0000-4000-8000-000000000003.txt";
+    let root = dir.path().join("attachments");
+    let original = b"a\n1\n";
+    std::fs::write(root.join(&name), original).unwrap();
+    std::fs::write(root.join(missing), b"old").unwrap();
+    let mut w = empty();
+    w["topics"] = json!([topic()]);
+    w["attachments"] = json!([
+        {"id":id,"originalName":"fixture.csv","managedName":name,"mime":"text/csv","size":4,"addedAt":"2026-01-01T12:00:00Z","topicIds":[topic()["id"]],"taskIds":[],"activityIds":[],"sourceIds":[]},
+        {"id":"missing","originalName":"old.txt","managedName":missing,"mime":"text/plain","size":3,"addedAt":"2026-01-01T12:00:00Z","topicIds":[],"taskIds":[],"activityIds":[],"sourceIds":[]}
+    ]);
+    let mut w = db.save(w).unwrap();
+    std::fs::remove_file(root.join(missing)).unwrap();
+    let mut second = topic();
+    second["id"] = json!("another-topic");
+    w["topics"].as_array_mut().unwrap().push(second);
+    let saved = db.save(w).expect("a missing old attachment must not block a new topic");
+    assert_eq!(saved["topics"].as_array().unwrap().len(), 2);
+    let statuses = crate::attachment_access::statuses(&db, Some("missing")).unwrap();
+    assert!(matches!(statuses["missing"], crate::attachment_access::AttachmentStatus::Missing));
+
+    let version = format!("{:x}", Sha256::digest(original));
+    let edited = b"a\n2\n"; // Same byte count, different contents.
+    let saved = crate::document_files::save(&mut db, id, &version, edited).unwrap();
+    assert!(saved.cleanup_warning.is_none());
+    let file = saved.workspace["attachments"].as_array().unwrap().iter().find(|file| file["id"] == id).unwrap();
+    let next_name = file["managedName"].as_str().unwrap().to_owned();
+    assert_eq!(file["topicIds"], json!([topic()["id"]]));
+    assert!(!root.join(&name).exists());
+    assert_eq!(std::fs::read(root.join(&next_name)).unwrap(), edited);
+    assert_eq!(std::fs::read_dir(&root).unwrap().count(), 1);
+
+    assert!(crate::document_files::save(&mut db, id, &version, b"a\n3\n").is_err());
+    let next_version = format!("{:x}", Sha256::digest(edited));
+    crate::document_files::save(&mut db, id, &next_version, edited).unwrap();
+    assert_eq!(std::fs::read_dir(&root).unwrap().count(), 1);
+    assert!(crate::document_files::save(&mut db, id, &next_version, b"\0").is_err());
+    assert_eq!(std::fs::read(root.join(next_name)).unwrap(), edited);
+    assert_eq!(std::fs::read_dir(root).unwrap().count(), 1);
+}
+#[test]
 fn migration_crud_reopen_and_optimistic_conflict() {
     let dir = tempfile::tempdir().unwrap();
     let mut db = Store::open(dir.path().into()).unwrap();

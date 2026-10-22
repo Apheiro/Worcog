@@ -25,6 +25,8 @@ export default function Page() {
     setTextureEnabled,
     textureOpacity,
     setTextureOpacity,
+    documentEditorEnabled,
+    setDocumentEditorEnabled,
   } = useWorklog();
   return (
     <WorkspaceSection>
@@ -86,6 +88,26 @@ export default function Page() {
                   {textureOpacity}%
                 </output>
               </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 flex-col gap-2">
+                <h2 id="document-editor-label">Open documents in Worklog</h2>
+                <p id="document-editor-description" className="max-w-xl text-xs [color:var(--muted)]">
+                  Open Word, Excel, PowerPoint and CSV attachments in the integrated editor.
+                  PDFs and other formats use your default application.
+                  The editor loads from edit.chaxus.com and processes files on this device;
+                  an internet connection is needed to load it. Changes are saved to your local attachment.
+                  Turn this off to open files with your default application. Open documents remain available.
+                </p>
+              </div>
+              <Checkbox
+                aria-labelledby="document-editor-label"
+                aria-describedby="document-editor-description"
+                checked={documentEditorEnabled}
+                onCheckedChange={(checked) => setDocumentEditorEnabled(checked === true)}
+              />
             </CardContent>
           </Card>
           <TopicInactivitySettingsForm
@@ -186,7 +208,7 @@ export default function Page() {
             <CardContent className="flex flex-col gap-4">
               <p className="text-sm [color:var(--muted)]">
                 Delete individual items using their trash buttons. Delete all removes every topic,
-                task, source, annotation and managed file. You can also include local backups in the
+                task, source, activity record and managed file. You can also include local backups in the
                 confirmation.
               </p>
               <div className="flex flex-wrap items-center justify-between gap-3">

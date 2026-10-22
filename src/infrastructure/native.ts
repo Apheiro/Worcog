@@ -4,6 +4,7 @@ import { workspaceSchema } from '../domain/validation';
 import type { Attachment, StorageInfo, Workspace } from '../domain/model';
 export const desktopAvailable = () => isTauri();
 export type SaveOptions = { purgeWorkspaceFiles?: boolean; purgeBackups?: boolean };
+export type AttachmentStatus = 'available' | 'missing' | 'inaccessible';
 const resultSchema = z.object({
   workspace: workspaceSchema,
   cleanupWarning: z.string().nullable(),
@@ -36,6 +37,12 @@ export const native = {
   attach: (path?: string) => invoke<Attachment | null>('attach_file', { path }),
   discardDraft: (managedName: string) => invoke<void>('discard_draft_attachment', { managedName }),
   openFile: (id: string) => invoke<void>('open_attachment', { id }),
+  attachmentStatuses: (id?: string) => invoke<Record<string, AttachmentStatus>>('attachment_statuses', { id }),
+  readDocument: (id: string) => invoke<ArrayBuffer>('read_document', { id }),
+  saveDocument: async (id: string, version: string, bytes: ArrayBuffer): Promise<WorkspaceResult> =>
+    resultSchema.parse(await invoke('save_document', bytes, {
+      headers: { 'x-document-id': id, 'x-document-version': version },
+    })),
   openReference: (url: string) => invoke<void>('open_reference', { url }),
   backup: () => invoke<string>('create_backup'),
   export: () => invoke<string | null>('export_workspace'),

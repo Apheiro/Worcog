@@ -6,16 +6,14 @@ import { IconDatabase } from '@tabler/icons-react';
 import { native } from '../infrastructure/native';
 import { navigation, useWorklog } from '../providers/worklog';
 import dynamic from 'next/dynamic';
+import { EntityEditor } from '../components/editors';
+import { FileDetail, SourceDetail } from '../components/related-dialogs';
 const UpdateDialog = dynamic(() =>
   import('../components/application-updates').then((m) => m.UpdateDialog),
 );
-const EntityEditor = dynamic(() => import('../components/editors').then((m) => m.EntityEditor));
-const FileDetail = dynamic(() => import('../components/related-dialogs').then((m) => m.FileDetail));
-const SourceDetail = dynamic(() =>
-  import('../components/related-dialogs').then((m) => m.SourceDetail),
-);
 import { Button, Checkbox, Confirm } from '../components/core';
 import { ScrollArea } from '../components/core/scroll-area';
+const DocumentWindows = dynamic(() => import('../components/document-windows').then((m) => m.DocumentWindows), { ssr: false });
 
 const navigationItem = cva({
   base: [
@@ -150,6 +148,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
           </div>
         </ScrollArea>
       </main>
+      <DocumentWindows />
       {updates.open && <UpdateDialog updates={updates} />}
       {editor && (
         <EntityEditor

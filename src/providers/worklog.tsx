@@ -26,6 +26,10 @@ import { native } from '../infrastructure/native';
 import { notifications } from '../infrastructure/notifications';
 import { useUpdates } from '../infrastructure/use-updates';
 import { useWorkspace } from '../infrastructure/use-workspace';
+import { useDocumentWindows } from '../infrastructure/use-document-windows';
+import { documentFormat } from '../infrastructure/document-editor';
+import { useAttachmentAccess } from '../infrastructure/use-attachment-access';
+import { errorMessage } from '../infrastructure/native';
 import type { Editor } from '../components/editors';
 type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'search' | 'archive' | 'settings';
 type Confirmation = {
@@ -49,6 +53,13 @@ function useWorklogController() {
   const wb = useWorkspace();
   const updates = useUpdates();
   const w = wb.workspace;
+  const attachmentAccess = useAttachmentAccess(w.attachments);
+  const documents = useDocumentWindows();
+  const [documentEditorEnabled, setDocumentEditorEnabled] = useLocalStorage<boolean>({
+    key: 'worklog.document-editor-enabled',
+    defaultValue: true,
+    deserialize: (value) => value === undefined ? true : value === 'true',
+  });
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -108,7 +119,16 @@ function useWorklogController() {
     setSourceId('');
   }
   const openFile = (id: string) => {
-    void wb.run(() => native.openFile(id));
+    void (async () => {
+      const file = w.attachments.find((attachment) => attachment.id === id);
+      const status = await attachmentAccess.check(id);
+      if (status !== 'available') {
+        notifications.warning(`${status === 'missing' ? 'File not found' : 'File inaccessible'}: ${file?.originalName ?? 'Attachment'}`);
+        return;
+      }
+      if (documentEditorEnabled && file && documentFormat(file.originalName)) documents.open(file);
+      else await wb.run(() => native.openFile(id));
+    })().catch((cause) => notifications.error(errorMessage(cause)));
   };
   function askArchive() {
     if (!selectedTopic) return;
@@ -143,7 +163,7 @@ function useWorklogController() {
     setConfirmation({
       title: 'Permanently delete task?',
       confirmLabel: 'Delete permanently',
-      description: `Delete “${task.title}” permanently?\n\n${plan.taskIds.length} task(s), including affected subtasks.\n${plan.activityIds.length} linked history/annotation record(s), including previous corrections.\n${titles}${plan.taskIds.length > 5 ? '\n…' : ''}${plan.includesRecurrence ? '\n\nThis removes the entire recurring series and its existing instances so they cannot be generated again.' : ''}${plan.sharedActivityCount ? `\n\n${plan.sharedActivityCount} annotation(s) are also shared with other tasks or topics. Those annotations will be deleted in full.` : ''}\n\nNo recycle bin or deletion history is kept. Sources and managed files remain; their links to deleted records are removed. Existing backups and exports are unchanged. This cannot be undone.`,
+      description: `Delete “${task.title}” permanently?\n\n${plan.taskIds.length} task(s), including affected subtasks.\n${plan.activityIds.length} linked history record(s), including previous corrections.\n${titles}${plan.taskIds.length > 5 ? '\n…' : ''}${plan.includesRecurrence ? '\n\nThis removes the entire recurring series and its existing instances so they cannot be generated again.' : ''}${plan.sharedActivityCount ? `\n\n${plan.sharedActivityCount} history record(s) are also shared with other tasks or topics. Those records will be deleted in full.` : ''}\n\nNo recycle bin or deletion history is kept. Sources and managed files remain; their links to deleted records are removed. Existing backups and exports are unchanged. This cannot be undone.`,
       action: async () => {
         if (
           await wb.update(
@@ -169,7 +189,7 @@ function useWorklogController() {
     const revision = w.revision;
     const label =
       target.kind === 'activity'
-        ? 'annotation'
+        ? 'activity record'
         : target.kind === 'attachment'
           ? 'file'
           : target.kind;
@@ -202,7 +222,7 @@ function useWorklogController() {
       includeBackups: target.kind === 'workspace',
       description: `${name ? `Delete “${name}”?\n\n` : ''}This removes: ${preview.description}.
 
-${target.kind === 'workspace' ? 'All records, annotation corrections and managed files, including orphaned copies, will be removed.' : target.kind === 'topic' ? 'Tasks and their linked annotations are deleted in full, including annotations shared elsewhere. Other shared annotations, sources and files are preserved with their remaining relationships.' : target.kind === 'source' ? 'References to this source are removed from tasks and annotations; their text remains. Files exclusive to this source are deleted.' : target.kind === 'activity' ? 'The annotation and all previous corrections are removed, along with files exclusive to it.' : 'The managed copy is physically deleted from disk and removed from all workspace views. The original file outside Worklog is untouched.'}
+${target.kind === 'workspace' ? 'All records, previous corrections and managed files, including orphaned copies, will be removed.' : target.kind === 'topic' ? 'Tasks and their linked activity records are deleted in full, including records shared elsewhere. Other shared activity records, sources and files are preserved with their remaining relationships.' : target.kind === 'source' ? 'References to this source are removed from tasks and activity records; their text remains. Files exclusive to this source are deleted.' : target.kind === 'activity' ? 'The activity record and all previous corrections are removed, along with files exclusive to it.' : 'The managed copy is physically deleted from disk and removed from all workspace views. The original file outside Worklog is untouched.'}
 
 No recycle bin or deletion history is kept. Existing exports outside Worklog are unchanged. This cannot be undone.`,
       action: async (includeBackups) => {
@@ -300,6 +320,10 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     navigate,
     openTopic,
     openFile,
+    attachmentAccess,
+    documents,
+    documentEditorEnabled,
+    setDocumentEditorEnabled,
     editTask,
     askArchive,
     askDeleteTask,

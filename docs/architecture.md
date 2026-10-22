@@ -54,6 +54,38 @@ automatically and preserved on edits. Mantine Hooks handles saved UI
 preferences and debounced input. Native collection operations cover the current
 queries, so `lodash-es` is unnecessary.
 
+## Optional document editor
+
+Settings → General → **Open documents in Worklog** controls how attachment clicks
+are handled. It defaults to enabled; disabling it restores the default system
+application for subsequent opens. DOCX, XLSX, PPTX and CSV use an iframe at
+`https://edit.chaxus.com/editor?embed=1`; PDFs and other formats retain the system opener.
+The editor is remote code, not bundled with Worklog. Loading requires connectivity
+and trusts that provider's deployed code. No account or cloud storage integration
+is configured by Worklog.
+
+`use-document-windows` owns independent instances for the provider lifetime.
+`FloatingWindow` keeps each iframe mounted when minimized, with one restore dot
+per minimized instance. `use-document-editor` implements the provider's
+[official postMessage API](https://github.com/ranuts/document/blob/main/docs/embed-api.md),
+checking both origin and window identity. Only the opened document's bytes and
+name are passed to that frame; workspace state, native paths and IPC credentials
+are not shared. CSP allows only that editor origin as a remote frame.
+
+The host reads and saves managed attachments through dedicated native commands.
+Save compares a SHA-256 fingerprint to detect stale editor instances, validates
+the export, writes a fresh managed copy, and updates the workspace under the
+storage lock. Unchanged exports do not create another copy. Replacement queues
+the superseded copy for deletion in the same DB transaction; cleanup runs after
+commit and retries failures through the existing pending-file-deletions queue.
+A failed write/commit leaves the previous file intact. Existing missing or
+inaccessible attachment references do not block unrelated workspace saves;
+new or replaced references must point to a valid file. File access checks show
+"File not found" or "Inaccessible" without deleting metadata or relationships.
+Closing checks for unsaved changes and offers save, discard or cancel. Minimizing
+does not export or save. The provider documents local processing and no history
+in embedded mode; its embed API has no cloud-file deletion operation.
+
 The desktop window uses an undecorated Tauri frame with a theme-aware custom
 caption in `app/window-frame.tsx`. Its native control hook lives in
 `infrastructure/use-window-controls.ts`; Tauri handles minimize, maximize/restore,

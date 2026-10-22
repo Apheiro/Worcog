@@ -128,10 +128,7 @@ async fn open_attachment(
             .iter()
             .find(|a| a["id"].as_str() == Some(&id))
             .ok_or("Attachment not found")?;
-        let path = store
-            .root
-            .join("attachments")
-            .join(string(a, "managedName")?);
+        let path = crate::attachment_access::require(store, a)?;
         storage::safe_document(&path)?;
         app.opener()
             .open_path(path.to_string_lossy(), None::<&str>)
@@ -144,6 +141,25 @@ fn open_reference(url: String, app: tauri::AppHandle) -> Result<()> {
     app.opener()
         .open_url(url, None::<&str>)
         .map_err(|e| e.to_string())
+}
+#[tauri::command]
+fn read_document(id: String, webview: tauri::Webview, state: State<'_, AppState>) -> Result<tauri::ipc::Response> {
+    if webview.label() != "main" { return Err("Only the workspace can read documents.".into()); }
+    state.store.with(|store| crate::document_files::read(store, &id).map(tauri::ipc::Response::new))
+}
+
+#[tauri::command]
+fn attachment_statuses(id: Option<String>, state: State<'_, AppState>) -> Result<std::collections::HashMap<String, crate::attachment_access::AttachmentStatus>> {
+    state.store.with(|store| crate::attachment_access::statuses(store, id.as_deref()))
+}
+
+#[tauri::command]
+fn save_document(request: tauri::ipc::Request<'_>, webview: tauri::Webview, state: State<'_, AppState>) -> Result<crate::file_cleanup::WorkspaceResult> {
+    if webview.label() != "main" { return Err("Only the workspace can save documents.".into()); }
+    let id = request.headers().get("x-document-id").and_then(|value| value.to_str().ok()).ok_or("Missing document ID")?;
+    let hash = request.headers().get("x-document-version").and_then(|value| value.to_str().ok()).ok_or("Missing document version")?;
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else { return Err("Expected document bytes".into()); };
+    state.store.with(|store| crate::document_files::save(store, id, hash, bytes))
 }
 #[tauri::command]
 async fn create_backup(state: State<'_, AppState>) -> Result<String> {
@@ -262,6 +278,9 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            attachment_statuses,
+            read_document,
+            save_document,
             update_status,
             set_update_token,
             check_updates,
