@@ -42,6 +42,17 @@ run merely because its YAML exists.
 
 ## Changes and migrations
 
+### User documentation
+
+Maintain [the user guide](user-guide.md) whenever a user-facing feature,
+workflow, setting or shortcut is added, changed or removed. Update the relevant
+instructions and shortcut table in the same change. Describe implemented
+behavior and its limits, and remove obsolete instructions. Do not duplicate
+the guide inside UI code. The Documentation route reads this Markdown file at
+build time and bundles it with the static app, so it remains available offline.
+
+### Implementation and migrations
+
 Read `AGENTS.md` first. Preserve pre-existing changes, use Conventional Commits,
 and inspect the diff and relevant checks before each commit. This initial
 schema is version 1. After deployment, add an incremental migration instead of

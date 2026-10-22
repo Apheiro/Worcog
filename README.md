@@ -27,55 +27,29 @@ for the desktop runtime.
 
 ## Work with your data
 
-Create a topic, add an annotation with the actual event time, and cite an
-existing source or record one manually. Sources can be reused across topics.
-Add tasks with owners and dates, then copy documents into managed storage using
-the file picker. Topic history follows event time, while creation and update
-timestamps preserve when information was recorded. Archive topics to retain
-their history. Tasks are grouped with each parent before its children, including
-in date-sorted views and after reopening the workspace.
+Open **Documentation** in the sidebar for the complete guide to topics, tasks,
+updates, resources, contacts, document editing, sharing, settings and keyboard
+shortcuts. It is available offline and uses [the user guide](docs/user-guide.md)
+as its single source. Keep that guide current when changing user-facing behavior.
 
-Use **Color theme** in the top bar to choose **Light**, **Dark** or **System**.
-The selection is saved on this device; System follows operating-system theme
-changes. The palette also applies to dialogs, fields, tables and notifications. Dark mode
-uses strictly neutral grayscale, including warnings and errors; labels distinguish
-those states.
+Start with a topic, then create tasks in its workspace. Assign contacts, add
+sources and files through task forms, and record progress with **Add update**.
+Checkboxes complete tasks; blocking requires a reason. Archive topics to preserve
+their context without keeping them in active views.
 
-Notifications use React Toastify for success, errors, information, warnings and
-operations taking longer than 600 ms. Press **Alt+T** to focus notifications.
-Success and information messages close automatically; errors and warnings stay
-until dismissed or resolved. Notifications follow the active theme, including
-strict grayscale in dark mode.
+Ctrl+click attachments on task cards to select them for sharing, then choose
+**Export** at the lower right. A single file is exported as a copy; multiple
+files become a ZIP. This differs from a full workspace archive.
 
-To remove an incorrect or test task, use its trash button or open its editor and
-choose **Delete task**. Review the affected task/history counts and confirm
-**Delete permanently**. This removes the task, its descendants and all linked
-activity (including earlier corrections), without a recycle bin or deletion log.
-Deleting any recurring occurrence removes its entire series to prevent recreation.
-Shared annotations are deleted in full and are explicitly listed in the warning;
-reusable sources and managed files remain with deleted relationships removed.
-Previous backups and exports are unchanged.
+Use **Settings → General** for appearance, indicators and the optional embedded
+document editor. Use **Settings → Storage & backups** for workspace backup,
+export, restore and deletion, and **Settings → Updates** for verified Windows
+executable downloads for manual replacement.
 
-You can also permanently delete **topics**, **sources**, **annotations** and
-**files**, using the delete controls in their views or editors. Deleting a topic
-removes its tasks and exclusive history, sources and files; shared items retain
-their remaining relationships. File deletion removes the managed copy from disk,
-while original files outside Worklog remain untouched.
-
-To start over, open **Storage & backups → Delete all workspace data**. Review the
-counts and optionally check **Also delete local backups stored by Worklog** before
-confirming. There is no deletion history or automatic pre-deletion backup. If
-a file cannot be removed, Worklog reports pending cleanup and offers a retry.
-External exports and backups on other devices remain independent copies.
-
-Windows x64 builds can check GitHub Releases and download a verified executable
-for manual replacement from **Storage & backups → Application updates**. Private
-releases support an optional GitHub token. See [application updates](docs/updates.md)
-for credentials, release requirements and verification limits.
-
-See [storage and recovery](docs/storage.md) before moving or restoring data.
-The app stores primary data in Tauri's persistent app-data directory; cache is
-separate. Backups contain confidential workspace information and documents.
+See [storage and recovery](docs/storage.md) before moving or restoring data,
+and [application updates](docs/updates.md) for update credentials and limits.
+Primary data is local and persistent; cache is separate. Backups and exported
+documents contain confidential information and are not encrypted.
 
 ## Checks and packaging
 

@@ -26,6 +26,8 @@ export function WorkspaceSection({ children, actions }: { children: ReactNode; a
                     ? 'Preserved topics and their complete history.'
                     : page === 'contacts'
                       ? 'Manage assignees, requesters and their contact details.'
+                      : page === 'documentation'
+                        ? 'How to use Worklog, its workflows and keyboard shortcuts.'
                       : page === 'search'
                         ? 'Browse your workspace history, newest first. Search or filter any movement.'
                         : 'Appearance, topic activity, storage and application updates.'}

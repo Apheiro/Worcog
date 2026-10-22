@@ -9,6 +9,7 @@ import {
   IconHistory,
   IconSettings,
   IconUsers,
+  IconBook2,
 } from '@tabler/icons-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useState, useEffect, useEffectEvent, type ReactNode } from 'react';
@@ -38,7 +39,7 @@ import { reminderApi } from '../infrastructure/reminders';
 import { desktopAvailable } from '../infrastructure/native';
 import { errorMessage } from '../infrastructure/native';
 import type { Editor } from '../components/editors';
-type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'contacts' | 'search' | 'archive' | 'settings';
+type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'contacts' | 'search' | 'archive' | 'documentation' | 'settings';
 type Confirmation = {
   title: string;
   description: string;
@@ -54,6 +55,7 @@ export const navigation = [
   { id: 'contacts', label: 'Contacts', icon: IconUsers },
   { id: 'search', label: 'History', icon: IconHistory },
   { id: 'archive', label: 'Archive', icon: IconArchive },
+  { id: 'documentation', label: 'Documentation', icon: IconBook2 },
   { id: 'settings', label: 'Settings', icon: IconSettings },
 ] as const;
 
