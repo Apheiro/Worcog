@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/Apheiro/Worklog/compare/v0.5.0...v0.6.0) (2026-10-22)
+
+
+### Features
+
+* **forms:** manage selector entries and preserve resource drafts ([e241f6c](https://github.com/Apheiro/Worklog/commit/e241f6c20a187ba7bd8171f04d0910d1a618b679))
+* **topics:** add grouping and streamline workspace controls ([146d63f](https://github.com/Apheiro/Worklog/commit/146d63ff6e661bb0341a3d90b5bd1045faa94ce3))
+
+
+### Bug Fixes
+
+* **filters:** avoid duplicate empty category keys ([1e00d9c](https://github.com/Apheiro/Worklog/commit/1e00d9ca6042646a5c33aa6e2acbd90b39285cd2))
+
 ## [0.5.0](https://github.com/Apheiro/Worklog/compare/v0.4.0...v0.5.0) (2026-10-22)
 
 
