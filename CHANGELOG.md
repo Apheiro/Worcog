@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/Apheiro/Worklog/compare/v0.4.0...v0.5.0) (2026-10-22)
+
+
+### Features
+
+* **documents:** add optional embedded editing and safe attachment saves ([4f2471c](https://github.com/Apheiro/Worklog/commit/4f2471c6e6e02d55219b0b8083974495c92a8930))
+* **workspace:** refine task updates, ordering and topic resources ([c51cb12](https://github.com/Apheiro/Worklog/commit/c51cb12084e2b30fb042febf03f66d73c74b24b8))
+
 ## [0.4.0](https://github.com/Apheiro/Worklog/compare/v0.3.1...v0.4.0) (2026-10-21)
 
 
