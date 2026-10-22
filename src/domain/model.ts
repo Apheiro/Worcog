@@ -20,6 +20,7 @@ export interface Base {
   updatedAt: string;
 }
 export interface Topic extends Base {
+  startDate?: string | null;
   title: string;
   summary: string;
   category: string;
@@ -37,6 +38,7 @@ export interface Topic extends Base {
   relatedTopicIds: string[];
 }
 export interface Task extends Base {
+  order?: number;
   title: string;
   description: string;
   topicId: string;

@@ -145,7 +145,7 @@ export function deletionPreview(workspace: Workspace, target: DeletionTarget) {
   return {
     counts,
     description: Object.entries(counts)
-      .map(([kind, count]) => `${count} ${kind}`)
+      .map(([kind, count]) => `${count} ${kind === 'annotations' ? 'activity records' : kind}`)
       .join(', '),
   };
 }

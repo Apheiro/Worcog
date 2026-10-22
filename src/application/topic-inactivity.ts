@@ -63,7 +63,7 @@ export function topicInactivity(
   };
 }
 
-export function deadlineIndicator(createdAt: string, deadline: string | null, now = dayjs()) {
+export function deadlineIndicator(createdAt: string, deadline: string | null, settings: TopicInactivitySettings, now = dayjs()) {
   if (deadline) {
     const start = dayjs(createdAt);
     const end = dayjs(deadline).endOf('day');
@@ -75,7 +75,7 @@ export function deadlineIndicator(createdAt: string, deadline: string | null, no
           ? Math.max(0, Math.min(1, now.diff(start) / duration))
           : 0;
       return {
-        color: indicatorColor(progress, defaultTopicInactivitySettings),
+        color: indicatorColor(progress, settings),
         label: `Deadline: ${end.format('MMM D, YYYY')}. ${progress === 1 ? 'Deadline passed.' : `${Math.round(progress * 100)}% of the available time elapsed.`}`,
       };
     }
@@ -84,11 +84,11 @@ export function deadlineIndicator(createdAt: string, deadline: string | null, no
 }
 
 export function topicIndicator(
-  topic: Pick<Topic, 'createdAt' | 'updatedAt' | 'targetDate'>,
+  topic: Pick<Topic, 'createdAt' | 'updatedAt' | 'targetDate' | 'startDate'>,
   settings: TopicInactivitySettings,
   now = dayjs(),
 ) {
-  const deadline = deadlineIndicator(topic.createdAt, topic.targetDate, now);
+  const deadline = deadlineIndicator(topic.startDate ?? topic.createdAt, topic.targetDate, settings, now);
   if (deadline) return deadline;
   const inactivity = topicInactivity(topic.updatedAt, settings, now);
   return {

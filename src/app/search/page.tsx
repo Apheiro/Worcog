@@ -78,7 +78,11 @@ export default function Page() {
                             if (movement.type === 'topic') openTopic(movement.id);
                             else if (movement.type === 'source') setSourceId(movement.id);
                             else if (movement.type === 'file') setFileId(movement.id);
-                            else setEditor({ kind: movement.type, id: movement.id });
+                            else if (movement.type === 'task') setEditor({ kind: 'task', id: movement.id });
+                            else {
+                              const topicId = movement.topicIds[0];
+                              if (topicId) openTopic(topicId);
+                            }
                           }}
                         >
                           <time

@@ -98,6 +98,16 @@ pub fn validate(w: &Value) -> Result<()> {
                 "attachments" => "id originalName managedName mime size addedAt topicIds taskIds activityIds sourceIds", _ => ""
             };
             let mut fields: HashSet<_> = allowed.split(' ').collect();
+            if kind == "topics" && e.get("startDate").is_some() {
+                fields.insert("startDate");
+                optional_date(e, "startDate", false)?;
+            }
+            if kind == "tasks" && e.get("order").is_some() {
+                fields.insert("order");
+                if e["order"].as_u64().is_none_or(|value| value > 9_007_199_254_740_991) {
+                    return Err("Invalid task order".into());
+                }
+            }
             if kind == "tasks" && e.get("blockReason").is_some() {
                 fields.insert("blockReason");
                 let reason = string(e, "blockReason")?;

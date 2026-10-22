@@ -12,6 +12,8 @@ import { sourceType, sourceKindLabel } from '../domain/sources';
 import { assignedNames } from '../domain/responsibles';
 import { activityTopicIds, attachmentTopicIds, sourceTopicIds } from '../domain/relationships';
 import { calendarDate, compareTimestamps, isOpen, isOverdue, today } from '../domain/dates';
+import { compareTaskOrder } from './task-order';
+import { taskPriority } from '../domain/options';
 export type EntityType = 'topic' | 'task' | 'activity' | 'source' | 'file';
 export interface SearchFilter {
   query?: string;
@@ -95,18 +97,13 @@ export function filterTasks(
           workspace.topics.find((topic) => topic.id === task.topicId)?.category ===
             filter.category) &&
         (!filter.status || task.status === filter.status) &&
-        (!filter.priority || task.priority === filter.priority) &&
+        (!filter.priority || taskPriority(task.priority) === taskPriority(filter.priority)) &&
         (!(filter.responsibleName || filter.owner) ||
           contains(assignedNames(task).join(' '), filter.responsibleName || filter.owner)) &&
         dateWithin(task.dueDate, filter) &&
         contains([task.title, task.description, ...assignedNames(task)].join(' '), filter.query),
     )
-    .sort(
-      (a, b) =>
-        (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') ||
-        a.title.localeCompare(b.title) ||
-        a.id.localeCompare(b.id),
-    );
+    .sort(compareTaskOrder);
 }
 export function searchWorkspace(
   workspace: Workspace,
@@ -145,7 +142,7 @@ export function searchWorkspace(
   for (const task of workspace.tasks)
     if (
       (!options.status || task.status === options.status) &&
-      (!options.priority || task.priority === options.priority) &&
+      (!options.priority || taskPriority(task.priority) === taskPriority(options.priority)) &&
       (!(options.responsibleName || options.owner) ||
         contains(assignedNames(task).join(' '), options.responsibleName || options.owner))
     )
@@ -314,8 +311,8 @@ export function topicTimeline(
     })),
   ].sort(
     (a, b) =>
-      compareTimestamps(a.eventAt, b.eventAt) ||
-      compareTimestamps(a.createdAt, b.createdAt) ||
+      compareTimestamps(b.eventAt, a.eventAt) ||
+      compareTimestamps(b.createdAt, a.createdAt) ||
       a.id.localeCompare(b.id),
   );
 }

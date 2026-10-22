@@ -1,8 +1,8 @@
 'use client';
-import { IconEdit, IconFile, IconLink, IconPaperclip, IconTrash } from '@tabler/icons-react';
+import { IconActivity, IconFile, IconLink, IconPaperclip, IconTrash } from '@tabler/icons-react';
 import { useState, type ReactNode } from 'react';
 import { topicTimeline } from '../application/queries';
-import { orderTasksForDisplay } from '../application/task-order';
+import { orderTasksForDisplay, type TaskSort } from '../application/task-order';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
 import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
 import { Badge, Button, Empty, Select } from './core';
@@ -14,6 +14,7 @@ import { CategoryTag } from './category-tag';
 import { ResourceTasks } from './resource-tasks';
 import { ResourceList } from './resource-list';
 import { TaskRow, type TaskRowProps } from './task-row';
+import { AttachmentStatus } from './attachment-status';
 export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: string) => void }) {
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">
@@ -86,14 +87,16 @@ export function TaskList({
   onOpenSource,
   onOpenFile,
   showContext = true,
+  sort = 'created',
 }: Omit<TaskRowProps, 'task' | 'childrenExpanded' | 'onToggleChildren'> & {
   tasks: TaskRowProps['task'][];
+  sort?: TaskSort;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const roots: TaskRowProps['task'][] = [];
   const children = new Map<string, TaskRowProps['task'][]>();
   const placed = new Set<string>();
-  for (const task of orderTasksForDisplay(tasks)) {
+  for (const task of orderTasksForDisplay(tasks, sort)) {
     // Missing filtered parents become roots; only attach to already-placed parents
     // so malformed cycles cannot hide tasks or create recursive branches.
     if (task.parentId && placed.has(task.parentId)) {
@@ -137,7 +140,7 @@ export function TaskList({
           {descendants.length > 0 && expanded && (
             <ul
               aria-label={`Subtasks of ${task.title}`}
-              className="relative m-0 flex min-w-0 list-none flex-col gap-[5px] py-0 pr-0 [padding-left:calc(1.25rem_+_1px_+_0.75rem)] before:content-empty before:absolute before:inset-y-0 before:[left:calc(1.25rem_+_1px)] before:-translate-x-1/2 before:w-px before:[background:var(--border)] before:pointer-events-none"
+              className="relative m-0 flex min-w-0 list-none flex-col gap-[5px] py-0 pr-0 [padding-left:calc(1.25rem_+_1px_+_0.75rem)] before:content-empty before:absolute before:-top-[5px] before:bottom-0 before:[left:calc(1.25rem_+_1px)] before:-translate-x-1/2 before:w-px before:[background:var(--border)] before:pointer-events-none"
             >
               {branches(descendants)}
             </ul>
@@ -185,14 +188,12 @@ export function SourceList({
 export function Timeline({
   workspace: w,
   topicId,
-  onEdit,
   onSource,
   onDelete,
 }: {
   workspace: Workspace;
   topicId: string;
-  onDelete: (kind: 'source' | 'activity', id: string) => void;
-  onEdit: (id: string) => void;
+  onDelete: (kind: 'source', id: string) => void;
   onSource: (id: string) => void;
 }) {
   const [kind, setKind] = useState<ActivityKind | ''>('');
@@ -229,19 +230,19 @@ export function Timeline({
           ]}
         />
         <span className="muted [color:var(--muted)] text-sm ml-auto">
-          Oldest first · event date
+          Newest first · event date
         </span>
       </div>
       {entries.length ? (
         <ol className="timeline list-none [padding:10px_0] m-0 [&_>_li]:relative [&_>_li]:flex [&_>_li]:[gap:17px] [&_>_li]:[padding-bottom:28px] [&_>_li:before]:absolute [&_>_li:before]:[left:16px] [&_>_li:before]:[top:30px] [&_>_li:before]:[bottom:0] [&_>_li:before]:content-empty [&_>_li:before]:[width:1px] [&_>_li:before]:[background:var(--border)] [&_>_li:last-child:before]:hidden">
           {entries.map((entry) => {
-            const annotation = w.activities.find(
+            const activity = w.activities.find(
               (a) => entry.type === 'activity' && a.id === entry.id,
             );
             return (
               <li key={`${entry.type}-${entry.id}`}>
                 <div className="timeline-dot [width:33px] [height:33px] grid [place-items:center] [border:1px_solid_var(--border)] [background:var(--surface-soft)] [border-radius:50%] [color:var(--muted)] shrink-0 [z-index:1]">
-                  {entry.type === 'source' ? <IconLink size={16} /> : <IconEdit size={16} />}
+                  {entry.type === 'source' ? <IconLink size={16} /> : <IconActivity size={16} />}
                 </div>
                 <div className="timeline-body [border:1px_solid_var(--border)] [background:var(--surface)] [border-radius:5px] flex-1 [padding:15px_18px] min-w-0 [&_time]:[font-size:12px] [&_time]:[font-weight:550] [&_time]:[color:var(--muted)] [&_p]:[font-size:13px] [&_p]:[overflow-wrap:anywhere]">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -249,29 +250,16 @@ export function Timeline({
                     <Badge>
                       {entry.type === 'source' ? 'External reference' : human(entry.title)}
                     </Badge>
-                    <Button
-                      size="sm"
-                      className="ml-auto"
-                      aria-label={
-                        entry.type === 'source' ? `View ${entry.title}` : 'Edit annotation'
-                      }
-                      onClick={() =>
-                        entry.type === 'source' ? onSource(entry.id) : onEdit(entry.id)
-                      }
-                    >
-                      {entry.type === 'source' ? 'View source' : 'Edit'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      aria-label={
-                        entry.type === 'source'
-                          ? `Delete source ${entry.title}`
-                          : 'Delete annotation'
-                      }
-                      onClick={() => onDelete(entry.type, entry.id)}
-                    >
-                      <IconTrash size={16} />
-                    </Button>
+                    {entry.type === 'source' && (
+                      <>
+                        <Button size="sm" className="ml-auto" aria-label={`View ${entry.title}`} onClick={() => onSource(entry.id)}>
+                          View source
+                        </Button>
+                        <Button size="sm" aria-label={`Delete source ${entry.title}`} onClick={() => onDelete('source', entry.id)}>
+                          <IconTrash size={16} />
+                        </Button>
+                      </>
+                    )}
                   </div>
                   {entry.type === 'source' && <h3 className="mt-2">{entry.title}</h3>}
                   <p className="whitespace-pre-wrap mt-2">{entry.text}</p>
@@ -290,14 +278,14 @@ export function Timeline({
                     })}
                     {!entry.sourceIds.length && (
                       <span className="muted [color:var(--muted)] text-xs">
-                        Origin: manually recorded internal note
+                        Origin: internal activity
                       </span>
                     )}
                   </div>
-                  {annotation && annotation.taskIds.length > 0 && (
+                  {activity && activity.taskIds.length > 0 && (
                     <p className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere] mt-2">
                       Tasks:{' '}
-                      {annotation.taskIds
+                      {activity.taskIds
                         .map((id) => w.tasks.find((t) => t.id === id)?.title)
                         .join(', ')}
                     </p>
@@ -307,13 +295,13 @@ export function Timeline({
                       Recorded {formatTimestamp(entry.createdAt)}
                     </p>
                   )}
-                  {annotation && annotation.revisions.length > 0 && (
+                  {activity && activity.revisions.length > 0 && (
                     <details className="text-sm mt-3">
                       <summary>
-                        {annotation.revisions.length} previous correction(s) · Updated{' '}
-                        {formatTimestamp(annotation.updatedAt)}
+                        {activity.revisions.length} previous correction(s) · Updated{' '}
+                        {formatTimestamp(activity.updatedAt)}
                       </summary>
-                      {annotation.revisions.map((revision, i) => (
+                      {activity.revisions.map((revision, i) => (
                         <blockquote
                           key={i}
                           className="revision [border-left:2px_solid_var(--border)] [margin:10px_0] [padding:6px_12px] [background:var(--surface-soft)] [font-size:12px]"
@@ -348,7 +336,7 @@ export function Timeline({
         </ol>
       ) : (
         <Empty title="The story starts here">
-          Add an annotation with its event date, or link an external reference.
+          Task updates, status changes and linked sources will appear here.
         </Empty>
       )}
     </>
@@ -368,12 +356,13 @@ export function FileList({
   return (
     <ResourceList
       emptyTitle="No attached files"
-      emptyDescription="Upload files from a task to keep managed copies here."
+      emptyDescription="Attach files from a topic or task to keep managed copies here."
       items={files.map((file) => ({
         id: file.id,
         title: file.originalName,
         icon: <IconFile size={18} />,
         metadata: `${(file.size / 1024).toFixed(1)} KB · ${file.mime || 'Unknown type'}`,
+        status: <AttachmentStatus id={file.id} />,
         date: file.addedAt,
         tasks: <ResourceTasks fileId={file.id} />,
         onOpen: () => open(file.id),

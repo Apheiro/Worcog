@@ -18,6 +18,7 @@ import {
   type TopicInactivitySettings,
 } from '../application/topic-inactivity';
 import { type SearchFilter } from '../application/queries';
+import type { TaskSort } from '../application/task-order';
 import { statusFilter } from '../domain/options';
 import { deleteTask, planTaskDeletion } from '../application/task-deletion';
 import { updateTopic } from '../application/workspace';
@@ -89,6 +90,10 @@ function useWorklogController() {
     deserialize: deserializeTopicInactivity,
   });
   const [taskView, setTaskView] = useState('open');
+  const [taskSort, setTaskSort] = useLocalStorage<TaskSort>({
+    key: 'worklog.task-sort',
+    defaultValue: 'created',
+  });
   const [textureEnabled, setTextureEnabled] = useLocalStorage<boolean>({
     key: 'worklog.texture-enabled',
     defaultValue: true,
@@ -305,6 +310,8 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     setInactivitySettings,
     taskView,
     setTaskView,
+    taskSort,
+    setTaskSort,
     textureEnabled,
     setTextureEnabled,
     textureOpacity,

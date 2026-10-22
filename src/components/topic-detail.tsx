@@ -6,6 +6,8 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { IconArchive, IconArrowLeft, IconEdit, IconLink, IconPlus } from '@tabler/icons-react';
 import type { DeletionTarget } from '../application/deletion';
 import { updateTask } from '../application/workspace';
+import { TaskOrder } from './task-order';
+import { useWorklog } from '../providers/worklog';
 import { formatDate, isOpen } from '../domain/dates';
 import type { Topic } from '../domain/model';
 import { attachmentTopicIds, sourceTopicIds } from '../domain/relationships';
@@ -14,7 +16,8 @@ import type { Editor } from './editors';
 import { Badge, Button } from './core';
 import { assignedNames } from '../domain/responsibles';
 import { human } from '../domain/options';
-import { FileList, SourceList, TaskList, Timeline } from './work-lists';
+import { SourceList, TaskList, Timeline } from './work-lists';
+import { TopicFiles } from './topic-files';
 export function TopicDetail({
   topic,
   wb,
@@ -39,6 +42,7 @@ export function TopicDetail({
   deleteTask: (id: string) => void;
 }) {
   const w = wb.workspace;
+  const { taskSort } = useWorklog();
   const tasks = w.tasks.filter((t) => t.topicId === topic.id);
   const sources = w.sources.filter((s) => sourceTopicIds(w, s).includes(topic.id));
   const files = w.attachments.filter((f) => attachmentTopicIds(w, f).includes(topic.id));
@@ -94,9 +98,6 @@ export function TopicDetail({
       </Card>
       <div className="quick-actions flex items-center [gap:9px] flex-wrap [padding:20px_0_0] [&_>_span]:[margin-right:8px] [@media(max-width:800px)]:[gap:7px] [@media(max-width:800px)]:[&_>_span]:w-full">
         <span className="muted [color:var(--muted)] text-sm">Add to this topic</span>
-        <Button size="sm" onClick={() => edit({ kind: 'activity', topicId: topic.id })}>
-          <IconPlus size={15} /> Annotation
-        </Button>
         <Button size="sm" onClick={() => edit({ kind: 'task', topicId: topic.id })}>
           <IconPlus size={15} /> Task
         </Button>
@@ -118,7 +119,9 @@ export function TopicDetail({
           <Tabs.Trigger value="timeline">Timeline</Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="tasks">
+          <div className="mb-3 flex justify-end"><TaskOrder /></div>
           <TaskList
+            sort={taskSort}
             showContext={false}
             onOpenSource={openSource}
             onOpenFile={openFile}
@@ -132,7 +135,7 @@ export function TopicDetail({
                 updateTask(value, id, {
                   status,
                   ...(blockReason !== undefined ? { blockReason } : {}),
-                }),
+                }), {}, status === 'blocked' ? 'Saved locally.' : false,
               )
             }
             onAddSubtask={(task) => edit({ kind: 'task', topicId: topic.id, parentId: task.id })}
@@ -146,7 +149,9 @@ export function TopicDetail({
           />
         </Tabs.Content>
         <Tabs.Content value="files">
-          <FileList
+          <TopicFiles
+            topicId={topic.id}
+            wb={wb}
             onDelete={(id) => onDelete({ kind: 'attachment', id })}
             files={files}
             open={openFile}
@@ -157,7 +162,6 @@ export function TopicDetail({
           <Timeline
             workspace={w}
             topicId={topic.id}
-            onEdit={(id) => edit({ kind: 'activity', id, topicId: topic.id })}
             onSource={openSource}
             onDelete={(kind, id) => onDelete({ kind, id })}
           />

@@ -10,8 +10,10 @@ import {
   IconAlertTriangle,
   IconLock,
   IconLockOpen,
+  IconNotes,
+  IconTimeline,
 } from '@tabler/icons-react';
-import { useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 import { cva } from 'cva';
 import { formatDate, isOverdue } from '../domain/dates';
 import type { Status, Task, Workspace } from '../domain/model';
@@ -19,7 +21,10 @@ import { assignedNames } from '../domain/responsibles';
 import { Checkbox } from './core/checkbox';
 import { ActionMenu, Button, Card, Field, Modal, Textarea, Tooltip } from './core';
 import { deadlineIndicator } from '../application/topic-inactivity';
-import { human } from '../domain/options';
+import { human, taskPriority } from '../domain/options';
+import { useWorklog } from '../providers/worklog';
+import { AttachmentStatus } from './attachment-status';
+import { TaskProgress, TaskUpdateForm } from './task-progress';
 
 const taskRow = cva({
   base: [
@@ -62,11 +67,16 @@ export function TaskRow({
   childrenExpanded,
   onToggleChildren,
 }: TaskRowProps) {
+  const { inactivitySettings } = useWorklog();
   const parent = w.tasks.find((t) => t.id === task.parentId);
   const sources = w.sources.filter((source) => task.sourceIds.includes(source.id));
   const files = w.attachments.filter((file) => file.taskIds.includes(task.id));
-  const deadline = deadlineIndicator(task.createdAt, task.dueDate);
+  const deadline = deadlineIndicator(task.createdAt, task.dueDate, inactivitySettings);
   const [blocking, setBlocking] = useState(false);
+  const [addingUpdate, setAddingUpdate] = useState(false);
+  const [updatesExpanded, setUpdatesExpanded] = useState(false);
+  const updatesRegionId = useId();
+  const updates = w.activities.filter((activity) => activity.kind === 'progress' && activity.taskIds.includes(task.id));
   const [reason, setReason] = useState('');
   const [savingBlock, setSavingBlock] = useState(false);
   const blocked = task.status === 'blocked';
@@ -145,7 +155,7 @@ export function TaskRow({
             <div className="row-subtitle block m-0 [font-size:11px] [color:var(--muted)] [line-height:1.5] [overflow-wrap:anywhere]">
               {w.topics.find((t) => t.id === task.topicId)?.title}
               {parent && ` / ${parent.title}`} · {assignedNames(task).join(', ') || 'Unassigned'} ·{' '}
-              {human(task.priority)}
+              {human(taskPriority(task.priority))}
               {task.recurrence !== 'none' && (
                 <span className="inline-icon inline-flex [gap:4px] items-center">
                   <IconRepeat size={13} />
@@ -190,7 +200,7 @@ export function TaskRow({
                     onClick={() => onOpenFile(file.id)}
                   >
                     <IconPaperclip size={13} aria-hidden="true" />
-                    <span>{file.originalName}</span>
+                    <span>{file.originalName}<AttachmentStatus id={file.id} /></span>
                   </Button>
                 </li>
               ))}
@@ -211,10 +221,39 @@ export function TaskRow({
                 </span>
               </Tooltip>
             )}
+            {updates.length > 0 && (
+              <Tooltip content={`${updatesExpanded ? 'Hide' : 'Show'} updates (${updates.length})`}>
+                <Button
+                  type="button"
+                  tone="ghost"
+                  size="auto"
+                  className={`h-5 w-5 shrink-0 p-0 ${updatesExpanded ? '[color:var(--ink)]' : '[color:var(--muted)]'}`}
+                  aria-label={`${updatesExpanded ? 'Collapse' : 'Expand'} updates for ${task.title}`}
+                  aria-expanded={updatesExpanded}
+                  aria-controls={updatesRegionId}
+                  onClick={() => setUpdatesExpanded((value) => !value)}
+                >
+                  <IconTimeline size={16} aria-hidden="true" />
+                </Button>
+              </Tooltip>
+            )}
+            {task.description.trim() && (
+              <Tooltip content={task.description}>
+                <span tabIndex={0} role="img" aria-label="Task description" className="inline-flex shrink-0 [color:var(--muted)] rounded focus-visible:[outline:2px_solid_var(--focus)] focus-visible:[outline-offset:2px]">
+                  <IconNotes size={16} aria-hidden="true" />
+                </span>
+              </Tooltip>
+            )}
             <ActionMenu
               label={`Actions for ${task.title}`}
               disabled={busy}
               items={[
+                {
+                  label: 'Add update',
+                  icon: <IconNotes size={15} />,
+                  opensDialog: true,
+                  onSelect: () => setAddingUpdate(true),
+                },
                 {
                   label: 'Add subtask',
                   icon: <IconPlus size={15} />,
@@ -252,6 +291,8 @@ export function TaskRow({
           )}
         </div>
       </Card>
+      {updatesExpanded && <TaskProgress task={task} entries={updates} regionId={updatesRegionId} />}
+      {addingUpdate && <TaskUpdateForm task={task} onClose={() => setAddingUpdate(false)} />}
       {blocking && (
         <Modal
           title="Block task"

@@ -1,6 +1,7 @@
 'use client';
 import { filterTasks } from '../../application/queries';
 import { updateTask } from '../../application/workspace';
+import { TaskOrder } from '../../components/task-order';
 import type { Status } from '../../domain/model';
 import { Button } from '../../components/core/button';
 import { TaskList } from '../../components/work-lists';
@@ -15,6 +16,7 @@ export default function Page() {
     openFile,
     taskView,
     setTaskView,
+    taskSort,
     effective,
     askDeleteTask,
   } = useWorklog();
@@ -43,11 +45,13 @@ export default function Page() {
                 </Button>
               ))}
             </div>
+            <TaskOrder />
             <span className="muted [color:var(--muted)] text-sm ml-auto">
               {tasks.length} tasks · tree view
             </span>
           </div>
           <TaskList
+            sort={taskSort}
             onOpenSource={setSourceId}
             onOpenFile={openFile}
             onDelete={askDeleteTask}
@@ -60,7 +64,7 @@ export default function Page() {
                 updateTask(value, id, {
                   status,
                   ...(blockReason !== undefined ? { blockReason } : {}),
-                }),
+                }), {}, status === 'blocked' ? 'Saved locally.' : false,
               )
             }
             onAddSubtask={(task) =>

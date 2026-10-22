@@ -1,5 +1,4 @@
 'use client';
-import { Checkbox } from './core/checkbox';
 import { IconTrash } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useState, type FormEvent } from 'react';
@@ -15,11 +14,11 @@ import { TaskEditor } from './task-editor';
 import { ResponsiblePicker } from './responsible-picker';
 import { assignedNames, responsibleDirectory } from '../domain/responsibles';
 import { toTimestamp } from '../domain/dates';
-import type { ActivityKind, Priority, Source, Status, Topic, Workspace } from '../domain/model';
+import type { Priority, Status, Workspace } from '../domain/model';
 import { Button, DateInput, Field, Input, Modal, MultiSelect, Select, Textarea } from './core';
-import { selectOptions, activityKinds, priorities, statuses } from '../domain/options';
+import { selectOptions, priorities, statuses } from '../domain/options';
 export type Editor = {
-  kind: 'topic' | 'task' | 'source' | 'activity';
+  kind: 'topic' | 'task' | 'source';
   id?: string;
   topicId?: string;
   parentId?: string;
@@ -35,39 +34,6 @@ export type EntityEditorProps = {
   onSave: (transform: (w: Workspace) => Workspace) => Promise<boolean>;
 };
 const localTime = (date?: string) => dayjs(date).format('YYYY-MM-DDTHH:mm');
-function Checks({
-  title,
-  name,
-  options,
-  selected,
-}: {
-  title: string;
-  name: string;
-  options: { id: string; title: string }[];
-  selected: string[];
-}) {
-  return (
-    <fieldset className="checks [border:1px_solid_var(--border)] [border-radius:4px] [padding:9px_12px_12px] [margin:0_0_18px] min-w-0 [&_legend]:[font-size:11px] [&_legend]:[color:var(--muted)] [&_legend]:[padding:0_5px]">
-      <legend>{title}</legend>
-      {options.length ? (
-        <div className="check-list [max-height:145px] overflow-auto flex flex-col [gap:6px] [&_label]:flex [&_label]:items-start [&_label]:[gap:8px] [&_label]:[font-size:12px] [&_label]:[overflow-wrap:anywhere] [&_.checkbox]:[margin-top:2px]">
-          {options.map((option) => (
-            <label key={option.id}>
-              <Checkbox
-                name={name}
-                value={option.id}
-                defaultChecked={selected.includes(option.id)}
-              />
-              <span>{option.title}</span>
-            </label>
-          ))}
-        </div>
-      ) : (
-        <p className="muted [color:var(--muted)] text-sm">No items available yet.</p>
-      )}
-    </fieldset>
-  );
-}
 export function EntityEditor(props: EntityEditorProps) {
   if (props.editor.kind === 'task') return <TaskEditor {...props} />;
   return <RecordEditor {...props} />;
@@ -83,8 +49,7 @@ function RecordEditor({
 }: EntityEditorProps) {
   const topic = w.topics.find((x) => x.id === editor.id);
   const source = w.sources.find((x) => x.id === editor.id);
-  const activity = w.activities.find((x) => x.id === editor.id);
-  const item = editor.kind === 'topic' ? topic : editor.kind === 'source' ? source : activity;
+  const item = editor.kind === 'topic' ? topic : source;
   const [sourceForm, setSourceForm] = useState<SourceFormValues>(() => ({
     kind: source ? (sourceType(source.kind) ?? '') : '',
     platform: source ? initialSourcePlatform(source) : '',
@@ -114,7 +79,6 @@ function RecordEditor({
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const get = (name: string) => String(data.get(name) ?? '').trim();
-    const many = (name: string) => data.getAll(name).map(String);
     const nullable = (name: string) => get(name) || null;
     const common = {
       title: get('title'),
@@ -136,6 +100,7 @@ function RecordEditor({
           ...common,
           summary: get('summary'),
           category: get('category'),
+          startDate: nullable('startDate'),
           targetDate: nullable('targetDate'),
         };
         return editor.id
@@ -168,28 +133,13 @@ function RecordEditor({
         if (!editor.id) throw new Error('Create sources from a task.');
         return actions.updateSource(current, editor.id, input);
       }
-      const input = {
-        text: get('text'),
-        kind: get('kind') as ActivityKind,
-        eventAt: toTimestamp(get('eventAt')),
-        topicIds: many('topicIds'),
-        taskIds: many('taskIds'),
-        sourceIds: activity?.sourceIds ?? [],
-      };
-      return editor.id
-        ? actions.updateActivity(current, editor.id, input)
-        : actions.createActivity(current, input);
+      throw new Error('Unsupported editor.');
     };
     if (await onSave(transform)) onClose();
   }
   return (
     <Modal
-      title={`${editor.id ? 'Edit' : 'New'} ${editor.kind === 'activity' ? 'annotation' : editor.kind}`}
-      description={
-        editor.kind === 'activity'
-          ? 'Use the actual event date. The time you record this entry is preserved separately.'
-          : undefined
-      }
+      title={`${editor.id ? 'Edit' : 'New'} ${editor.kind}`}
       onClose={onClose}
       wide
     >
@@ -201,17 +151,15 @@ function RecordEditor({
         )}
         {
           <>
-            {editor.kind !== 'activity' && (
-              <Field label="Title">
-                <Input
-                  name="title"
-                  required
-                  maxLength={500}
-                  autoFocus
-                  defaultValue={(item as Topic | Source | undefined)?.title}
-                />
-              </Field>
-            )}
+            <Field label="Title">
+              <Input
+                name="title"
+                required
+                maxLength={500}
+                autoFocus
+                defaultValue={item?.title}
+              />
+            </Field>
             {editor.kind === 'topic' && (
               <>
                 <Field label="Status">
@@ -274,6 +222,9 @@ function RecordEditor({
                 <details className="mb-4 text-xs rounded-lg [border:1px_solid_var(--border)] p-4">
                   <summary className="cursor-pointer font-medium">Advanced fields</summary>
                   <div className="pt-4">
+                    <Field label="Start date">
+                      <DateInput name="startDate" defaultValue={topic?.startDate ?? dayjs(topic?.createdAt).format('YYYY-MM-DD')} />
+                    </Field>
                     {!elevatedPriority && targetDateField}
                     <Field label="Summary">
                       <Textarea name="summary" rows={4} defaultValue={topic?.summary} />
@@ -294,47 +245,6 @@ function RecordEditor({
                 {elevatedPriority && targetDateField}
               </>
             )}
-            {editor.kind === 'activity' && (
-              <div className="form-grid grid [grid-template-columns:1fr_1fr] [gap:16px] [@media(max-width:800px)]:[grid-template-columns:1fr] [@media(max-width:800px)]:[gap:0]">
-                <Field label="Type">
-                  <Select
-                    name="kind"
-                    defaultValue={activity?.kind ?? 'note'}
-                    options={[...selectOptions(activityKinds)]}
-                  />
-                </Field>
-                <Field label="Event date and time (local)">
-                  <DateInput
-                    withTime
-                    name="eventAt"
-                    required
-                    defaultValue={localTime(activity?.eventAt)}
-                  />
-                </Field>
-              </div>
-            )}
-            {editor.kind === 'activity' && (
-              <>
-                <Field
-                  label="Annotation"
-                  hint="Plain text; line breaks are preserved. Corrections keep earlier text in history."
-                >
-                  <Textarea name="text" rows={6} required autoFocus defaultValue={activity?.text} />
-                </Field>
-                <Checks
-                  title="Related tasks"
-                  name="taskIds"
-                  options={w.tasks.filter((t) => !editor.topicId || t.topicId === editor.topicId)}
-                  selected={activity?.taskIds ?? []}
-                />
-                {activity && (
-                  <p className="muted [color:var(--muted)] text-sm">
-                    Created {dayjs(activity.createdAt).format('MMM D, YYYY HH:mm')}.{' '}
-                    {activity.revisions.length} previous correction(s).
-                  </p>
-                )}
-              </>
-            )}
             {editor.kind === 'source' && (
               <SourceFields
                 value={sourceForm}
@@ -345,14 +255,6 @@ function RecordEditor({
             )}
           </>
         }
-        {editor.kind === 'activity' && (
-          <Checks
-            title="Linked topics"
-            name="topicIds"
-            options={w.topics}
-            selected={activity?.topicIds ?? (editor.topicId ? [editor.topicId] : [])}
-          />
-        )}
         <div className="form-footer flex [justify-content:flex-end] [gap:9px] [margin-top:24px] [padding-top:18px] [border-top:1px_solid_var(--border)]">
           {item && editor.id && (
             <Button
@@ -363,7 +265,7 @@ function RecordEditor({
               onClick={() => onDelete(editor.kind, item.id)}
             >
               <IconTrash size={16} /> Delete{' '}
-              {editor.kind === 'activity' ? 'annotation' : editor.kind}
+              {editor.kind}
             </Button>
           )}
           <Button type="button" onClick={onClose} disabled={busy}>

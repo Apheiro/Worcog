@@ -4,7 +4,7 @@ import { IconTrash } from '@tabler/icons-react';
 import { saveTaskWithResources, type TaskResourcesDraft } from '../application/task-resources';
 import type { Priority, Task } from '../domain/model';
 import { assignedNames, responsibleDirectory } from '../domain/responsibles';
-import { priorities, selectOptions } from '../domain/options';
+import { taskPriorities, taskPriority, selectOptions } from '../domain/options';
 import { errorMessage, native } from '../infrastructure/native';
 import type { EntityEditorProps } from './editors';
 import { Button, DateInput, Field, Input, Modal, Select, Textarea } from './core';
@@ -133,8 +133,8 @@ export function TaskEditor({
           <Field label="Priority">
             <Select
               name="priority"
-              defaultValue={task?.priority ?? 'normal'}
-              options={selectOptions(priorities)}
+              defaultValue={taskPriority(task?.priority ?? 'normal')}
+              options={selectOptions(taskPriorities)}
             />
           </Field>
           <Field label="Deadline">

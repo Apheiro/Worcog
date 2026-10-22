@@ -6,9 +6,9 @@ import { sourceTopicIds } from '../domain/relationships';
 import type { Workbench } from '../infrastructure/use-workspace';
 import { Badge, Button, Modal } from './core';
 import { sourceKindLabel, sourceType, sourceParticipantLabel } from '../domain/sources';
-import { human } from '../domain/options';
 import { ResourceTasks } from './resource-tasks';
 import { FileList } from './work-lists';
+import { AttachmentStatus } from './attachment-status';
 export function SourceDetail({
   source,
   w,
@@ -35,7 +35,6 @@ export function SourceDetail({
   manageFile: (id: string) => void;
 }) {
   const topicIds = sourceTopicIds(w, source);
-  const annotations = w.activities.filter((a) => a.sourceIds.includes(source.id));
   return (
     <Modal title={source.title} onClose={close} wide>
       {error && (
@@ -91,22 +90,6 @@ export function SourceDetail({
         ))}
         {!topicIds.length && <p className="muted [color:var(--muted)]">No linked topics.</p>}
       </div>
-      <h3 className="mt-5">Annotations citing this source</h3>
-      {annotations.length ? (
-        annotations.map((a) => (
-          <blockquote
-            className="revision [border-left:2px_solid_var(--border)] [margin:10px_0] [padding:6px_12px] [background:var(--surface-soft)] [font-size:12px]"
-            key={a.id}
-          >
-            <time className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-              {formatTimestamp(a.eventAt)} · {human(a.kind)}
-            </time>
-            <p className="whitespace-pre-wrap">{a.text}</p>
-          </blockquote>
-        ))
-      ) : (
-        <p className="muted [color:var(--muted)] my-3">No annotations cite this source yet.</p>
-      )}
       <h3 className="mt-5">Linked tasks</h3>
       <ResourceTasks sourceId={source.id} />
       <h3 className="mt-5">Files</h3>
@@ -134,11 +117,12 @@ export function FileDetail({
     <Modal title={file.originalName} onClose={close}>
       <p className="text-xs [color:var(--muted)] mb-4">
         {(file.size / 1024).toFixed(1)} KB · {file.mime} · Added {formatTimestamp(file.addedAt)}
+        <AttachmentStatus id={file.id} />
       </p>
-      <h3 className="text-sm">Linked tasks</h3>
+      <h3 className="text-sm">Linked topics and tasks</h3>
       <ResourceTasks fileId={file.id} />
       <p className="text-xs [color:var(--muted)] mt-4">
-        Manage resource relationships from the task editor. Unlinking a saved file preserves its
+        Manage task resources from the task editor and general files from the topic. Unlinking a saved file preserves its
         managed copy.
       </p>
       {wb.error && (

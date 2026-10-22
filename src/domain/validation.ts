@@ -23,6 +23,7 @@ const priority = z.enum(['low', 'normal', 'high', 'urgent']);
 const base = { id, createdAt: timestamp, updatedAt: timestamp };
 export const topicSchema = z
   .object({
+    startDate: date.nullable().optional(),
     ...base,
     title,
     summary: text,
@@ -42,6 +43,7 @@ export const topicSchema = z
   .strict();
 export const taskSchema = z
   .object({
+    order: z.number().int().nonnegative().safe().optional(),
     ...base,
     title,
     description: text,

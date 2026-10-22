@@ -1,7 +1,11 @@
+import type { Priority } from './model';
+
 export const statuses = ['in_progress', 'blocked', 'completed'] as const;
 export const statusFilter = (value: string | undefined) =>
   statuses.find((status) => status === value) ?? '';
 export const priorities = ['low', 'normal', 'high', 'urgent'] as const;
+export const taskPriorities = ['low', 'normal', 'high'] as const;
+export const taskPriority = (value: Priority) => value === 'urgent' ? 'high' : value;
 export const activityKinds = [
   'note',
   'progress',

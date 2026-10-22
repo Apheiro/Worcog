@@ -5,7 +5,7 @@ import { useId, useState } from 'react';
 import type { SearchFilter } from '../application/queries';
 import type { Priority, SourceKind, Status, Workspace } from '../domain/model';
 import { Button, DateInput, Field, Input, Select } from './core';
-import { selectOptions, priorities, sourceKinds, statuses, statusFilter } from '../domain/options';
+import { selectOptions, priorities, taskPriorities, sourceKinds, statuses, statusFilter } from '../domain/options';
 export function WorkspaceFilters({
   page,
   workspace: w,
@@ -99,9 +99,9 @@ export function WorkspaceFilters({
             </Field>
             <Field label="Priority">
               <Select
-                value={filter.priority ?? ''}
+                value={page === 'tasks' && filter.priority === 'urgent' ? 'high' : filter.priority ?? ''}
                 onValueChange={(e) => setFilter({ priority: e as Priority | '' })}
-                options={[{ value: '', label: 'All priorities' }, ...selectOptions(priorities)]}
+                options={[{ value: '', label: 'All priorities' }, ...selectOptions(page === 'tasks' ? taskPriorities : priorities)]}
               />
             </Field>
             <Field label="Assignee">

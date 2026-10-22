@@ -24,12 +24,12 @@ export function useWorkspace() {
     setWorkspace(value);
   }, []);
   const run = useCallback(
-    async <T>(action: () => Promise<T>, success = ''): Promise<T | undefined> => {
+    async <T>(action: () => Promise<T>, success = '', showLoading = true): Promise<T | undefined> => {
       if (locked.current) return;
       locked.current = true;
       setBusy(true);
       setError('');
-      const pending = setTimeout(() => notifications.loading(), 600);
+      const pending = showLoading ? setTimeout(() => notifications.loading(), 600) : undefined;
       try {
         const result = await action();
         notifications.clearError();
@@ -52,7 +52,7 @@ export function useWorkspace() {
     async (
       transform: (value: Workspace) => Workspace,
       options: SaveOptions = {},
-      success = 'Saved locally.',
+      success: string | false = 'Saved locally.',
     ): Promise<boolean> => {
       const result = await run(async () => {
         if (!desktopAvailable())
@@ -63,10 +63,10 @@ export function useWorkspace() {
         if (saved.cleanupWarning) notifications.warning(saved.cleanupWarning);
         else {
           notifications.clearWarnings();
-          notifications.success(success);
+          if (success) notifications.success(success);
         }
         return true;
-      });
+      }, '', success !== false);
       return result === true;
     },
     [accept, run],

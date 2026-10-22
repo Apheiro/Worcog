@@ -54,6 +54,25 @@ automatically and preserved on edits. Mantine Hooks handles saved UI
 preferences and debounced input. Native collection operations cover the current
 queries, so `lodash-es` is unnecessary.
 
+Task lists expose a shared **Order by** selector for creation date (oldest or
+newest first), deadline, priority and name. The device saves the selected criterion;
+creation date is the default so editing a task does not move it. Sorting preserves
+the parent/subtask hierarchy. The former optional manual `order` field remains
+readable for compatibility but is not used. Tasks offer Low, Normal and High priorities;
+legacy Urgent values are presented as High and normalized when edited.
+Deadline indicators use the configured initial/midpoint/final colors. Topics
+have an optional editable `startDate` in advanced fields, separate from immutable
+creation timestamps. Topic Files also supports general uploads linked directly
+through attachment `topicIds`; task-owned sources retain their existing flow.
+Each task's update timeline sits outside its card, before its subtasks, and
+collapses independently. Its toggle appears only when updates exist; More →
+Add update opens the entry form. Entries reuse
+`Activity` records with kind `progress` and a task relationship; registration
+timestamps are immutable, and the same records remain available in History.
+Standalone annotations have no creation or editing interface. Previously saved
+entries and their revisions remain read-only in Timeline and History. Updates
+are recorded from tasks; status changes continue to be recorded automatically.
+
 ## Optional document editor
 
 Settings → General → **Open documents in Worklog** controls how attachment clicks
@@ -226,8 +245,8 @@ Status and priority values are fixed; categories are free-form.
 Tasks and topics use a shared name-only responsible directory and allow multiple assignments. Board layouts, task dependencies,
 custom status definitions and automatic external integrations are not included.
 Topics can be archived and tasks canceled to retain history. All entity types
-can also be permanently deleted with confirmation. Plain-text annotations preserve
-previous text on correction; changes to linked sources or event metadata use
+can also be permanently deleted with confirmation. Legacy annotation text and
+previous corrections are preserved; changes to linked sources or event metadata use
 created/updated timestamps rather than a complete field-by-field audit log.
 
 `@unocss/postcss` 66 exports a CommonJS object with a default function, while

@@ -9,6 +9,7 @@ export type ResourceListItem = {
   title: string;
   icon: ReactNode;
   metadata: string;
+  status?: ReactNode;
   description?: string;
   date: string;
   tasks: ReactNode;
@@ -52,6 +53,7 @@ export function ResourceList({
               </Button>
               <span className="text-[11px] [color:var(--muted)] [overflow-wrap:anywhere]">
                 {item.metadata}
+                {item.status}
               </span>
               {item.description && (
                 <span className="line-clamp-2 text-xs [color:var(--muted)] [overflow-wrap:anywhere]">

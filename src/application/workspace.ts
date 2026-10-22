@@ -1,6 +1,7 @@
 import type { Activity, Attachment, Base, Source, Task, Topic, Workspace } from '../domain/model';
 import { applyWorkspaceChanges as changed } from './workspace-changes';
 import { calendarDate, isDateOnly, occurrenceDate, today } from '../domain/dates';
+import { taskPriority } from '../domain/options';
 type Input<T extends Base> = Partial<Omit<T, keyof Base>>;
 const stamp = (now: string) => ({ id: crypto.randomUUID(), createdAt: now, updatedAt: now });
 const clock = () => new Date().toISOString();
@@ -39,6 +40,7 @@ export function createTopic(
   now = clock(),
 ): Workspace {
   const topic: Topic = {
+    startDate: calendarDate(now),
     summary: '',
     category: '',
     status: 'in_progress',
@@ -85,6 +87,7 @@ export function updateTopic(
   );
 }
 function applyTaskWorkflow(task: Task, previous?: Task): Task {
+  task.priority = taskPriority(task.priority);
   if (task.status === 'pending') task.status = 'in_progress';
   if (task.status === 'blocked') {
     const reason = task.blockReason?.trim();
