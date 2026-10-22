@@ -84,7 +84,7 @@ export function WorkspaceFilters({
             onValueChange={(e) => setFilter({ category: e })}
             options={[
               { value: '', label: 'All categories' },
-              ...[...new Set(w.topics.map((t) => t.category))].map((c) => ({ value: c, label: c })),
+              ...[...new Set(w.topics.map((t) => t.category))].filter(Boolean).map((c) => ({ value: c, label: c })),
             ]}
           />
         </Field>
