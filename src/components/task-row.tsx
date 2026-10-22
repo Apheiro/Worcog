@@ -76,6 +76,7 @@ export function TaskRow({
   const [addingUpdate, setAddingUpdate] = useState(false);
   const [updatesExpanded, setUpdatesExpanded] = useState(false);
   const updatesRegionId = useId();
+  const blockFormId = useId();
   const updates = w.activities.filter((activity) => activity.kind === 'progress' && activity.taskIds.includes(task.id));
   const [reason, setReason] = useState('');
   const [savingBlock, setSavingBlock] = useState(false);
@@ -297,11 +298,21 @@ export function TaskRow({
         <Modal
           title="Block task"
           description={task.title}
+          footer={
+            <>
+              <Button type="button" disabled={busy || savingBlock} onClick={() => setBlocking(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" form={blockFormId} tone="primary" disabled={busy || savingBlock || !reason.trim()}>
+                Block task
+              </Button>
+            </>
+          }
           onClose={() => {
             if (!busy && !savingBlock) setBlocking(false);
           }}
         >
-          <form onSubmit={(event) => void block(event)}>
+          <form id={blockFormId} onSubmit={(event) => void block(event)}>
             <Field label="Reason" hint="A reason is required to block this task.">
               <Textarea
                 autoFocus
@@ -313,18 +324,6 @@ export function TaskRow({
                 onChange={(event) => setReason(event.target.value)}
               />
             </Field>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                disabled={busy || savingBlock}
-                onClick={() => setBlocking(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" tone="primary" disabled={busy || savingBlock || !reason.trim()}>
-                Block task
-              </Button>
-            </div>
           </form>
         </Modal>
       )}

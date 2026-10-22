@@ -114,7 +114,12 @@ export function FileDetail({
   onDelete: () => void;
 }) {
   return (
-    <Modal title={file.originalName} onClose={close}>
+    <Modal title={file.originalName} onClose={close} footer={
+      <>
+        <Button tone="danger" disabled={wb.busy} onClick={onDelete}>Delete file</Button>
+        <Button onClick={close}>Close</Button>
+      </>
+    }>
       <p className="text-xs [color:var(--muted)] mb-4">
         {(file.size / 1024).toFixed(1)} KB · {file.mime} · Added {formatTimestamp(file.addedAt)}
         <AttachmentStatus id={file.id} />
@@ -130,12 +135,6 @@ export function FileDetail({
           {wb.error}
         </p>
       )}
-      <div className="flex justify-end gap-2 mt-6">
-        <Button tone="danger" disabled={wb.busy} onClick={onDelete}>
-          Delete file
-        </Button>
-        <Button onClick={close}>Close</Button>
-      </div>
     </Modal>
   );
 }

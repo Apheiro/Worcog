@@ -77,6 +77,22 @@ export function initialSourcePlatform(source: Source): string {
   );
 }
 
+export interface SourcePlatform {
+  kind: SourceType;
+  name: string;
+}
+
+export function matchesSourcePlatform(source: Source, platform: SourcePlatform): boolean {
+  return sourceType(source.kind) === platform.kind &&
+    initialSourcePlatform(source).trim().toLocaleLowerCase() === platform.name.trim().toLocaleLowerCase();
+}
+
+export function clearSourcePlatforms(sources: Source[], removed: SourcePlatform[], now?: string): Source[] {
+  return sources.map((source) => removed.some((platform) => matchesSourcePlatform(source, platform))
+    ? { ...source, kind: sourceType(source.kind) ?? source.kind, platform: '', updatedAt: now ?? source.updatedAt }
+    : source);
+}
+
 export const messagingContexts = [
   { value: 'sender', label: 'Sender' },
   { value: 'participants', label: 'Participants' },

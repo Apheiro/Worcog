@@ -1,16 +1,17 @@
 'use client';
-import { useRef, useState, type FormEvent } from 'react';
+import { useId, useRef, useState, type FormEvent } from 'react';
 import { IconTrash } from '@tabler/icons-react';
 import { saveTaskWithResources, type TaskResourcesDraft } from '../application/task-resources';
 import type { Priority, Task } from '../domain/model';
-import { assignedNames, responsibleDirectory } from '../domain/responsibles';
+import { deleteResponsibles } from '../application/workspace';
 import { taskPriorities, taskPriority, selectOptions } from '../domain/options';
 import { errorMessage, native } from '../infrastructure/native';
+import { notifications } from '../infrastructure/notifications';
 import type { EntityEditorProps } from './editors';
 import { Button, DateInput, Field, Input, Modal, Select, Textarea } from './core';
 import { today } from '../domain/dates';
-import { ResponsiblePicker } from './responsible-picker';
-import { TaskResources } from './task-resources';
+import { ResponsiblePicker, useResponsibleDraft } from './responsible-picker';
+import { TaskResources, type TaskResourcesHandle } from './task-resources';
 
 export function TaskEditor({
   editor,
@@ -23,6 +24,8 @@ export function TaskEditor({
   onSave,
 }: EntityEditorProps) {
   const task = w.tasks.find((item) => item.id === editor.id);
+  const formId = useId();
+  const resourcesEditor = useRef<TaskResourcesHandle>(null);
   const parent = w.tasks.find((item) => item.id === editor.parentId);
   const topicId = task?.topicId ?? parent?.topicId ?? editor.topicId ?? '';
   const parentId = task?.parentId ?? parent?.id ?? null;
@@ -34,14 +37,12 @@ export function TaskEditor({
     sources: [],
     files: [],
   }));
-  const [responsibles, setResponsibles] = useState(task ? assignedNames(task) : []);
-  const [createdNames, setCreatedNames] = useState<string[]>([]);
+  const assignees = useResponsibleDraft(w, task);
   const [resourceBusy, setResourceBusy] = useState(false);
   const [working, setWorking] = useState(false);
   const [localError, setLocalError] = useState('');
   const locked = useRef(false);
   const disabled = busy || resourceBusy || working;
-  const directory = [...new Set([...responsibleDirectory(w), ...createdNames])];
   async function close() {
     if (disabled || locked.current) return;
     locked.current = true;
@@ -81,6 +82,10 @@ export function TaskEditor({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (disabled || locked.current) return;
+    if (resourcesEditor.current?.prepareSave() === false) {
+      notifications.warning('Add the pending resource to the task, or discard its draft, before saving.');
+      return;
+    }
     const data = new FormData(event.currentTarget);
     const get = (name: string) => String(data.get(name) ?? '').trim();
     const input = {
@@ -89,7 +94,7 @@ export function TaskEditor({
       parentId,
       status: task?.status ?? 'in_progress',
       priority: get('priority') as Priority,
-      responsibleNames: responsibles,
+      responsibleNames: assignees.selected,
       description: get('description'),
       startDate: get('startDate') || null,
       dueDate: get('dueDate') || null,
@@ -100,7 +105,7 @@ export function TaskEditor({
     setLocalError('');
     try {
       const saved = await onSave((current) =>
-        saveTaskWithResources(current, editor.id, input, resources, createdNames),
+        saveTaskWithResources(deleteResponsibles(current, assignees.removed), editor.id, input, resources, assignees.created),
       );
       if (saved) onClose();
     } catch (cause) {
@@ -115,12 +120,25 @@ export function TaskEditor({
       title={task ? 'Edit task' : parent ? 'New subtask' : 'New task'}
       onClose={() => void close()}
       wide
+      footer={
+        <>
+          {task && (
+            <Button type="button" tone="danger" className="mr-auto" disabled={disabled} onClick={() => void requestDelete()}>
+              <IconTrash size={15} /> Delete task
+            </Button>
+          )}
+          <Button type="button" disabled={disabled} onClick={() => void close()}>Cancel</Button>
+          <Button type="submit" form={formId} tone="primary" disabled={disabled || !topicId}>
+            {disabled ? 'Working…' : 'Save'}
+          </Button>
+        </>
+      }
     >
       <p className="text-xs [color:var(--muted)] mb-4">
         {w.topics.find((topic) => topic.id === topicId)?.title ?? 'Create this task from a topic.'}
         {parent && ` / ${parent.title}`}
       </p>
-      <form onSubmit={submit}>
+      <form id={formId} onSubmit={submit}>
         {(localError || error) && (
           <p role="alert" className="text-xs [color:var(--danger-ink)] mb-4">
             {localError || error}
@@ -142,12 +160,15 @@ export function TaskEditor({
           </Field>
           <ResponsiblePicker
             disabled={disabled}
-            names={directory}
-            selected={responsibles}
-            onChange={setResponsibles}
-            onCreate={(name) => setCreatedNames((names) => [...names, name])}
+            workspace={w}
+            names={assignees.names}
+            selected={assignees.selected}
+            onChange={assignees.onChange}
+            onCreate={assignees.onCreate}
+            onDelete={assignees.onDelete}
           />
           <TaskResources
+            ref={resourcesEditor}
             workspace={w}
             value={resources}
             onChange={setResources}
@@ -180,25 +201,6 @@ export function TaskEditor({
             </div>
           </details>
         </fieldset>
-        <div className="flex justify-end gap-2 mt-6 pt-4 border-0 border-t border-solid [border-color:var(--border)]">
-          {task && (
-            <Button
-              type="button"
-              tone="danger"
-              className="mr-auto"
-              disabled={disabled}
-              onClick={() => void requestDelete()}
-            >
-              <IconTrash size={15} /> Delete task
-            </Button>
-          )}
-          <Button type="button" disabled={disabled} onClick={() => void close()}>
-            Cancel
-          </Button>
-          <Button type="submit" tone="primary" disabled={disabled || !topicId}>
-            {disabled ? 'Working…' : 'Save'}
-          </Button>
-        </div>
       </form>
     </Modal>
   );

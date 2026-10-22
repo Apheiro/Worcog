@@ -1,16 +1,19 @@
 'use client';
-import { useEffect, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState, type DragEvent, type Ref } from 'react';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { IconFile, IconLink, IconUpload, IconX } from '@tabler/icons-react';
 import type { TaskResourcesDraft } from '../application/task-resources';
 import type { Workspace } from '../domain/model';
 import { sourceSchema } from '../domain/validation';
-import { emptySourceForm, isSourceType, type SourceFormValues } from '../domain/sources';
+import { clearSourcePlatforms, emptySourceForm, isSourceType, type SourceFormValues } from '../domain/sources';
 import { SourceFields } from './source-fields';
 import { desktopAvailable, errorMessage, native } from '../infrastructure/native';
 import { Button, Field, Input } from './core';
 
+export type TaskResourcesHandle = { prepareSave: () => boolean };
+
 export function TaskResources({
+  ref,
   workspace: w,
   value,
   onChange,
@@ -18,6 +21,7 @@ export function TaskResources({
   onBusyChange,
   openFile,
 }: {
+  ref?: Ref<TaskResourcesHandle>;
   workspace: Workspace;
   value: TaskResourcesDraft;
   onChange: (value: TaskResourcesDraft) => void;
@@ -37,14 +41,27 @@ export function TaskResources({
     ...emptySourceForm(),
     title: '',
   }));
-  const sources = [...w.sources, ...value.sources].filter((s) => value.sourceIds.includes(s.id));
+  const initialSource = useRef(source);
+  useImperativeHandle(ref, () => ({
+    prepareSave() {
+      const changed = (Object.keys(source) as (keyof typeof source)[])
+        .some((key) => source[key] !== initialSource.current[key]);
+      if (!creating && !changed) return true;
+      setCreating(true);
+      setError('This resource has not been added yet. Add it to the task or discard the draft before saving.');
+      dropZone.current?.scrollIntoView({ block: 'nearest' });
+      return false;
+    },
+  }));
+  const savedSources = clearSourcePlatforms(w.sources, value.removedSourcePlatforms ?? []);
+  const sources = [...savedSources, ...value.sources].filter((s) => value.sourceIds.includes(s.id));
   const files = [...w.attachments, ...value.files].filter((f) => value.fileIds.includes(f.id));
   const term = query.trim().toLocaleLowerCase();
   // Existing resources appear only after an explicit search, never as an unfiltered catalogue.
   const matches =
     term.length >= 2
       ? [
-          ...w.sources
+          ...savedSources
             .filter(
               (s) =>
                 !value.sourceIds.includes(s.id) &&
@@ -146,7 +163,7 @@ export function TaskResources({
       setError(parsed.error.issues[0]?.message ?? 'Check the source fields.');
       return;
     }
-    const duplicate = [...w.sources, ...value.sources].find(
+    const duplicate = [...savedSources, ...value.sources].find(
       (s) =>
         (parsed.data.url && s.url === parsed.data.url) ||
         (parsed.data.identifier &&
@@ -367,17 +384,26 @@ export function TaskResources({
             <SourceFields
               value={source}
               onChange={(patch) => setSource((current) => ({ ...current, ...patch }))}
-              sources={[...w.sources, ...value.sources]}
+              sources={[...savedSources, ...value.sources]}
+              onDeletePlatform={(platform) => onChange({
+                ...value,
+                removedSourcePlatforms: [...(value.removedSourcePlatforms ?? []), platform],
+                sources: clearSourcePlatforms(value.sources, [platform], new Date().toISOString()),
+              })}
               disabled={disabled}
             />
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => addSource()}
-              disabled={!source.title.trim() || !source.kind}
-            >
-              Add source to task
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" onClick={() => addSource()} disabled={!source.title.trim() || !source.kind}>
+                Add source to task
+              </Button>
+              <Button type="button" size="sm" tone="ghost" onClick={() => {
+                setSource({ ...emptySourceForm(), title: '' });
+                setCreating(false);
+                setError('');
+              }}>
+                Discard draft
+              </Button>
+            </div>
           </div>
         )}
       </fieldset>

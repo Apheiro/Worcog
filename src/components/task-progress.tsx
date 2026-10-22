@@ -38,6 +38,7 @@ export function TaskUpdateForm({ task, onClose }: { task: Task; onClose: () => v
   const [saving, setSaving] = useState(false);
   const locked = useRef(false);
   const inputId = useId();
+  const formId = useId();
   async function record(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!text.trim() || wb.busy || locked.current) return;
@@ -58,10 +59,17 @@ export function TaskUpdateForm({ task, onClose }: { task: Task; onClose: () => v
     }
   }
   return (
-    <Modal title="Add update" description={task.title} onClose={() => {
+    <Modal title="Add update" description={task.title} footer={
+      <>
+        <Button type="button" onClick={onClose} disabled={wb.busy || saving}>Cancel</Button>
+        <Button type="submit" form={formId} tone="primary" disabled={wb.busy || saving || !text.trim()}>
+          {saving ? 'Recording…' : 'Add update'}
+        </Button>
+      </>
+    } onClose={() => {
       if (!wb.busy && !locked.current) onClose();
     }}>
-      <form onSubmit={(event) => void record(event)}>
+      <form id={formId} onSubmit={(event) => void record(event)}>
         <Field label="Description">
           <Textarea
             id={inputId} value={text} onChange={(event) => setText(event.target.value)}
@@ -70,12 +78,6 @@ export function TaskUpdateForm({ task, onClose }: { task: Task; onClose: () => v
             disabled={wb.busy || saving}
           />
         </Field>
-        <div className="flex justify-end gap-2">
-          <Button type="button" onClick={onClose} disabled={wb.busy || saving}>Cancel</Button>
-          <Button type="submit" tone="primary" disabled={wb.busy || saving || !text.trim()}>
-            {saving ? 'Recording…' : 'Add update'}
-          </Button>
-        </div>
       </form>
     </Modal>
   );

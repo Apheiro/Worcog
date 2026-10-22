@@ -1,6 +1,7 @@
 import type { Attachment, Source, Task, Workspace } from '../domain/model';
 import { responsibleDirectory } from '../domain/responsibles';
-import { createTask, updateTask } from './workspace';
+import type { SourcePlatform } from '../domain/sources';
+import { createTask, deleteSourcePlatforms, updateTask } from './workspace';
 import { applyWorkspaceChanges } from './workspace-changes';
 
 export interface TaskResourcesDraft {
@@ -8,6 +9,7 @@ export interface TaskResourcesDraft {
   fileIds: string[];
   sources: Source[];
   files: Attachment[];
+  removedSourcePlatforms?: SourcePlatform[];
 }
 
 /** Commit a task and its resource relationships together in the existing workspace transaction. */
@@ -20,6 +22,7 @@ export function saveTaskWithResources(
 ): Workspace {
   if (!w.topics.some((topic) => topic.id === input.topicId))
     throw new Error('Create a task from its topic.');
+  w = deleteSourcePlatforms(w, draft.removedSourcePlatforms ?? []);
   const sourceIds = new Map<string, string>();
   const sources = [...w.sources];
   for (const source of draft.sources.filter((s) => draft.sourceIds.includes(s.id))) {

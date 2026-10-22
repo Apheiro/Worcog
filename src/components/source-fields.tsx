@@ -8,30 +8,44 @@ import {
   sourceFields,
   sourceType,
   initialSourcePlatform,
+  matchesSourcePlatform,
   type SourceFormValues,
+  type SourcePlatform,
 } from '../domain/sources';
 import { selectOptions, sourceKinds } from '../domain/options';
-import { DateInput, Field, Input, MultiSelect, Select, Textarea } from './core';
+import { Confirm, DateInput, Field, Input, MultiSelect, Select, Textarea } from './core';
 
 /** Shared fields for task-owned source creation and source metadata editing. */
 export function SourceFields({
   value,
   onChange,
   sources,
+  onDeletePlatform,
   disabled,
 }: {
   value: SourceFormValues;
   onChange: (patch: Partial<SourceFormValues>) => void;
   sources: Source[];
+  onDeletePlatform: (platform: SourcePlatform) => void;
   disabled?: boolean;
 }) {
-  const [createdPlatforms, setCreatedPlatforms] = useState<string[]>([]);
+  const [createdPlatforms, setCreatedPlatforms] = useState<SourcePlatform[]>([]);
+  const [pending, setPending] = useState<SourcePlatform | null>(null);
+  const usage = pending ? sources.filter((source) => matchesSourcePlatform(source, pending)).length : 0;
+  function remove(platform: SourcePlatform) {
+    onDeletePlatform(platform);
+    setCreatedPlatforms((items) => items.filter((item) => item.kind !== platform.kind ||
+      item.name.toLocaleLowerCase() !== platform.name.toLocaleLowerCase()));
+    if (value.kind === platform.kind && value.platform.toLocaleLowerCase() === platform.name.toLocaleLowerCase())
+      onChange({ platform: '' });
+    setPending(null);
+  }
   const fields = value.kind ? sourceFields[value.kind] : undefined;
   const names = [
     ...sources
       .filter((source) => sourceType(source.kind) === value.kind)
       .map(initialSourcePlatform),
-    ...createdPlatforms,
+    ...createdPlatforms.filter((platform) => platform.kind === value.kind).map((platform) => platform.name),
     value.platform,
   ].filter(Boolean);
   const platforms = [
@@ -59,7 +73,16 @@ export function SourceFields({
             options={platforms}
             value={value.platform ? [value.platform] : []}
             onValueChange={(values) => onChange({ platform: values[0] ?? '' })}
-            onCreate={(name) => setCreatedPlatforms((names) => [...names, name])}
+            onCreate={(name) => {
+              const kind = value.kind;
+              if (isSourceType(kind)) setCreatedPlatforms((names) => [...names, { kind, name }]);
+            }}
+            onDelete={(name) => {
+              if (!isSourceType(value.kind)) return;
+              const platform = { kind: value.kind, name };
+              if (sources.some((source) => matchesSourcePlatform(source, platform))) setPending(platform);
+              else remove(platform);
+            }}
             multiple={false}
             disabled={disabled}
           />
@@ -132,6 +155,16 @@ export function SourceFields({
             />
           </Field>
         </>
+      )}
+      {pending && (
+        <Confirm
+          title={`Delete platform “${pending.name}”?`}
+          description={`This will clear the platform from ${usage} source(s) of type ${pending.kind}. Sources and their task links will be preserved. Changes apply when you save the form.`}
+          confirmLabel="Delete platform"
+          busy={!!disabled}
+          onCancel={() => setPending(null)}
+          onConfirm={() => remove(pending)}
+        />
       )}
     </fieldset>
   );

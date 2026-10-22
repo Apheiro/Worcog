@@ -1,6 +1,5 @@
 'use client';
 import { Card, CardHeader, CardContent } from './core/card';
-import * as ScrollArea from '@radix-ui/react-scroll-area';
 import { IconDownload } from '@tabler/icons-react';
 import Markdown from 'markdown-to-jsx';
 import { useState, type ReactNode } from 'react';
@@ -141,28 +140,29 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
   if (!u.open || !u.available) return null;
   return (
     <Modal
-      className="update-modal [&.update-modal]:flex [&.update-modal]:flex-col [&.update-modal]:overflow-hidden [&.update-modal]:[top:20px] [&.update-modal]:[transform:translateX(-50%)] [&.update-modal]:[height:min(780px,_calc(100dvh_-_140px))] [&.update-modal]:[max-height:calc(100dvh_-_140px)] [&.update-modal]:[&_>_.modal-header]:shrink-0 [&.update-modal]:[&_>_.muted]:shrink-0 [&.update-modal]:[&_.form-footer]:shrink-0"
+      className="update-modal [&.update-modal]:[top:20px] [&.update-modal]:[transform:translateX(-50%)] [&.update-modal]:[height:min(780px,_calc(100dvh_-_140px))] [&.update-modal]:[max-height:calc(100dvh_-_140px)]"
       title={`Worklog ${u.available.version} is available`}
       description={`Installed: ${u.available.currentVersion} · Download: ${u.available.filename} · ${(u.available.size / 1024 / 1024).toFixed(1)} MiB`}
       onClose={u.close}
       wide
+      footer={
+        <>
+          <Button disabled={!!u.busy} onClick={u.close}>Close</Button>
+          {u.receipt ? (
+            <Button disabled={!!u.busy} onClick={() => { void u.openFolder(); }}>
+              Open download folder
+            </Button>
+          ) : (
+            <Button tone="primary" disabled={!!u.busy || !u.status?.platformSupported} onClick={() => { void u.download(); }}>
+              <IconDownload size={16} />
+              {u.busy === 'download' ? 'Downloading and verifying…' : u.error ? 'Retry download' : 'Download update'}
+            </Button>
+          )}
+        </>
+      }
     >
-      <div className="update-dialog-body flex flex-col flex-1 [min-height:0] overflow-hidden [&_>_p]:shrink-0">
-        <ScrollArea.Root className="release-scroll flex-1 [min-height:80px] overflow-hidden">
-          <ScrollArea.Viewport
-            className="release-viewport h-full w-full [padding-right:16px] [&:focus-visible]:[outline:2px_solid_var(--focus)] [&:focus-visible]:[outline-offset:-2px]"
-            tabIndex={0}
-            aria-label="Release notes"
-          >
-            <ReleaseNotes notes={u.available.notes} />
-          </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar
-            orientation="vertical"
-            className="release-scrollbar flex [width:8px] [background:var(--surface-soft)] [padding:2px]"
-          >
-            <ScrollArea.Thumb className="release-thumb flex-1 [background:var(--border-strong)] [border-radius:4px]" />
-          </ScrollArea.Scrollbar>
-        </ScrollArea.Root>
+      <div className="update-dialog-body">
+        <ReleaseNotes notes={u.available.notes} />
         {u.error && (
           <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] my-3">
             {u.error}
@@ -170,7 +170,7 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
         )}
         {u.receipt && (
           <section
-            className="update-receipt [&_ol]:[padding-left:22px] overflow-auto [flex-shrink:1] [min-height:80px] [font-size:12px] [&_dd]:[overflow-wrap:anywhere] [&:focus-visible]:[outline:2px_solid_var(--focus)] [&:focus-visible]:[outline-offset:-2px]"
+            className="update-receipt [&_ol]:[padding-left:22px] [font-size:12px] [&_dd]:[overflow-wrap:anywhere] [&:focus-visible]:[outline:2px_solid_var(--focus)] [&:focus-visible]:[outline-offset:-2px]"
             tabIndex={0}
             aria-label="Manual replacement instructions"
           >
@@ -199,36 +199,6 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
           SHA-256 checks integrity against GitHub metadata. It does not replace an independent
           publisher signature. Worklog will not close, run or replace executables automatically.
         </p>
-        <div className="form-footer flex [justify-content:flex-end] [gap:9px] [margin-top:24px] [padding-top:18px] [border-top:1px_solid_var(--border)]">
-          <Button disabled={!!u.busy} onClick={u.close}>
-            Close
-          </Button>
-          {u.receipt ? (
-            <Button
-              disabled={!!u.busy}
-              onClick={() => {
-                void u.openFolder();
-              }}
-            >
-              Open download folder
-            </Button>
-          ) : (
-            <Button
-              tone="primary"
-              disabled={!!u.busy || !u.status?.platformSupported}
-              onClick={() => {
-                void u.download();
-              }}
-            >
-              <IconDownload size={16} />
-              {u.busy === 'download'
-                ? 'Downloading and verifying…'
-                : u.error
-                  ? 'Retry download'
-                  : 'Download update'}
-            </Button>
-          )}
-        </div>
       </div>
     </Modal>
   );

@@ -2,6 +2,8 @@ import type { Activity, Attachment, Base, Source, Task, Topic, Workspace } from 
 import { applyWorkspaceChanges as changed } from './workspace-changes';
 import { calendarDate, isDateOnly, occurrenceDate, today } from '../domain/dates';
 import { taskPriority } from '../domain/options';
+import { assignedNames, responsibleDirectory, responsibleKey, withoutResponsibles } from '../domain/responsibles';
+import { clearSourcePlatforms, type SourcePlatform } from '../domain/sources';
 type Input<T extends Base> = Partial<Omit<T, keyof Base>>;
 const stamp = (now: string) => ({ id: crypto.randomUUID(), createdAt: now, updatedAt: now });
 const clock = () => new Date().toISOString();
@@ -86,6 +88,36 @@ export function updateTopic(
     now,
   );
 }
+export function deleteResponsibles(workspace: Workspace, names: string[], now = clock()): Workspace {
+  if (!names.length) return workspace;
+  const removed = new Set(names.map(responsibleKey));
+  function unassign<T extends Task | Topic>(item: T): T {
+    const previous = assignedNames(item);
+    const responsibleNames = withoutResponsibles(previous, names);
+    const owner = removed.has(responsibleKey(item.owner)) ? '' : item.owner;
+    if (responsibleNames.length === previous.length && owner === item.owner) return item;
+    return { ...item, owner, responsibleNames, updatedAt: now };
+  }
+  return changed(workspace, {
+    responsibleNames: withoutResponsibles(responsibleDirectory(workspace), names),
+    topics: workspace.topics.map((topic) => unassign(topic)),
+    tasks: workspace.tasks.map((task) => unassign(task)),
+  }, now);
+}
+
+export function deleteCategories(workspace: Workspace, names: string[], now = clock()): Workspace {
+  const removed = new Set(names);
+  if (!removed.size) return workspace;
+  return changed(workspace, {
+    categoryColors: Object.fromEntries(
+      Object.entries(workspace.categoryColors ?? {}).filter(([name]) => !removed.has(name)),
+    ),
+    topics: workspace.topics.map((topic) => removed.has(topic.category)
+      ? { ...topic, category: '', updatedAt: now }
+      : topic),
+  }, now);
+}
+
 function applyTaskWorkflow(task: Task, previous?: Task): Task {
   task.priority = taskPriority(task.priority);
   if (task.status === 'pending') task.status = 'in_progress';
@@ -161,6 +193,11 @@ export function updateTask(
     now,
   );
 }
+export function deleteSourcePlatforms(workspace: Workspace, platforms: SourcePlatform[], now = clock()): Workspace {
+  if (!platforms.length) return workspace;
+  return changed(workspace, { sources: clearSourcePlatforms(workspace.sources, platforms, now) }, now);
+}
+
 export function createSource(
   workspace: Workspace,
   input: Input<Source> & Pick<Source, 'title'>,

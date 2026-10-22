@@ -2,7 +2,7 @@
 
 import * as Popover from '@radix-ui/react-popover';
 import { Command } from 'cmdk';
-import { IconCheck, IconChevronDown, IconPlus, IconSearch } from '@tabler/icons-react';
+import { IconCheck, IconChevronDown, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import { useId, useRef, useState } from 'react';
 import { Button } from './button';
 
@@ -12,6 +12,7 @@ export function MultiSelect({
   value,
   onValueChange,
   onCreate,
+  onDelete,
   disabled,
   multiple = true,
 }: {
@@ -20,6 +21,7 @@ export function MultiSelect({
   value: string[];
   onValueChange: (value: string[]) => void;
   onCreate: (name: string) => void;
+  onDelete?: (name: string) => void;
   disabled?: boolean;
   multiple?: boolean;
 }) {
@@ -139,21 +141,43 @@ export function MultiSelect({
                   </p>
                 )}
                 {matches.map((option) => (
-                  <Command.Item
-                    key={option}
-                    value={`option:${option}`}
-                    aria-checked={selected.has(option)}
-                    onSelect={() => toggle(option)}
-                    className="flex items-center gap-2 rounded px-2 py-2 text-xs cursor-pointer outline-none [overflow-wrap:anywhere] [&[data-selected=true]]:[background:var(--selected)]"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`flex items-center justify-center shrink-0 w-4 h-4 rounded [border:1px_solid_var(--border-strong)] ${selected.has(option) ? '[background:var(--checkbox-fill)] [border-color:var(--checkbox-fill)] [color:var(--checkbox-mark)]' : ''}`}
+                  <div key={option} className="flex items-center gap-1">
+                    <Command.Item
+                      value={`option:${option}`}
+                      aria-checked={selected.has(option)}
+                      onSelect={() => toggle(option)}
+                      className="min-w-0 flex-1 flex items-center gap-2 rounded px-2 py-2 text-xs cursor-pointer outline-none [overflow-wrap:anywhere] [&[data-selected=true]]:[background:var(--selected)]"
                     >
-                      {selected.has(option) && <IconCheck size={12} stroke={2.5} />}
-                    </span>
-                    {option}
-                  </Command.Item>
+                      <span
+                        aria-hidden="true"
+                        className={`flex items-center justify-center shrink-0 w-4 h-4 rounded [border:1px_solid_var(--border-strong)] ${selected.has(option) ? '[background:var(--checkbox-fill)] [border-color:var(--checkbox-fill)] [color:var(--checkbox-mark)]' : ''}`}
+                      >
+                        {selected.has(option) && <IconCheck size={12} stroke={2.5} />}
+                      </span>
+                      {option}
+                    </Command.Item>
+                    {onDelete && (
+                      <Button
+                        type="button"
+                        tone="ghost"
+                        size="icon"
+                        aria-label={`Delete ${option}`}
+                        title={`Delete ${option}`}
+                        disabled={disabled}
+                        className="[color:var(--muted)] hover:[color:var(--danger-ink)]"
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
+                        }}
+                        onClick={() => {
+                          setOpen(false);
+                          setQuery('');
+                          onDelete(option);
+                        }}
+                      >
+                        <IconTrash size={14} aria-hidden="true" />
+                      </Button>
+                    )}
+                  </div>
                 ))}
                 {canCreate && (
                   <Command.Item asChild value={`create:${name}`} onSelect={create}>
