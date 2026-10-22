@@ -6,7 +6,7 @@ import { native } from '../../infrastructure/native';
 import { notifications } from '../../infrastructure/notifications';
 import { TopicInactivitySettingsForm } from '../../components/topic-inactivity-settings';
 import { ApplicationUpdates } from '../../components/application-updates';
-import { Button, Checkbox, Input } from '../../components/core';
+import { Button, Switch, Input } from '../../components/core';
 import { useWorklog } from '../../providers/worklog';
 import { WorkspaceSection } from '../../components/workspace-section';
 import { ThemeControl } from '../../components/theme-control';
@@ -59,7 +59,7 @@ export default function Page() {
                   </p>
                   <p className="text-xs [color:var(--muted)]">Add a subtle grain across the app.</p>
                 </div>
-                <Checkbox
+                <Switch
                   aria-labelledby="texture-preference-label"
                   checked={textureEnabled}
                   onCheckedChange={(checked) => setTextureEnabled(checked === true)}
@@ -102,7 +102,7 @@ export default function Page() {
                   Turn this off to open files with your default application. Open documents remain available.
                 </p>
               </div>
-              <Checkbox
+              <Switch
                 aria-labelledby="document-editor-label"
                 aria-describedby="document-editor-description"
                 checked={documentEditorEnabled}

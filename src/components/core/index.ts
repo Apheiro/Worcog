@@ -1,6 +1,7 @@
 export * from './button';
 export * from './card';
 export * from './checkbox';
+export * from './switch';
 export * from './select';
 export * from './scroll-area';
 export * from './input';
