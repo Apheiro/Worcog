@@ -72,6 +72,9 @@ export function TopicDetail({
               {assignedNames(topic).join(', ') || 'Unassigned'} · Updated{' '}
               {formatDate(topic.updatedAt)}
             </span>
+            {topic.requesterName && (
+              <span className="text-sm [color:var(--muted)]">Requested by {topic.requesterName}</span>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">

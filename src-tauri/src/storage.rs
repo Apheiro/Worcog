@@ -21,7 +21,7 @@ impl Store {
         let version: u32 = db
             .query_row("PRAGMA user_version", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        if version > 4 {
+        if version > 5 {
             return Err("Database was created by a newer application".into());
         }
         if version == 0 {
@@ -43,6 +43,9 @@ impl Store {
         }
         if version < 4 {
             db.execute_batch("BEGIN IMMEDIATE; ALTER TABLE metadata ADD COLUMN category_colors TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(category_colors)); PRAGMA user_version=4; COMMIT;").map_err(|e| e.to_string())?;
+        }
+        if version < 5 {
+            db.execute_batch("BEGIN IMMEDIATE; ALTER TABLE metadata ADD COLUMN contacts TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(contacts)); PRAGMA user_version=5; COMMIT;").map_err(|e| e.to_string())?;
         }
         Ok(Self { db, root })
     }
@@ -66,7 +69,11 @@ impl Store {
             })
             .map_err(|e| e.to_string())?;
         let colors: Value = serde_json::from_str(&colors).map_err(|e| e.to_string())?;
-        let mut w = json!({"formatVersion":1,"revision":revision,"responsibleNames":names,"categoryColors":colors});
+        let contacts: String = snapshot
+            .query_row("SELECT contacts FROM metadata WHERE id=1", [], |r| r.get(0))
+            .map_err(|e| e.to_string())?;
+        let contacts: Value = serde_json::from_str(&contacts).map_err(|e| e.to_string())?;
+        let mut w = json!({"formatVersion":1,"revision":revision,"responsibleNames":names,"categoryColors":colors,"contacts":contacts});
         for kind in COLLECTIONS {
             let mut stmt = snapshot
                 .prepare(&format!("SELECT payload FROM {kind} ORDER BY id"))
@@ -190,7 +197,7 @@ impl Store {
             }
         }
         tx.execute(
-            "UPDATE metadata SET revision=?1,responsible_names=?2,category_colors=?3 WHERE id=1",
+            "UPDATE metadata SET revision=?1,responsible_names=?2,category_colors=?3,contacts=?4 WHERE id=1",
             params![
                 revision + 1,
                 serde_json::to_string(
@@ -204,6 +211,8 @@ impl Store {
                         .cloned()
                         .unwrap_or_else(|| json!({}))
                 )
+                .map_err(|e| e.to_string())?,
+                serde_json::to_string(&w.get("contacts").cloned().unwrap_or_else(|| json!([])))
                 .map_err(|e| e.to_string())?
             ],
         )

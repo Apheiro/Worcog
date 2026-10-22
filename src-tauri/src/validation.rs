@@ -8,7 +8,8 @@ pub fn string<'a>(v: &'a Value, key: &str) -> Result<&'a str> {
         .filter(|s| {
             s.len()
                 <= match key {
-                    "title" | "subject" | "owner" | "platform" | "originalName" => 500,
+                    "title" | "subject" | "owner" | "platform" | "originalName"
+                    | "name" | "email" | "jobTitle" | "area" | "requesterName" => 500,
                     "category" | "mime" | "id" | "topicId" | "parentId" | "recurrenceRootId" => 200,
                     "identifier" => 1000,
                     "url" => 4096,
@@ -60,12 +61,34 @@ pub fn validate(w: &Value) -> Result<()> {
     }
     let expected = 7
         + usize::from(w.get("responsibleNames").is_some())
+        + usize::from(w.get("contacts").is_some())
         + usize::from(w.get("categoryColors").is_some());
     if w.as_object().map(|v| v.len()) != Some(expected) {
         return Err("Unexpected workspace fields".into());
     }
     if let Some(names) = w.get("responsibleNames") {
         validate_names(names)?;
+    }
+    if w.get("contacts").is_some() {
+        let contacts = list(w, "contacts")?;
+        if contacts.len() > 10_000 {
+            return Err("Too many contacts".into());
+        }
+        let mut names = HashSet::new();
+        for contact in contacts {
+            let fields = ["name", "email", "jobTitle", "area"];
+            let object = contact.as_object().ok_or("Invalid contact")?;
+            if object.len() != fields.len() || object.keys().any(|key| !fields.contains(&key.as_str())) {
+                return Err("Unexpected or missing contact fields".into());
+            }
+            for field in fields {
+                string(contact, field)?;
+            }
+            let name = string(contact, "name")?.trim();
+            if name.is_empty() || !names.insert(name.to_lowercase()) {
+                return Err("Invalid or duplicate contact name".into());
+            }
+        }
     }
     if let Some(colors) = w.get("categoryColors") {
         let colors = colors.as_object().ok_or("Invalid category colors")?;
@@ -98,6 +121,10 @@ pub fn validate(w: &Value) -> Result<()> {
                 "attachments" => "id originalName managedName mime size addedAt topicIds taskIds activityIds sourceIds", _ => ""
             };
             let mut fields: HashSet<_> = allowed.split(' ').collect();
+            if kind == "topics" && e.get("requesterName").is_some() {
+                fields.insert("requesterName");
+                string(e, "requesterName")?;
+            }
             if kind == "topics" && e.get("startDate").is_some() {
                 fields.insert("startDate");
                 optional_date(e, "startDate", false)?;

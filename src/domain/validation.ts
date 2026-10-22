@@ -21,8 +21,15 @@ const tags = z.array(z.string().trim().min(1).max(100)).max(100);
 export const statusSchema = z.enum(['pending', 'in_progress', 'blocked', 'completed', 'canceled']);
 const priority = z.enum(['low', 'normal', 'high', 'urgent']);
 const base = { id, createdAt: timestamp, updatedAt: timestamp };
+export const contactSchema = z.object({
+  name: z.string().trim().min(1, 'A name is required.').max(500),
+  email: z.string().trim().max(500),
+  jobTitle: z.string().trim().max(500),
+  area: z.string().trim().max(500),
+}).strict();
 export const topicSchema = z
   .object({
+    requesterName: z.string().trim().max(500).optional(),
     startDate: date.nullable().optional(),
     ...base,
     title,
@@ -155,6 +162,10 @@ export const workspaceSchema: z.ZodType<Workspace> = z
     categoryColors: z
       .record(z.string().trim().min(1).max(200), z.string().regex(/^#[0-9a-fA-F]{6}$/))
       .optional(),
+    contacts: z.array(contactSchema).max(10000).refine(
+      (contacts) => new Set(contacts.map((contact) => contact.name.toLocaleLowerCase())).size === contacts.length,
+      'Duplicate contact name.',
+    ).optional(),
     topics: z.array(topicSchema),
     tasks: z.array(taskSchema),
     activities: z.array(activitySchema),

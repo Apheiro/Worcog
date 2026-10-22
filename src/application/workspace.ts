@@ -99,8 +99,14 @@ export function deleteResponsibles(workspace: Workspace, names: string[], now = 
     return { ...item, owner, responsibleNames, updatedAt: now };
   }
   return changed(workspace, {
+    contacts: workspace.contacts?.filter((contact) => !removed.has(responsibleKey(contact.name))),
     responsibleNames: withoutResponsibles(responsibleDirectory(workspace), names),
-    topics: workspace.topics.map((topic) => unassign(topic)),
+    topics: workspace.topics.map((topic) => {
+      const next = unassign(topic);
+      return removed.has(responsibleKey(topic.requesterName ?? ''))
+        ? { ...next, requesterName: '', updatedAt: now }
+        : next;
+    }),
     tasks: workspace.tasks.map((task) => unassign(task)),
   }, now);
 }

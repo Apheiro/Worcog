@@ -114,6 +114,7 @@ function RecordEditor({
         };
         const input = {
           ...common,
+          requesterName: assignees.requester,
           summary: get('summary'),
           category: get('category'),
           startDate: nullable('startDate'),
@@ -208,6 +209,17 @@ function RecordEditor({
                   names={assignees.names}
                   selected={assignees.selected}
                   onChange={assignees.onChange}
+                  onCreate={assignees.onCreate}
+                  onDelete={assignees.onDelete}
+                  disabled={busy}
+                />
+                <ResponsiblePicker
+                  label="Requester"
+                  multiple={false}
+                  workspace={w}
+                  names={assignees.names}
+                  selected={assignees.requester ? [assignees.requester] : []}
+                  onChange={(names) => assignees.onRequesterChange(names[0] ?? '')}
                   onCreate={assignees.onCreate}
                   onDelete={assignees.onDelete}
                   disabled={busy}

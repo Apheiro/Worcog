@@ -49,6 +49,14 @@ Entity relationships use stable IDs; attachment metadata maps each document to
 its managed filename. It is a documented JSON format in a standard ZIP container,
 independent of a particular SQLite file layout.
 
+Contacts share one directory for task/topic assignees and topic requesters. Names
+are unique without regard to case; email, job title and area are optional. Existing
+name-only assignees appear automatically in Contacts. Renaming a contact updates
+its assignments and requester references; deleting one removes those references,
+without deleting tasks or topics. Migration 5 stores contact details in SQLite
+metadata. Backups and exports include the `contacts` directory and each topic's
+optional `requesterName`; older archives without these fields remain supported.
+
 The exporter reads a consistent logical snapshot of SQLite while holding the
 same native lock used by writes, and packages immutable managed document copies.
 It does not copy the live SQLite file or ignore its WAL. Missing or changed

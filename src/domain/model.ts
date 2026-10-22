@@ -20,6 +20,7 @@ export interface Base {
   updatedAt: string;
 }
 export interface Topic extends Base {
+  requesterName?: string;
   startDate?: string | null;
   title: string;
   summary: string;
@@ -99,12 +100,19 @@ export interface Workspace {
   formatVersion: 1;
   revision: number;
   responsibleNames?: string[];
+  contacts?: Contact[];
   categoryColors?: Record<string, string>;
   topics: Topic[];
   tasks: Task[];
   activities: Activity[];
   sources: Source[];
   attachments: Attachment[];
+}
+export interface Contact {
+  name: string;
+  email: string;
+  jobTitle: string;
+  area: string;
 }
 export interface StorageInfo {
   data: string;
@@ -116,6 +124,7 @@ export const emptyWorkspace = (): Workspace => ({
   formatVersion: 1,
   revision: 0,
   responsibleNames: [],
+  contacts: [],
   categoryColors: {},
   topics: [],
   tasks: [],

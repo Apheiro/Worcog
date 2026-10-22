@@ -8,6 +8,7 @@ import {
   IconLayoutDashboard,
   IconHistory,
   IconSettings,
+  IconUsers,
 } from '@tabler/icons-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useState, type ReactNode } from 'react';
@@ -32,7 +33,7 @@ import { documentFormat } from '../infrastructure/document-editor';
 import { useAttachmentAccess } from '../infrastructure/use-attachment-access';
 import { errorMessage } from '../infrastructure/native';
 import type { Editor } from '../components/editors';
-type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'search' | 'archive' | 'settings';
+type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'contacts' | 'search' | 'archive' | 'settings';
 type Confirmation = {
   title: string;
   description: string;
@@ -45,6 +46,7 @@ export const navigation = [
   { id: 'topics', label: 'Topics', icon: IconFolders },
   { id: 'tasks', label: 'Tasks', icon: IconChecklist },
   { id: 'resources', label: 'Resources', icon: IconFiles },
+  { id: 'contacts', label: 'Contacts', icon: IconUsers },
   { id: 'search', label: 'History', icon: IconHistory },
   { id: 'archive', label: 'Archive', icon: IconArchive },
   { id: 'settings', label: 'Settings', icon: IconSettings },

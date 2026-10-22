@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Button } from './core';
 import { useWorklog } from '../providers/worklog';
 import { WorkspaceFilters } from './workspace-filters';
-export function WorkspaceSection({ children }: { children: ReactNode }) {
+export function WorkspaceSection({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
   const { w, page, setFilters, filter, setFilter, enabled, heading, addForPage, newItemName } =
     useWorklog();
   return (
@@ -24,16 +24,18 @@ export function WorkspaceSection({ children }: { children: ReactNode }) {
                   ? 'Sources, managed files and the tasks they belong to.'
                   : page === 'archive'
                     ? 'Preserved topics and their complete history.'
-                    : page === 'search'
-                      ? 'Browse your workspace history, newest first. Search or filter any movement.'
-                      : 'Appearance, topic activity, storage and application updates.'}
+                    : page === 'contacts'
+                      ? 'Manage assignees, requesters and their contact details.'
+                      : page === 'search'
+                        ? 'Browse your workspace history, newest first. Search or filter any movement.'
+                        : 'Appearance, topic activity, storage and application updates.'}
           </p>
         </div>
-        {page === 'topics' && (
+        {actions ?? (page === 'topics' && (
           <Button tone="primary" onClick={addForPage} disabled={!enabled}>
             <IconPlus size={17} /> New {newItemName}
           </Button>
-        )}
+        ))}
       </div>
       {['topics', 'tasks', 'resources', 'search', 'archive'].includes(page) && (
         <WorkspaceFilters

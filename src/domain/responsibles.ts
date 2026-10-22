@@ -15,8 +15,10 @@ export function responsibleDirectory(w: Workspace): string[] {
     ...(w.responsibleNames ?? []),
     ...w.tasks.flatMap(assignedNames),
     ...w.topics.flatMap(assignedNames),
+    ...w.topics.map((topic) => topic.requesterName ?? '').filter(Boolean),
+    ...(w.contacts ?? []).map((contact) => contact.name),
   ];
-  return [...new Map(names.map((name) => [name.toLocaleLowerCase(), name])).values()].sort((a, b) =>
+  return [...new Map(names.map((name) => [responsibleKey(name), name])).values()].sort((a, b) =>
     a.localeCompare(b),
   );
 }

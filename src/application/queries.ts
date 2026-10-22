@@ -66,7 +66,7 @@ export function filterTopics(
         matchesTopic(topic, filter) &&
         (!filter.topicId || filter.topicId === topic.id) &&
         contains(
-          [topic.title, topic.summary, topic.category, ...assignedNames(topic)].join(' '),
+          [topic.title, topic.summary, topic.category, topic.requesterName, ...assignedNames(topic)].join(' '),
           filter.query,
         ) &&
         dateWithin(topic.targetDate, filter),
@@ -137,7 +137,7 @@ export function searchWorkspace(
           date: topic.updatedAt,
           topicIds: [topic.id],
         },
-        [topic.title, topic.summary, topic.category, ...assignedNames(topic)].join(' '),
+        [topic.title, topic.summary, topic.category, topic.requesterName, ...assignedNames(topic)].join(' '),
       );
   for (const task of workspace.tasks)
     if (
