@@ -1,14 +1,15 @@
 'use client';
 import { useId } from 'react';
+import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { taskSortOptions } from '../application/task-order';
 import { useWorklog } from '../providers/worklog';
-import { Select } from './core';
+import { Button, Select } from './core';
 
 export function TaskOrder() {
   const id = useId();
-  const { taskSort, setTaskSort } = useWorklog();
+  const { taskSort, setTaskSort, hideCompletedRootTasks, setHideCompletedRootTasks } = useWorklog();
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <label htmlFor={id} className="shrink-0 text-xs [color:var(--muted)]">Order by</label>
       <Select
         id={id}
@@ -20,6 +21,18 @@ export function TaskOrder() {
         options={[...taskSortOptions]}
         className="[&.select-trigger]:w-auto [&.select-trigger]:text-xs"
       />
+      <Button
+        type="button"
+        size="sm"
+        aria-pressed={hideCompletedRootTasks}
+        aria-label={`${hideCompletedRootTasks ? 'Show' : 'Hide'} completed main tasks`}
+        title="Only affects main tasks; subtasks remain visible"
+        className="[&[aria-pressed=true]]:[background:var(--selected)]"
+        onClick={() => setHideCompletedRootTasks((value) => !value)}
+      >
+        {hideCompletedRootTasks ? <IconEye size={15} aria-hidden="true" /> : <IconEyeOff size={15} aria-hidden="true" />}
+        {hideCompletedRootTasks ? 'Show completed' : 'Hide completed'}
+      </Button>
     </div>
   );
 }

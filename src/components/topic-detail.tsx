@@ -3,9 +3,10 @@ import { TopicInactivityIndicator } from './topic-inactivity-indicator';
 import { CategoryTag } from './category-tag';
 import { Card } from './core/card';
 import * as Tabs from '@radix-ui/react-tabs';
-import { IconArchive, IconArrowLeft, IconEdit, IconLink, IconPlus } from '@tabler/icons-react';
+import { IconArchive, IconArrowLeft, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 import type { DeletionTarget } from '../application/deletion';
 import { updateTask } from '../application/workspace';
+import { filterCompletedRootTasks } from '../application/task-order';
 import { TaskOrder } from './task-order';
 import { useWorklog } from '../providers/worklog';
 import { formatDate, isOpen } from '../domain/dates';
@@ -13,10 +14,10 @@ import type { Topic } from '../domain/model';
 import { attachmentTopicIds, sourceTopicIds } from '../domain/relationships';
 import type { Workbench } from '../infrastructure/use-workspace';
 import type { Editor } from './editors';
-import { Badge, Button } from './core';
+import { ActionMenu, Badge, Button } from './core';
 import { assignedNames } from '../domain/responsibles';
 import { human } from '../domain/options';
-import { SourceList, TaskList, Timeline } from './work-lists';
+import { FileList, SourceList, TaskList, Timeline } from './work-lists';
 import { TopicFiles } from './topic-files';
 export function TopicDetail({
   topic,
@@ -42,10 +43,12 @@ export function TopicDetail({
   deleteTask: (id: string) => void;
 }) {
   const w = wb.workspace;
-  const { taskSort } = useWorklog();
+  const { taskSort, hideCompletedRootTasks } = useWorklog();
   const tasks = w.tasks.filter((t) => t.topicId === topic.id);
+  const visibleTasks = filterCompletedRootTasks(tasks, hideCompletedRootTasks);
   const sources = w.sources.filter((s) => sourceTopicIds(w, s).includes(topic.id));
   const files = w.attachments.filter((f) => attachmentTopicIds(w, f).includes(topic.id));
+  const generalFiles = files.filter((file) => file.topicIds.includes(topic.id));
   return (
     <>
       <Button size="sm" onClick={back}>
@@ -71,31 +74,48 @@ export function TopicDetail({
             </span>
           </div>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <Button disabled={wb.busy} onClick={() => edit({ kind: 'topic', id: topic.id })}>
-            <IconEdit size={16} /> Edit
-          </Button>
-          <Button
-            tone="danger"
+        <div className="flex items-center gap-2 shrink-0">
+          <ActionMenu
+            label={`Actions for ${topic.title}`}
             disabled={wb.busy}
-            onClick={() => onDelete({ kind: 'topic', id: topic.id })}
-          >
-            Delete topic
-          </Button>
+            items={[
+              {
+                label: 'Edit topic',
+                icon: <IconEdit size={15} />,
+                opensDialog: true,
+                onSelect: () => edit({ kind: 'topic', id: topic.id }),
+              },
+              {
+                label: 'Delete topic',
+                icon: <IconTrash size={15} />,
+                destructive: true,
+                opensDialog: true,
+                onSelect: () => onDelete({ kind: 'topic', id: topic.id }),
+              },
+            ]}
+          />
           <Button disabled={wb.busy} onClick={archive}>
             <IconArchive size={16} />
             {topic.archived ? 'Unarchive' : 'Archive'}
           </Button>
         </div>
       </div>
-      <Card className="topic-summary [&_>_div]:[padding:21px_23px] [&_p]:[font-size:13px]">
-        <div>
-          <h2>Current summary</h2>
-          <p className="whitespace-pre-wrap mt-3">
-            {topic.summary || 'Add a summary to give this topic context.'}
-          </p>
-        </div>
-      </Card>
+      {topic.summary.trim() && (
+        <Card className="topic-summary [&_>_div]:[padding:21px_23px] [&_p]:[font-size:13px]">
+          <div>
+            <h2>Current summary</h2>
+            <p className="whitespace-pre-wrap mt-3">{topic.summary}</p>
+          </div>
+        </Card>
+      )}
+      <div className="mt-4">
+        <TopicFiles
+          topicId={topic.id}
+          wb={wb}
+          files={generalFiles}
+          open={openFile}
+        />
+      </div>
       <div className="quick-actions flex items-center [gap:9px] flex-wrap [padding:20px_0_0] [&_>_span]:[margin-right:8px] [@media(max-width:800px)]:[gap:7px] [@media(max-width:800px)]:[&_>_span]:w-full">
         <span className="muted [color:var(--muted)] text-sm">Add to this topic</span>
         <Button size="sm" onClick={() => edit({ kind: 'task', topicId: topic.id })}>
@@ -126,7 +146,7 @@ export function TopicDetail({
             onOpenSource={openSource}
             onOpenFile={openFile}
             onDelete={deleteTask}
-            tasks={tasks}
+            tasks={visibleTasks}
             workspace={w}
             busy={wb.busy}
             onEdit={(id) => edit({ kind: 'task', id })}
@@ -149,9 +169,7 @@ export function TopicDetail({
           />
         </Tabs.Content>
         <Tabs.Content value="files">
-          <TopicFiles
-            topicId={topic.id}
-            wb={wb}
+          <FileList
             onDelete={(id) => onDelete({ kind: 'attachment', id })}
             files={files}
             open={openFile}

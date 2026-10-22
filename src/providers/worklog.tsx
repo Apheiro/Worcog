@@ -94,6 +94,10 @@ function useWorklogController() {
     key: 'worklog.task-sort',
     defaultValue: 'created',
   });
+  const [hideCompletedRootTasks, setHideCompletedRootTasks] = useLocalStorage<boolean>({
+    key: 'worklog.hide-completed-root-tasks',
+    defaultValue: false,
+  });
   const [textureEnabled, setTextureEnabled] = useLocalStorage<boolean>({
     key: 'worklog.texture-enabled',
     defaultValue: true,
@@ -312,6 +316,8 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     setTaskView,
     taskSort,
     setTaskSort,
+    hideCompletedRootTasks,
+    setHideCompletedRootTasks,
     textureEnabled,
     setTextureEnabled,
     textureOpacity,

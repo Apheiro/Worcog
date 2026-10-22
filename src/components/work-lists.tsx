@@ -15,7 +15,7 @@ import { ResourceTasks } from './resource-tasks';
 import { ResourceList } from './resource-list';
 import { TaskRow, type TaskRowProps } from './task-row';
 import { AttachmentStatus } from './attachment-status';
-export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: string) => void }) {
+export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">
       <table className="data-table [border-collapse:collapse] w-full [min-width:760px] text-left [font-size:12px] [&_th]:[padding:10px_15px] [&_th]:[font-size:10px] [&_th]:[font-weight:600] [&_th]:[color:var(--muted)] [&_th]:[background:var(--surface-soft)] [&_th]:[letter-spacing:0.4px] [&_th]:uppercase [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:whitespace-nowrap [&_td]:[padding:15px] [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_td:first-child]:[width:38%] [&_td:nth-child(5)]:whitespace-nowrap [&_td:nth-child(6)]:whitespace-nowrap [&_tr:last-child_td]:[border-bottom:none] [&_tbody_tr:hover]:[background:var(--surface-soft)]">
@@ -37,9 +37,11 @@ export function TopicTable({ topics, open }: { topics: Topic[]; open: (id: strin
                 <Button tone="link" size="auto" onClick={() => open(topic.id)}>
                   {topic.title}
                 </Button>
-                <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-                  <CategoryTag category={topic.category} />
-                </div>
+                {showCategory && (
+                  <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
+                    <CategoryTag category={topic.category} />
+                  </div>
+                )}
               </td>
               <td>
                 <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
