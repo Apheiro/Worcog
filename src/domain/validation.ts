@@ -53,6 +53,7 @@ export const taskSchema = z
     reminderAt: timestamp.nullable().optional(),
     reminderDismissedAt: timestamp.nullable().optional(),
     order: z.number().int().nonnegative().safe().optional(),
+    orderParentId: id.nullable().optional(),
     ...base,
     title,
     description: text,

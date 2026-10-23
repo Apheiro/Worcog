@@ -1,6 +1,7 @@
 import type { Task } from '../domain/model';
 
 export const taskSortOptions = [
+  { value: 'free', label: 'Free' },
   { value: 'created', label: 'Creation date · oldest first' },
   { value: 'newest', label: 'Creation date · newest first' },
   { value: 'deadline', label: 'Deadline' },
@@ -16,13 +17,43 @@ export function filterCompletedRootTasks(tasks: Task[], hideCompleted: boolean):
 export function compareTaskOrder(a: Task, b: Task, sort: TaskSort = 'created') {
   const created = Date.parse(a.createdAt) - Date.parse(b.createdAt);
   const rank = { urgent: 0, high: 0, normal: 1, low: 2 };
-  const compared = sort === 'newest' ? -created
+  const compared = sort === 'free' ? freePosition(a) - freePosition(b)
+    : sort === 'newest' ? -created
     : sort === 'deadline' ? (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')
     : sort === 'priority' ? rank[a.priority] - rank[b.priority]
     : sort === 'title' ? a.title.localeCompare(b.title)
     : created;
   return compared || created || a.id.localeCompare(b.id);
 }
+
+function freePosition(task: Task): number {
+  return task.order !== undefined && (task.orderParentId === undefined || task.orderParentId === task.parentId)
+    ? task.order
+    : Number.MAX_SAFE_INTEGER;
+}
+
+/** A task can only move within its topic, never into itself or a descendant. */
+export function canReparentTask(tasks: readonly Task[], id: string, parentId: string | null): boolean {
+  const byId = new Map(tasks.map((task) => [task.id, task]));
+  const task = byId.get(id);
+  if (!task) return false;
+  const seen = new Set([id]);
+  let current = parentId;
+  while (current !== null) {
+    if (seen.has(current)) return false;
+    seen.add(current);
+    const parent = byId.get(current);
+    if (!parent || parent.topicId !== task.topicId) return false;
+    current = parent.parentId;
+  }
+  return true;
+}
+
+export type TaskMove = {
+  parentId: string | null;
+  /** Insert before this sibling in Free mode; null appends to the group. */
+  beforeId?: string | null;
+};
 
 /** Sort roots/siblings by the selected criterion, and render each parent before
  * its descendants. Filtered-out ancestors are not added back into the results. */

@@ -10,7 +10,7 @@ pub fn string<'a>(v: &'a Value, key: &str) -> Result<&'a str> {
                 <= match key {
                     "title" | "subject" | "owner" | "platform" | "originalName"
                     | "name" | "email" | "jobTitle" | "area" | "requesterName" => 500,
-                    "category" | "mime" | "id" | "topicId" | "parentId" | "recurrenceRootId" => 200,
+                    "category" | "mime" | "id" | "topicId" | "parentId" | "orderParentId" | "recurrenceRootId" => 200,
                     "identifier" => 1000,
                     "url" => 4096,
                     _ => 100_000,
@@ -145,6 +145,12 @@ pub fn validate(w: &Value) -> Result<()> {
                 fields.insert("order");
                 if e["order"].as_u64().is_none_or(|value| value > 9_007_199_254_740_991) {
                     return Err("Invalid task order".into());
+                }
+            }
+            if kind == "tasks" && e.get("orderParentId").is_some() {
+                fields.insert("orderParentId");
+                if !e["orderParentId"].is_null() {
+                    string(e, "orderParentId")?;
                 }
             }
             if kind == "tasks" && e.get("blockReason").is_some() {

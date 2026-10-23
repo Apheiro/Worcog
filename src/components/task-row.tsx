@@ -12,7 +12,7 @@ import {
   IconNotes,
   IconTimeline,
 } from '@tabler/icons-react';
-import { useId, useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent, type ReactNode, type Ref } from 'react';
 import { cva } from 'cva';
 import { formatDate, isOverdue } from '../domain/dates';
 import type { Status, Task, Workspace } from '../domain/model';
@@ -51,6 +51,9 @@ export type TaskRowProps = {
   busy: boolean;
   childrenExpanded?: boolean;
   onToggleChildren?: () => void;
+  dragHandle?: ReactNode;
+  cardRef?: Ref<HTMLElement>;
+  dropTarget?: boolean;
 };
 
 export function TaskRow({
@@ -66,6 +69,9 @@ export function TaskRow({
   showContext = true,
   childrenExpanded,
   onToggleChildren,
+  dragHandle,
+  cardRef,
+  dropTarget,
 }: TaskRowProps) {
   const { inactivitySettings, attachmentExport } = useWorklog();
   const parent = w.tasks.find((t) => t.id === task.parentId);
@@ -97,212 +103,217 @@ export function TaskRow({
   }
   return (
     <>
-      <Card
-        className={taskRow({
-          completed: task.status === 'completed',
-        })}
-        role="group"
-        aria-label={task.title}
-        aria-busy={busy}
-      >
-        <div className="flex shrink-0 flex-col items-center gap-1.5">
-          <Checkbox
-            appearance="task"
-            aria-label={`Mark ${task.title} ${task.status === 'completed' ? 'in progress' : 'completed'}`}
-            checked={task.status === 'completed'}
-            disabled={busy}
-            onCheckedChange={(checked) =>
-              void onStatus(task.id, checked === true ? 'completed' : 'in_progress')
-            }
-          />
-          {deadline && (
-            <span
-              role="img"
-              title={deadline.label}
-              aria-label={deadline.label}
-              className="h-1 w-[18px] rounded-full"
-              style={{ backgroundColor: deadline.color }}
+      <div className="group/task-card relative isolate">
+        <Card
+          ref={cardRef}
+          className={taskRow({
+            completed: task.status === 'completed',
+            className: `relative z-10 ${dropTarget ? '[&.card]:[border-color:var(--ink)] [&.card]:[background:var(--selected)]' : ''}`,
+          })}
+          role="group"
+          aria-label={task.title}
+          aria-busy={busy}
+        >
+          <div className="flex shrink-0 flex-col items-center gap-1.5">
+            <Checkbox
+              appearance="task"
+              aria-label={`Mark ${task.title} ${task.status === 'completed' ? 'in progress' : 'completed'}`}
+              checked={task.status === 'completed'}
+              disabled={busy}
+              onCheckedChange={(checked) =>
+                void onStatus(task.id, checked === true ? 'completed' : 'in_progress')
+              }
             />
-          )}
-        </div>
-        <div className="min-w-0 flex-1 flex flex-col items-start gap-2">
-          <div className="flex w-full min-w-0 items-start gap-2">
-            {onToggleChildren && (
-              <Button
-                type="button"
-                size="auto"
-                tone="ghost"
-                className="h-5 w-5 shrink-0 p-0"
-                aria-expanded={childrenExpanded}
-                aria-label={`${childrenExpanded ? 'Collapse' : 'Expand'} subtasks of ${task.title}`}
-                onClick={onToggleChildren}
-              >
-                {childrenExpanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
-              </Button>
+            {deadline && (
+              <span
+                role="img"
+                title={deadline.label}
+                aria-label={deadline.label}
+                className="h-1 w-[18px] rounded-full"
+                style={{ backgroundColor: deadline.color }}
+              />
             )}
-            <Button
-              tone="link"
-              size="auto"
-              className={`${task.status === 'completed' ? 'completed [text-decoration:line-through] [color:var(--muted)]' : ''}`}
-              onClick={() => onEdit(task.id)}
-            >
-              {task.title}
-            </Button>
           </div>
-          {!showContext && assignedNames(task).length > 0 && (
-            <p className="text-xs [color:var(--muted)] m-0">{assignedNames(task).join(', ')}</p>
-          )}
-          {showContext && (
-            <div className="row-subtitle block m-0 [font-size:11px] [color:var(--muted)] [line-height:1.5] [overflow-wrap:anywhere]">
-              {w.topics.find((t) => t.id === task.topicId)?.title}
-              {parent && ` / ${parent.title}`} · {assignedNames(task).join(', ') || 'Unassigned'} ·{' '}
-              {human(taskPriority(task.priority))}
-              {task.recurrence !== 'none' && (
-                <span className="inline-icon inline-flex [gap:4px] items-center">
-                  <IconRepeat size={13} />
-                  {human(task.recurrence)}
-                </span>
-              )}
-              {task.recurrenceRootId && ' · Recurring instance'}
-            </div>
-          )}
-          {(sources.length > 0 || files.length > 0) && (
-            <ul
-              className="task-resources flex flex-wrap gap-1.5 m-0 list-none p-0 [&_li]:min-w-0 [&_li]:max-w-full"
-              aria-label={`Resources for ${task.title}`}
-            >
-              {sources.map((source) => (
-                <li key={source.id}>
-                  <Button
-                    tone="chip"
-                    size="auto"
-                    type="button"
-                    className="task-resource max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label={`View source ${source.title}${source.identifier ? ` · ${source.identifier}` : ''}`}
-                    onClick={() => onOpenSource(source.id)}
-                  >
-                    <SourceIcon kind={source.kind} size={13} />
-                    <span>
-                      {source.title}
-                      {source.identifier && ` · ${source.identifier}`}
-                    </span>
-                  </Button>
-                </li>
-              ))}
-              {files.map((file) => (
-                <li key={file.id}>
-                  <Button
-                    tone="chip"
-                    size="auto"
-                    type="button"
-                    className={`task-resource max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${attachmentExport.selectedIds.has(file.id) ? '[&.button]:[background:var(--selected)] [&.button]:[border-color:var(--ink)] [&.button]:[color:var(--ink)]' : ''}`}
-                    aria-label={`Open file ${file.originalName}. Ctrl+click to select for export.`}
-                    aria-pressed={attachmentExport.selectedIds.has(file.id)}
-                    title="Ctrl+click to select or deselect for export"
-                    disabled={busy}
-                    onClick={(event) => {
-                      if (event.ctrlKey || event.metaKey) attachmentExport.toggle(file.id);
-                      else onOpenFile(file.id);
-                    }}
-                    onKeyDown={(event) => {
-                      if ((event.ctrlKey || event.metaKey) && (event.key === 'Enter' || event.key === ' ')) {
-                        event.preventDefault();
-                        if (!event.repeat) attachmentExport.toggle(file.id);
-                      }
-                    }}
-                  >
-                    <IconPaperclip size={13} aria-hidden="true" />
-                    <span>{file.originalName}<AttachmentStatus id={file.id} /></span>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div className="task-actions ml-auto flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2">
-            {blocked && (
-              <Tooltip content={task.blockReason || 'No reason recorded for this existing task.'}>
-                <span
-                  tabIndex={0}
-                  role="img"
-                  aria-label={`Blocked: ${task.blockReason || 'No reason recorded.'}`}
-                  className="inline-flex shrink-0 [color:var(--blocked-ink)] rounded focus-visible:[outline:2px_solid_var(--focus)] focus-visible:[outline-offset:2px]"
-                >
-                  <IconAlertTriangle size={16} aria-hidden="true" />
-                </span>
-              </Tooltip>
-            )}
-            {updates.length > 0 && (
-              <Tooltip content={`${updatesExpanded ? 'Hide' : 'Show'} updates (${updates.length})`}>
+          <div className="min-w-0 flex-1 flex flex-col items-start gap-2">
+            <div className="flex w-full min-w-0 items-start gap-2">
+              {onToggleChildren && (
                 <Button
                   type="button"
-                  tone="ghost"
                   size="auto"
-                  className={`h-5 w-5 shrink-0 p-0 ${updatesExpanded ? '[color:var(--ink)]' : '[color:var(--muted)]'}`}
-                  aria-label={`${updatesExpanded ? 'Collapse' : 'Expand'} updates for ${task.title}`}
-                  aria-expanded={updatesExpanded}
-                  aria-controls={updatesRegionId}
-                  onClick={() => setUpdatesExpanded((value) => !value)}
+                  tone="ghost"
+                  className="h-5 w-5 shrink-0 p-0"
+                  aria-expanded={childrenExpanded}
+                  aria-label={`${childrenExpanded ? 'Collapse' : 'Expand'} subtasks of ${task.title}`}
+                  onClick={onToggleChildren}
                 >
-                  <IconTimeline size={16} aria-hidden="true" />
+                  {childrenExpanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
                 </Button>
-              </Tooltip>
+              )}
+              <Button
+                tone="link"
+                size="auto"
+                className={`${task.status === 'completed' ? 'completed [text-decoration:line-through] [color:var(--muted)]' : ''}`}
+                onClick={() => onEdit(task.id)}
+              >
+                {task.title}
+              </Button>
+            </div>
+            {!showContext && assignedNames(task).length > 0 && (
+              <p className="text-xs [color:var(--muted)] m-0">{assignedNames(task).join(', ')}</p>
             )}
-            {task.description.trim() && (
-              <Tooltip content={task.description}>
-                <span tabIndex={0} role="img" aria-label="Task description" className="inline-flex shrink-0 [color:var(--muted)] rounded focus-visible:[outline:2px_solid_var(--focus)] focus-visible:[outline-offset:2px]">
-                  <IconNotes size={16} aria-hidden="true" />
-                </span>
-              </Tooltip>
+            {showContext && (
+              <div className="row-subtitle block m-0 [font-size:11px] [color:var(--muted)] [line-height:1.5] [overflow-wrap:anywhere]">
+                {w.topics.find((t) => t.id === task.topicId)?.title}
+                {parent && ` / ${parent.title}`} · {assignedNames(task).join(', ') || 'Unassigned'} ·{' '}
+                {human(taskPriority(task.priority))}
+                {task.recurrence !== 'none' && (
+                  <span className="inline-icon inline-flex [gap:4px] items-center">
+                    <IconRepeat size={13} />
+                    {human(task.recurrence)}
+                  </span>
+                )}
+                {task.recurrenceRootId && ' · Recurring instance'}
+              </div>
             )}
-            <ActionMenu
-              label={`Actions for ${task.title}`}
-              disabled={busy}
-              items={[
-                {
-                  label: 'Add update',
-                  icon: <IconNotes size={15} />,
-                  opensDialog: true,
-                  onSelect: () => setAddingUpdate(true),
-                },
-                {
-                  label: 'Add subtask',
-                  icon: <IconPlus size={15} />,
-                  opensDialog: true,
-                  onSelect: () => onAddSubtask(task),
-                },
-                {
-                  label: 'Remove',
-                  icon: <IconTrash size={15} />,
-                  destructive: true,
-                  opensDialog: true,
-                  onSelect: () => onDelete(task.id),
-                },
-                {
-                  label: blocked ? 'Unblocked' : 'Blocked',
-                  icon: blocked ? <IconLockOpen size={15} /> : <IconLock size={15} />,
-                  disabled: task.status === 'completed',
-                  opensDialog: !blocked,
-                  onSelect: () => {
-                    if (blocked) void onStatus(task.id, 'in_progress');
-                    else {
-                      setReason('');
-                      setBlocking(true);
-                    }
-                  },
-                },
-              ]}
-            />
+            {(sources.length > 0 || files.length > 0) && (
+              <ul
+                className="task-resources flex flex-wrap gap-1.5 m-0 list-none p-0 [&_li]:min-w-0 [&_li]:max-w-full"
+                aria-label={`Resources for ${task.title}`}
+              >
+                {sources.map((source) => (
+                  <li key={source.id}>
+                    <Button
+                      tone="chip"
+                      size="auto"
+                      type="button"
+                      className="task-resource max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label={`View source ${source.title}${source.identifier ? ` · ${source.identifier}` : ''}`}
+                      onClick={() => onOpenSource(source.id)}
+                    >
+                      <SourceIcon kind={source.kind} size={13} />
+                      <span>
+                        {source.title}
+                        {source.identifier && ` · ${source.identifier}`}
+                      </span>
+                    </Button>
+                  </li>
+                ))}
+                {files.map((file) => (
+                  <li key={file.id}>
+                    <Button
+                      tone="chip"
+                      size="auto"
+                      type="button"
+                      className={`task-resource max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${attachmentExport.selectedIds.has(file.id) ? '[&.button]:[background:var(--selected)] [&.button]:[border-color:var(--ink)] [&.button]:[color:var(--ink)]' : ''}`}
+                      aria-label={`Open file ${file.originalName}. Ctrl+click to select for export.`}
+                      aria-pressed={attachmentExport.selectedIds.has(file.id)}
+                      title="Ctrl+click to select or deselect for export"
+                      disabled={busy}
+                      onClick={(event) => {
+                        if (event.ctrlKey || event.metaKey) attachmentExport.toggle(file.id);
+                        else onOpenFile(file.id);
+                      }}
+                      onKeyDown={(event) => {
+                        if ((event.ctrlKey || event.metaKey) && (event.key === 'Enter' || event.key === ' ')) {
+                          event.preventDefault();
+                          if (!event.repeat) attachmentExport.toggle(file.id);
+                        }
+                      }}
+                    >
+                      <IconPaperclip size={13} aria-hidden="true" />
+                      <span>{file.originalName}<AttachmentStatus id={file.id} /></span>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          {task.dueDate && (
-            <span className="text-xs [color:var(--muted)]">
-              {isOverdue(task) && 'Overdue · '}
-              {formatDate(task.dueDate)}
-            </span>
-          )}
-        </div>
-      </Card>
+          <div className="task-actions ml-auto flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              {blocked && (
+                <Tooltip content={task.blockReason || 'No reason recorded for this existing task.'}>
+                  <span
+                    tabIndex={0}
+                    role="img"
+                    aria-label={`Blocked: ${task.blockReason || 'No reason recorded.'}`}
+                    className="inline-flex shrink-0 [color:var(--blocked-ink)] rounded focus-visible:[outline:2px_solid_var(--focus)] focus-visible:[outline-offset:2px]"
+                  >
+                    <IconAlertTriangle size={16} aria-hidden="true" />
+                  </span>
+                </Tooltip>
+              )}
+              {updates.length > 0 && (
+                <Tooltip content={`${updatesExpanded ? 'Hide' : 'Show'} updates (${updates.length})`}>
+                  <Button
+                    type="button"
+                    tone="ghost"
+                    size="auto"
+                    className={`h-5 w-5 shrink-0 p-0 ${updatesExpanded ? '[color:var(--ink)]' : '[color:var(--muted)]'}`}
+                    aria-label={`${updatesExpanded ? 'Collapse' : 'Expand'} updates for ${task.title}`}
+                    aria-expanded={updatesExpanded}
+                    aria-controls={updatesRegionId}
+                    onClick={() => setUpdatesExpanded((value) => !value)}
+                  >
+                    <IconTimeline size={16} aria-hidden="true" />
+                  </Button>
+                </Tooltip>
+              )}
+              {task.description.trim() && (
+                <Tooltip content={task.description}>
+                  <span tabIndex={0} role="img" aria-label="Task description" className="inline-flex shrink-0 [color:var(--muted)] rounded focus-visible:[outline:2px_solid_var(--focus)] focus-visible:[outline-offset:2px]">
+                    <IconNotes size={16} aria-hidden="true" />
+                  </span>
+                </Tooltip>
+              )}
+              <ActionMenu
+                label={`Actions for ${task.title}`}
+                disabled={busy}
+                items={[
+                  {
+                    label: 'Add update',
+                    icon: <IconNotes size={15} />,
+                    opensDialog: true,
+                    onSelect: () => setAddingUpdate(true),
+                  },
+                  {
+                    label: 'Add subtask',
+                    icon: <IconPlus size={15} />,
+                    opensDialog: true,
+                    onSelect: () => onAddSubtask(task),
+                  },
+                  {
+                    label: 'Remove',
+                    icon: <IconTrash size={15} />,
+                    destructive: true,
+                    opensDialog: true,
+                    onSelect: () => onDelete(task.id),
+                  },
+                  {
+                    label: blocked ? 'Unblocked' : 'Blocked',
+                    icon: blocked ? <IconLockOpen size={15} /> : <IconLock size={15} />,
+                    disabled: task.status === 'completed',
+                    opensDialog: !blocked,
+                    onSelect: () => {
+                      if (blocked) void onStatus(task.id, 'in_progress');
+                      else {
+                        setReason('');
+                        setBlocking(true);
+                      }
+                    },
+                  },
+                ]}
+              />
+            </div>
+            {task.dueDate && (
+              <span className="text-xs [color:var(--muted)]">
+                {isOverdue(task) && 'Overdue · '}
+                {formatDate(task.dueDate)}
+              </span>
+            )}
+          </div>
+        </Card>
+        {dragHandle}
+      </div>
       {updatesExpanded && <TaskProgress task={task} entries={updates} regionId={updatesRegionId} />}
       {addingUpdate && <TaskUpdateForm task={task} onClose={() => setAddingUpdate(false)} />}
       {blocking && (

@@ -42,6 +42,8 @@ export interface Task extends Base {
   reminderAt?: string | null;
   reminderDismissedAt?: string | null;
   order?: number;
+  /** Parent group to which the saved Free order belongs; omitted on legacy tasks. */
+  orderParentId?: string | null;
   title: string;
   description: string;
   topicId: string;

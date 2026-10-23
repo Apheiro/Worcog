@@ -140,10 +140,32 @@ your configured Initial, Midpoint and Final colors, based on elapsed time from
 creation to the end of the deadline day. Tasks without a deadline have no pill.
 The date, with an Overdue label when applicable, appears below the actions.
 
-**Order by** offers creation date oldest/newest first, deadline, priority and
-name. Parents remain before their visible descendants; sorting applies to
+**Order by** offers Free, creation date oldest/newest first, deadline, priority
+and name. Parents remain before their visible descendants; sorting applies to
 roots and siblings. Creation-date ordering avoids movement caused merely by
 editing a task. The chosen order is saved on this device.
+
+Hover or focus a task's card to reveal its drag grip, which slides out from
+behind the right edge. On touch devices the grip stays visible. Use it to drag
+the task in the Tasks page or a topic's Tasks tab. Drop over another task's
+card to make it a subtask; the destination is highlighted and labeled before
+dropping. When dragging a child, **Move to
+main tasks** removes its parent relationship. Deeper children also offer
+**Move up one level**. Moving a parent carries its descendants. Moves stay
+within the same topic; a task cannot become its own descendant.
+
+In **Free**, thin insertion lines let you reorder siblings, including main
+tasks, without nesting them. The manual order is saved in the workspace,
+independently of the selected sorting criterion. Switching away and back to
+Free restores it. New tasks and tasks moved into a different parent group
+outside Free appear after that group's manually ordered tasks. Reordering
+between tasks of the same level is ignored outside Free: no insertion line is
+shown, and the saved manual order is not overwritten. Hierarchy changes remain
+available in every mode. Hidden and filtered tasks retain their saved order.
+
+For keyboard dragging, focus a task's grip and press **Space** or **Enter**.
+Use the arrow keys to move over a destination, then Space or Enter to drop;
+**Escape** cancels. The highlighted destination describes the pending action.
 
 **Hide completed** hides only completed main tasks. Children remain eligible
 to appear even when their completed parent is hidden. Other active filters
@@ -559,6 +581,9 @@ handle their own shortcuts while their iframe has focus.
 | Ctrl / Command + Enter or Space | Focused file chip on a task card | Toggle export selection from the keyboard |
 | Alt + T | Worklog notifications | Focus the notifications area |
 | Ctrl + Left / Right arrow | Open document viewer with multiple documents; Windows also captures these inside the editor | Slide to the previous / next document, wrapping at either end |
+| Space / Enter | Focused task grip | Start dragging a task or drop it at the highlighted destination |
+| Arrow keys | While dragging a task with the keyboard | Move toward a hierarchy destination or a Free insertion line |
+| Escape | While dragging a task | Cancel the move without saving changes |
 | Tab / Shift + Tab | Worklog controls | Move focus forward or backward |
 | Enter / Space | Focused buttons and checkboxes | Activate the control or toggle its checkbox |
 | Space | Focused settings switch | Toggle the setting |

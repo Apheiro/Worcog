@@ -1,8 +1,7 @@
 'use client';
 import { IconActivity, IconFile, IconPaperclip, IconTrash } from '@tabler/icons-react';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { topicTimeline } from '../application/queries';
-import { orderTasksForDisplay, type TaskSort } from '../application/task-order';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
 import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
 import { Badge, Button, Empty, Select } from './core';
@@ -13,7 +12,7 @@ import { TopicInactivityIndicator } from './topic-inactivity-indicator';
 import { CategoryTag } from './category-tag';
 import { ResourceTasks } from './resource-tasks';
 import { ResourceList } from './resource-list';
-import { TaskRow, type TaskRowProps } from './task-row';
+export { TaskList } from './task-list';
 import { AttachmentStatus } from './attachment-status';
 import { SourceIcon } from './source-icon';
 export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
@@ -85,87 +84,6 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
     </div>
   ) : (
     <Empty title="No matching topics">Create a topic or adjust the filters.</Empty>
-  );
-}
-export function TaskList({
-  tasks,
-  workspace: w,
-  onEdit,
-  onStatus,
-  busy,
-  onAddSubtask,
-  onDelete,
-  onOpenSource,
-  onOpenFile,
-  showContext = true,
-  sort = 'created',
-}: Omit<TaskRowProps, 'task' | 'childrenExpanded' | 'onToggleChildren'> & {
-  tasks: TaskRowProps['task'][];
-  sort?: TaskSort;
-}) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
-  const roots: TaskRowProps['task'][] = [];
-  const children = new Map<string, TaskRowProps['task'][]>();
-  const placed = new Set<string>();
-  for (const task of orderTasksForDisplay(tasks, sort)) {
-    // Missing filtered parents become roots; only attach to already-placed parents
-    // so malformed cycles cannot hide tasks or create recursive branches.
-    if (task.parentId && placed.has(task.parentId)) {
-      const siblings = children.get(task.parentId) ?? [];
-      siblings.push(task);
-      children.set(task.parentId, siblings);
-    } else roots.push(task);
-    placed.add(task.id);
-  }
-  function branches(items: TaskRowProps['task'][]): ReactNode {
-    return items.map((task) => {
-      const descendants = children.get(task.id) ?? [];
-      const expanded = !collapsed.has(task.id);
-      return (
-        <li key={task.id} className="flex min-w-0 flex-col gap-[5px]">
-          <TaskRow
-            task={task}
-            workspace={w}
-            onEdit={onEdit}
-            onStatus={onStatus}
-            busy={busy}
-            onAddSubtask={onAddSubtask}
-            onDelete={onDelete}
-            onOpenSource={onOpenSource}
-            onOpenFile={onOpenFile}
-            showContext={showContext}
-            childrenExpanded={descendants.length ? expanded : undefined}
-            onToggleChildren={
-              descendants.length
-                ? () => {
-                    setCollapsed((previous) => {
-                      const next = new Set(previous);
-                      if (next.has(task.id)) next.delete(task.id);
-                      else next.add(task.id);
-                      return next;
-                    });
-                  }
-                : undefined
-            }
-          />
-          {descendants.length > 0 && expanded && (
-            <ul
-              aria-label={`Subtasks of ${task.title}`}
-              className="relative m-0 flex min-w-0 list-none flex-col gap-[5px] py-0 pr-0 [padding-left:calc(1.25rem_+_1px_+_0.75rem)] before:content-empty before:absolute before:-top-[5px] before:bottom-0 before:[left:calc(1.25rem_+_1px)] before:-translate-x-1/2 before:w-px before:[background:var(--border)] before:pointer-events-none"
-            >
-              {branches(descendants)}
-            </ul>
-          )}
-        </li>
-      );
-    });
-  }
-  return tasks.length ? (
-    <ul className="task-list m-0 flex list-none flex-col gap-[5px] p-0" aria-label="Task hierarchy">
-      {branches(roots)}
-    </ul>
-  ) : (
-    <Empty title="No tasks in this view">Tasks added to a topic will appear here.</Empty>
   );
 }
 export function SourceList({

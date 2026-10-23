@@ -392,6 +392,8 @@ export function generateOccurrences(
         applyTaskWorkflow({
           ...root,
           ...stamp(now),
+          order: undefined,
+          orderParentId: undefined,
           status: 'in_progress',
           completedAt: null,
           reminderAt: null,
