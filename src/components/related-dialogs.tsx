@@ -6,6 +6,7 @@ import { sourceTopicIds } from '../domain/relationships';
 import type { Workbench } from '../infrastructure/use-workspace';
 import { Badge, Button, Modal } from './core';
 import { sourceKindLabel, sourceType, sourceParticipantLabel } from '../domain/sources';
+import { SourceIcon } from './source-icon';
 import { ResourceTasks } from './resource-tasks';
 import { FileList } from './work-lists';
 import { AttachmentStatus } from './attachment-status';
@@ -46,7 +47,7 @@ export function SourceDetail({
         </p>
       )}
       <div className="flex items-center gap-2 flex-wrap mb-5">
-        <Badge>{sourceKindLabel(source.kind)}</Badge>
+        <Badge><SourceIcon kind={source.kind} size={14} />{sourceKindLabel(source.kind)}</Badge>
         <span className="muted [color:var(--muted)]">{source.platform}</span>
         <Button className="ml-auto" onClick={edit}>
           Edit metadata

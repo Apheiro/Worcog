@@ -289,6 +289,11 @@ Participants and Group Name. Only the selected identity field is shown.
 Date/time inputs include local time controls when the field supports time.
 Source links may use HTTP, HTTPS or Teams links.
 
+Source icons identify their type throughout resource lists, task attachments,
+forms, details and timelines: an envelope for Mail, a ticket for Ticketing, a
+calendar for Meeting and conversation bubbles for Messaging. Older references
+without a recognized type retain the general link icon.
+
 Finish adding the source before saving the task. If a resource form has a
 pending draft, Worklog warns and keeps the task form open until you add the
 resource or explicitly discard that draft. Saving the task commits its resource

@@ -2,7 +2,6 @@
 import {
   IconChevronDown,
   IconChevronRight,
-  IconLink,
   IconPaperclip,
   IconPlus,
   IconRepeat,
@@ -25,6 +24,7 @@ import { human, taskPriority } from '../domain/options';
 import { useWorklog } from '../providers/worklog';
 import { AttachmentStatus } from './attachment-status';
 import { TaskProgress, TaskUpdateForm } from './task-progress';
+import { SourceIcon } from './source-icon';
 
 const taskRow = cva({
   base: [
@@ -181,7 +181,7 @@ export function TaskRow({
                     aria-label={`View source ${source.title}${source.identifier ? ` · ${source.identifier}` : ''}`}
                     onClick={() => onOpenSource(source.id)}
                   >
-                    <IconLink size={13} aria-hidden="true" />
+                    <SourceIcon kind={source.kind} size={13} />
                     <span>
                       {source.title}
                       {source.identifier && ` · ${source.identifier}`}

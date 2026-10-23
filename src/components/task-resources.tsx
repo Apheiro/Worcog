@@ -7,6 +7,7 @@ import type { Workspace } from '../domain/model';
 import { sourceSchema } from '../domain/validation';
 import { clearSourcePlatforms, emptySourceForm, isSourceType, type SourceFormValues } from '../domain/sources';
 import { SourceFields } from './source-fields';
+import { SourceIcon } from './source-icon';
 import { desktopAvailable, errorMessage, native } from '../infrastructure/native';
 import { Button, Field, Input } from './core';
 
@@ -69,7 +70,7 @@ export function TaskResources({
                   .toLocaleLowerCase()
                   .includes(term),
             )
-            .map((s) => ({ id: s.id, title: s.title, kind: 'source' as const })),
+            .map((s) => ({ id: s.id, title: s.title, kind: 'source' as const, sourceKind: s.kind })),
           ...w.attachments
             .filter(
               (f) =>
@@ -258,7 +259,7 @@ export function TaskResources({
           <ul className="list-none m-0 p-0 flex flex-col gap-2 mb-3">
             {sources.map((s) => (
               <li key={s.id} className="flex items-center gap-2 text-xs min-w-0">
-                <IconLink size={15} className="shrink-0" />
+                <SourceIcon kind={s.kind} size={15} className="shrink-0" />
                 {s.url ? (
                   <Button
                     type="button"
@@ -351,7 +352,7 @@ export function TaskResources({
                   setQuery('');
                 }}
               >
-                {match.kind === 'source' ? <IconLink size={14} /> : <IconFile size={14} />}{' '}
+                {match.kind === 'source' ? <SourceIcon kind={match.sourceKind} size={14} /> : <IconFile size={14} />}{' '}
                 {match.title}
               </Button>
             ))}

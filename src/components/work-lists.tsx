@@ -1,5 +1,5 @@
 'use client';
-import { IconActivity, IconFile, IconLink, IconPaperclip, IconTrash } from '@tabler/icons-react';
+import { IconActivity, IconFile, IconPaperclip, IconTrash } from '@tabler/icons-react';
 import { useState, type ReactNode } from 'react';
 import { topicTimeline } from '../application/queries';
 import { orderTasksForDisplay, type TaskSort } from '../application/task-order';
@@ -15,6 +15,7 @@ import { ResourceTasks } from './resource-tasks';
 import { ResourceList } from './resource-list';
 import { TaskRow, type TaskRowProps } from './task-row';
 import { AttachmentStatus } from './attachment-status';
+import { SourceIcon } from './source-icon';
 export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">
@@ -183,7 +184,7 @@ export function SourceList({
       items={sources.map((source) => ({
         id: source.id,
         title: source.title,
-        icon: <IconLink size={18} />,
+        icon: <SourceIcon kind={source.kind} size={18} />,
         metadata: `${sourceKindLabel(source.kind)} · ${source.platform || 'Manual reference'}${source.identifier ? ` · ${source.identifier}` : ''}`,
         description: source.notes,
         date: source.eventAt,
@@ -252,7 +253,7 @@ export function Timeline({
             return (
               <li key={`${entry.type}-${entry.id}`}>
                 <div className="timeline-dot [width:33px] [height:33px] grid [place-items:center] [border:1px_solid_var(--border)] [background:var(--surface-soft)] [border-radius:50%] [color:var(--muted)] shrink-0 [z-index:1]">
-                  {entry.type === 'source' ? <IconLink size={16} /> : <IconActivity size={16} />}
+                  {entry.type === 'source' ? <SourceIcon kind={w.sources.find((source) => source.id === entry.id)?.kind} size={16} /> : <IconActivity size={16} />}
                 </div>
                 <div className="timeline-body [border:1px_solid_var(--border)] [background:var(--surface)] [border-radius:5px] flex-1 [padding:15px_18px] min-w-0 [&_time]:[font-size:12px] [&_time]:[font-weight:550] [&_time]:[color:var(--muted)] [&_p]:[font-size:13px] [&_p]:[overflow-wrap:anywhere]">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -279,7 +280,7 @@ export function Timeline({
                       return (
                         source && (
                           <Button tone="chip" size="auto" key={id} onClick={() => onSource(id)}>
-                            <IconLink size={13} />
+                            <SourceIcon kind={source.kind} size={13} />
                             {source.title}
                             {source.identifier && ` · ${source.identifier}`}
                           </Button>

@@ -8,6 +8,7 @@ import { calendarDate, formatDate, formatTimestamp } from '../../domain/dates';
 import { Button, Empty } from '../../components/core';
 import { useWorklog } from '../../providers/worklog';
 import { WorkspaceSection } from '../../components/workspace-section';
+import { SourceIcon } from '../../components/source-icon';
 
 const batchSize = 40;
 const icons = {
@@ -92,11 +93,15 @@ export default function Page() {
                           >
                             {dayjs(movement.date).format('HH:mm')}
                           </time>
-                          <Icon
+                          {movement.type === 'source' ? <SourceIcon
+                            kind={w.sources.find((source) => source.id === movement.id)?.kind}
+                            size={16}
+                            className="mt-0.5 shrink-0 [color:var(--muted)]"
+                          /> : <Icon
                             size={16}
                             aria-hidden="true"
                             className="mt-0.5 shrink-0 [color:var(--muted)]"
-                          />
+                          />}
                           <span className="flex min-w-0 flex-1 flex-col gap-1">
                             <span className="text-[10px] [color:var(--muted)] uppercase tracking-wide">
                               {movement.action === 'activity'
