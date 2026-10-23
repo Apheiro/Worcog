@@ -93,6 +93,13 @@ shows the category in the group heading instead of repeating it on every row.
 Grouping and sorting preferences are saved on this device.
 Grouped topic tables share the same column widths, keeping status, priority,
 assignees and dates aligned across groups regardless of their contents.
+With **Settings → General → Context menus** enabled, right-click any topic row
+to Edit topic, Archive/Unarchive or Delete topic, including in grouped lists.
+Archive and deletion retain their confirmation dialogs. Focus a row or its
+title and press **Shift + F10** or the **Menu key** for keyboard access;
+touch devices support a long press. Left-clicking the title still opens the topic.
+When Context menus is off, each topic row shows a **…** button at the far right
+with those same actions. Both modes work in grouped and ungrouped lists.
 
 ### Topic color indicator
 
@@ -132,6 +139,16 @@ is no need to enter a creation date yourself.
 Task icons appear in this order: blocked warning, updates, description, then
 **…**. The actions menu opens on hover and also works by click or keyboard.
 It groups Add update, Add subtask, Remove and Blocked / Unblocked.
+
+By default, the vertical three-dot (⋮) menu provides the task's secondary actions.
+Enable **Settings → General → Context menus** to replace that button with
+a right-click menu on the task card. It offers the same Add update, Add
+subtask, Remove and Blocked/Unblocked actions. Focus the card or one of its
+controls and press **Shift + F10** or the **Menu key** to open it with the
+keyboard; touch devices support a long press. This device preference is off
+by default. Turning it off shows three-dot buttons on task cards and topic rows
+instead of right-click actions. The topic workspace's existing header
+controls remain available.
 
 ### Deadlines, ordering and visibility
 
@@ -340,7 +357,6 @@ Use the file picker or drop files into a task form's Resources area. Worklog
 copies them into its managed attachments directory; changing or removing the
 original outside Worklog does not change that copy. Topic-level general files
 can also be attached from the topic workspace.
-
 Each linked resource appears once in the task form, including while newly
 uploaded files become saved resources.
 
@@ -503,6 +519,9 @@ an older backup may bring back records deleted since that backup.
   strength, with a default of 50%.
 - **Open documents in Worklog:** switch between the integrated document editor
   and opening attachments with the system's default application.
+- **Context menus:** replace task three-dot buttons with a right-click menu
+  and enable Edit, Archive/Unarchive and Delete on rows in the Topics list.
+  Disabled by default and saved on this device.
 - **Topic inactivity:** set a positive number of days and Initial, Midpoint and
   Final colors. Click the markers on the horizontal gradient to adjust colors,
   then choose **Save inactivity settings**. The default period is 14 days and
@@ -580,10 +599,11 @@ handle their own shortcuts while their iframe has focus.
 | Command + click | File chips on task cards, macOS | Same file selection action |
 | Ctrl / Command + Enter or Space | Focused file chip on a task card | Toggle export selection from the keyboard |
 | Alt + T | Worklog notifications | Focus the notifications area |
-| Ctrl + Left / Right arrow | Open document viewer with multiple documents; Windows also captures these inside the editor | Slide to the previous / next document, wrapping at either end |
+| Shift + F10 / Menu key | Focused task card, topic row or their controls, with Context menus enabled | Open that task or topic's actions menu |
 | Space / Enter | Focused task grip | Start dragging a task or drop it at the highlighted destination |
 | Arrow keys | While dragging a task with the keyboard | Move toward a hierarchy destination or a Free insertion line |
 | Escape | While dragging a task | Cancel the move without saving changes |
+| Ctrl + Left / Right arrow | Open document viewer with multiple documents; Windows also captures these inside the editor | Slide to the previous / next document, wrapping at either end |
 | Tab / Shift + Tab | Worklog controls | Move focus forward or backward |
 | Enter / Space | Focused buttons and checkboxes | Activate the control or toggle its checkbox |
 | Space | Focused settings switch | Toggle the setting |

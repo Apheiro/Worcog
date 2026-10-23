@@ -135,6 +135,10 @@ function useWorklogController() {
     key: 'worklog.hide-completed-root-tasks',
     defaultValue: false,
   });
+  const [taskContextMenu, setTaskContextMenu] = useLocalStorage<boolean>({
+    key: 'worklog.task-context-menu',
+    defaultValue: false,
+  });
   const [textureEnabled, setTextureEnabled] = useLocalStorage<boolean>({
     key: 'worklog.texture-enabled',
     defaultValue: true,
@@ -176,9 +180,9 @@ function useWorklogController() {
       else await wb.run(() => native.openFile(id));
     })().catch((cause) => notifications.error(errorMessage(cause)));
   };
-  function askArchive() {
-    if (!selectedTopic) return;
-    const topic = selectedTopic;
+  function askArchive(id = selectedTopic?.id) {
+    const topic = w.topics.find((item) => item.id === id);
+    if (!topic || wb.busy) return;
     setConfirmation({
       title: topic.archived ? 'Restore topic from archive?' : 'Archive this topic?',
       description:
@@ -356,6 +360,8 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     setTaskSort,
     hideCompletedRootTasks,
     setHideCompletedRootTasks,
+    taskContextMenu,
+    setTaskContextMenu,
     textureEnabled,
     setTextureEnabled,
     textureOpacity,

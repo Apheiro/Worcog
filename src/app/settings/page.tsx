@@ -28,6 +28,8 @@ export default function Page() {
     setTextureOpacity,
     documentEditorEnabled,
     setDocumentEditorEnabled,
+    taskContextMenu,
+    setTaskContextMenu,
   } = useWorklog();
   return (
     <WorkspaceSection>
@@ -108,6 +110,24 @@ export default function Page() {
                 aria-describedby="document-editor-description"
                 checked={documentEditorEnabled}
                 onCheckedChange={(checked) => setDocumentEditorEnabled(checked === true)}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 flex-col gap-2">
+                <h2 id="task-context-menu-label">Context menus</h2>
+                <p id="task-context-menu-description" className="max-w-xl text-xs [color:var(--muted)]">
+                  Replace task three-dot buttons with right-click menus. In the Topics list,
+                  right-click a row to edit, archive or delete its topic.
+                  You can also focus a task or topic and press Shift + F10, or long-press on touch devices.
+                </p>
+              </div>
+              <Switch
+                aria-labelledby="task-context-menu-label"
+                aria-describedby="task-context-menu-description"
+                checked={taskContextMenu}
+                onCheckedChange={setTaskContextMenu}
               />
             </CardContent>
           </Card>

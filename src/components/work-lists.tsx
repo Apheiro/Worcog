@@ -1,10 +1,11 @@
 'use client';
-import { IconActivity, IconFile, IconPaperclip, IconTrash } from '@tabler/icons-react';
+import { IconActivity, IconArchive, IconEdit, IconFile, IconPaperclip, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { topicTimeline } from '../application/queries';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
 import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
-import { Badge, Button, Empty, Select } from './core';
+import { ActionMenu, Badge, Button, ContextMenu, Empty, Select, type ActionMenuItem } from './core';
+import { useWorklog } from '../providers/worklog';
 import { sourceKindLabel } from '../domain/sources';
 import { selectOptions, activityKinds, human } from '../domain/options';
 import { assignedNames } from '../domain/responsibles';
@@ -16,6 +17,8 @@ export { TaskList } from './task-list';
 import { AttachmentStatus } from './attachment-status';
 import { SourceIcon } from './source-icon';
 export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
+  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive } = useWorklog();
+  const showActions = page === 'topics' && !taskContextMenu;
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">
       <table className="data-table table-fixed [border-collapse:collapse] w-full [min-width:760px] text-left [font-size:12px] [&_th]:[padding:10px_15px] [&_th]:[font-size:10px] [&_th]:[font-weight:600] [&_th]:[color:var(--muted)] [&_th]:[background:var(--surface-soft)] [&_th]:[letter-spacing:0.4px] [&_th]:uppercase [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:whitespace-nowrap [&_td]:[padding:15px] [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_td]:[overflow-wrap:anywhere] [&_td:nth-child(5)]:whitespace-nowrap [&_td:nth-child(6)]:whitespace-nowrap [&_tr:last-child_td]:[border-bottom:none] [&_tbody_tr:hover]:[background:var(--surface-soft)]">
@@ -26,6 +29,7 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
           <col className="w-[18%]" />
           <col className="w-[110px]" />
           <col className="w-[110px]" />
+          {showActions && <col className="w-[52px]" />}
         </colgroup>
         <thead>
           <tr>
@@ -35,50 +39,86 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
             <th>Assignees</th>
             <th>Target</th>
             <th>Updated</th>
+            {showActions && <th scope="col"><span className="sr-only">Actions</span></th>}
           </tr>
         </thead>
         <tbody>
-          {topics.map((topic) => (
-            <tr key={topic.id}>
-              <td className="relative overflow-hidden">
-                <TopicInactivityIndicator topic={topic} edge />
-                <Button tone="link" size="auto" onClick={() => open(topic.id)}>
-                  {topic.title}
-                </Button>
-                {showCategory && (
-                  <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-                    <CategoryTag category={topic.category} />
-                  </div>
-                )}
-              </td>
-              <td>
-                <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
-                  {human(topic.status)}
-                </Badge>
-              </td>
-              <td>
-                <Badge tone={topic.priority === 'urgent' ? 'danger' : 'neutral'}>
-                  {human(topic.priority)}
-                </Badge>
-              </td>
-              <td>{assignedNames(topic).join(', ') || 'Unassigned'}</td>
-              <td
-                className={
-                  topic.targetDate &&
-                  topic.targetDate < today() &&
-                  ![
-                    'completed [text-decoration:line-through] [color:var(--muted)]',
-                    'canceled',
-                  ].includes(topic.status)
-                    ? 'overdue [color:var(--danger-ink)] [font-weight:550]'
-                    : ''
-                }
+          {topics.map((topic) => {
+            const actions: ActionMenuItem[] = [
+              {
+                label: 'Edit topic',
+                icon: <IconEdit size={15} />,
+                opensDialog: true,
+                onSelect: () => setEditor({ kind: 'topic', id: topic.id }),
+              },
+              {
+                label: topic.archived ? 'Unarchive' : 'Archive',
+                icon: <IconArchive size={15} />,
+                opensDialog: true,
+                onSelect: () => askArchive(topic.id),
+              },
+              {
+                label: 'Delete topic',
+                icon: <IconTrash size={15} />,
+                destructive: true,
+                opensDialog: true,
+                onSelect: () => askDelete({ kind: 'topic', id: topic.id }),
+              },
+            ];
+            return (
+              <ContextMenu
+                key={topic.id}
+                label={`Actions for ${topic.title}`}
+                disabled={!taskContextMenu || page !== 'topics' || wb.busy}
+                items={actions}
               >
-                {formatDate(topic.targetDate)}
-              </td>
-              <td className="muted [color:var(--muted)]">{formatDate(topic.updatedAt)}</td>
-            </tr>
-          ))}
+                <tr>
+                  <td className="relative overflow-hidden">
+                    <TopicInactivityIndicator topic={topic} edge />
+                    <Button tone="link" size="auto" onClick={() => open(topic.id)}>
+                      {topic.title}
+                    </Button>
+                    {showCategory && (
+                      <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
+                        <CategoryTag category={topic.category} />
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
+                      {human(topic.status)}
+                    </Badge>
+                  </td>
+                  <td>
+                    <Badge tone={topic.priority === 'urgent' ? 'danger' : 'neutral'}>
+                      {human(topic.priority)}
+                    </Badge>
+                  </td>
+                  <td>{assignedNames(topic).join(', ') || 'Unassigned'}</td>
+                  <td
+                    className={
+                      topic.targetDate &&
+                      topic.targetDate < today() &&
+                      ![
+                        'completed [text-decoration:line-through] [color:var(--muted)]',
+                        'canceled',
+                      ].includes(topic.status)
+                        ? 'overdue [color:var(--danger-ink)] [font-weight:550]'
+                        : ''
+                    }
+                  >
+                    {formatDate(topic.targetDate)}
+                  </td>
+                  <td className="muted [color:var(--muted)]">{formatDate(topic.updatedAt)}</td>
+                  {showActions && (
+                    <td className="topic-actions [&.topic-actions]:p-2">
+                      <ActionMenu label={`Actions for ${topic.title}`} disabled={wb.busy} items={actions} />
+                    </td>
+                  )}
+                </tr>
+              </ContextMenu>
+            );
+          })}
         </tbody>
       </table>
     </div>
