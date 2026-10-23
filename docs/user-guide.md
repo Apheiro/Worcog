@@ -83,9 +83,13 @@ to create a main task inside the current topic.
 
 In the Topics list, search and filters narrow the results. **Sort by** orders
 them by last update, target date, priority or name. **Group by** offers category,
-priority, status, creation date, last update and deadline. Grouping by category
+requester, priority, status, creation date, last update and deadline. Requester
+groups combine the same name regardless of case, preserve the contact's display
+name and place topics without one under **No requester** at the end. Grouping by category
 shows the category in the group heading instead of repeating it on every row.
 Grouping and sorting preferences are saved on this device.
+Grouped topic tables share the same column widths, keeping status, priority,
+assignees and dates aligned across groups regardless of their contents.
 
 ### Topic color indicator
 

@@ -4,6 +4,7 @@ import { filterTopics } from '../../application/queries';
 import type { Topic } from '../../domain/model';
 import { calendarDate, formatDate } from '../../domain/dates';
 import { human } from '../../domain/options';
+import { responsibleDirectory, responsibleKey } from '../../domain/responsibles';
 import { TopicDetail } from '../../components/topic-detail';
 import { CategoryTag } from '../../components/category-tag';
 import { Select } from '../../components/core';
@@ -14,6 +15,7 @@ import { WorkspaceSection } from '../../components/workspace-section';
 const groupOptions = [
   { value: 'none', label: 'None' },
   { value: 'category', label: 'Category' },
+  { value: 'requester', label: 'Requester' },
   { value: 'priority', label: 'Priority' },
   { value: 'status', label: 'Status' },
   { value: 'created', label: 'Creation date' },
@@ -48,9 +50,11 @@ export default function Page() {
   const topics = filterTopics(w, effective, sort, page === 'archive');
   const dateGrouping = ['created', 'updated', 'deadline'].includes(groupBy);
   const groups = new Map<string, Topic[]>();
+  const requesterNames = new Map(responsibleDirectory(w).map((name) => [responsibleKey(name), name]));
   function groupKey(topic: Topic): string {
     switch (groupBy) {
       case 'category': return topic.category;
+      case 'requester': return responsibleKey(topic.requesterName ?? '');
       case 'priority': return topic.priority;
       case 'status': return topic.status;
       case 'created': return calendarDate(topic.createdAt);
@@ -60,7 +64,8 @@ export default function Page() {
     }
   }
   function groupLabel(key: string): string {
-    if (!key) return groupBy === 'category' ? 'No category' : 'No deadline';
+    if (!key) return groupBy === 'category' ? 'No category' : groupBy === 'requester' ? 'No requester' : 'No deadline';
+    if (groupBy === 'requester') return requesterNames.get(key) ?? key;
     if (dateGrouping) return formatDate(key);
     return groupBy === 'category' ? key : human(key);
   }
