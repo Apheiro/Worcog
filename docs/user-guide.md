@@ -39,6 +39,9 @@ Saved records and managed documents are stored on this device. Files selected
 for export and expanded task threads are temporary interface state; they are
 not a replacement for saving your work or creating backups.
 
+Switch views using the sidebar. Navigation updates the current view without
+reloading the application or reopening the local database.
+
 ## Overview
 
 Overview summarizes open, overdue and blocked tasks, plus topics in progress.

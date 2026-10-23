@@ -259,6 +259,9 @@ CSP at compile time ([official CSP documentation](https://v2.tauri.app/security/
 Development and production use webpack consistently. The development-only CSP
 permits Next's inline scripts, evaluated source maps and its loopback HMR socket;
 the production CSP remains restricted to bundled resources and native IPC.
+Both policies include `'self'` in `connect-src` so Next.js can fetch bundled
+route payloads for client-side navigation. Blocking these local requests makes
+Next.js fall back to full document navigation and reopens the workspace.
 ESLint 9 is retained because Next's bundled React/accessibility plugin peers
 currently exclude ESLint 10. Its registry deprecation is a tooling limitation to
 revisit when those upstream peers support the next major.
