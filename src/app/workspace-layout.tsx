@@ -35,6 +35,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
   const {
     wb,
     updates,
+    documents,
     w,
     page,
     editor,
@@ -59,7 +60,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
     textureOpacity,
   } = useWorklog();
   return (
-    <div className="app-shell flex h-full min-h-0 w-full">
+    <div inert={documents.activeId !== null} className="app-shell flex h-full min-h-0 w-full">
       {textureEnabled && (
         <div
           aria-hidden="true"

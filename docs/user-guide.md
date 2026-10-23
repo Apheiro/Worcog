@@ -380,9 +380,34 @@ from Worklog's local database and does not add automatic cloud synchronization
 or Microsoft Office account integration.
 
 Documents open in a large floating modal. Its controls minimize or close it.
+Opening and closing use a short fade and scale transition. Minimizing moves
+the viewer toward its dock dot; restoring expands it from that dot. The iframe
+stays mounted while minimized, preserving the document and unsaved edits.
+A file-colored screen with a centered spreadsheet, Word or PowerPoint icon is
+shown when opening or restoring a document, until the entrance animation ends
+and the editor has opened the file. It also covers minimizing and closing
+transitions. The iframe stays mounted underneath and appears directly, without
+an additional fade. Lateral switching is the exception: the rendered editor
+remains visible throughout the slide.
+Clicking the dark overlay also minimizes the viewer. Minimization is blocked
+while saving, checking for unsaved changes or answering the close confirmation.
+The main window's title bar remains available above the overlay, so you can
+drag, minimize, maximize or close Worklog while a document is open. The
+underlying workspace is inactive until you minimize or close the document.
 You can open multiple documents; minimized instances appear as individual
 dots at the lower right. Hover a dot to identify its document and click to
 restore it.
+
+With a viewer open and at least two documents available, **Ctrl + Left arrow**
+and **Ctrl + Right arrow** switch between documents in opening order, wrapping
+at either end. Switching slides the current document sideways and brings the
+next one in from the opposite side. Loaded editors remain rendered and opaque
+during the slide, without replaying the loading screen, taking snapshots or
+reloading the document.
+The Windows desktop build captures these shortcuts even inside the embedded
+editor. In browser previews and other systems, they apply when focus is on
+Worklog's viewer controls. Shortcuts pause while saving or confirming a close.
+Transitions respect the system's reduced-motion preference.
 
 When closing a document that may contain unsaved changes, choose **Save &
 close**, **Discard** or **Cancel**. Saving updates the existing attachment and
@@ -533,6 +558,7 @@ handle their own shortcuts while their iframe has focus.
 | Command + click | File chips on task cards, macOS | Same file selection action |
 | Ctrl / Command + Enter or Space | Focused file chip on a task card | Toggle export selection from the keyboard |
 | Alt + T | Worklog notifications | Focus the notifications area |
+| Ctrl + Left / Right arrow | Open document viewer with multiple documents; Windows also captures these inside the editor | Slide to the previous / next document, wrapping at either end |
 | Tab / Shift + Tab | Worklog controls | Move focus forward or backward |
 | Enter / Space | Focused buttons and checkboxes | Activate the control or toggle its checkbox |
 | Space | Focused settings switch | Toggle the setting |

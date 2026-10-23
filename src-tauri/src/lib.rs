@@ -7,6 +7,8 @@ mod attachment_export;
 #[cfg(feature = "desktop")]
 mod desktop;
 #[cfg(feature = "desktop")]
+mod document_shortcuts;
+#[cfg(feature = "desktop")]
 mod desktop_preferences;
 #[cfg(feature = "desktop")]
 mod reminder_audio;

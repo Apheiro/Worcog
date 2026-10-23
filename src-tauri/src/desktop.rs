@@ -296,6 +296,7 @@ pub fn run() {
             // Cache is regenerable; a failure must not prevent access to primary data.
             let _ = fs::create_dir_all(&cache);
             let (reminders, receiver) = crate::reminders::Service::new();
+            app.manage(crate::document_shortcuts::DocumentShortcuts::default());
             app.manage(AppState {
                 reminders: Arc::new(reminders),
                 store: storage::StoreAccess::new(root),
@@ -324,6 +325,7 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            crate::document_shortcuts::set_document_shortcuts,
             crate::reminder_commands::reminder_status,
             crate::reminder_commands::set_reminder_preferences,
             crate::reminder_commands::choose_reminder_sound,
