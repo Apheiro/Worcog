@@ -4,6 +4,7 @@ import { toast, type ToastOptions } from 'react-toastify/unstyled';
 import { desktopAvailable, errorMessage } from './native';
 import { notifications } from './notifications';
 import { updatesApi, type AvailableUpdate, type UpdateStatus, type UpdateReceipt } from './updates';
+import { Button } from '../components/core/button';
 
 const updateToast = 'application-update';
 export function useUpdates() {
@@ -26,10 +27,16 @@ export function useUpdates() {
       setReceipt(null);
       if (found) {
         const content = (
-          <button type="button" className="update-toast" onClick={() => setOpen(true)}>
+          <Button
+            type="button"
+            tone="ghost"
+            size="auto"
+            className="update-toast min-w-0 flex-1 flex-col gap-1 p-0 [&.button]:items-start [&.button]:justify-start [&.button]:text-left [&.button]:border-0 [&.button]:font-normal [&.button]:[color:inherit] [&.button:hover]:bg-transparent"
+            onClick={() => setOpen(true)}
+          >
             <strong>Worklog {found.version} is available</strong>
-            <span>View release notes and download</span>
-          </button>
+            <span className="text-xs [color:var(--muted)]">View release notes and download</span>
+          </Button>
         );
         const options: ToastOptions = {
           toastId: updateToast,

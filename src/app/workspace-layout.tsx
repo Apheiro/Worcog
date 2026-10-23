@@ -8,9 +8,7 @@ import { navigation, useWorklog } from '../providers/worklog';
 import dynamic from 'next/dynamic';
 import { EntityEditor } from '../components/editors';
 import { FileDetail, SourceDetail } from '../components/related-dialogs';
-const UpdateDialog = dynamic(() =>
-  import('../components/application-updates').then((m) => m.UpdateDialog),
-);
+import { UpdateDialog } from '../components/application-updates';
 import { Button, Checkbox, Confirm } from '../components/core';
 import { ScrollArea } from '../components/core/scroll-area';
 import { ReminderFallback } from '../components/reminder-fallback';

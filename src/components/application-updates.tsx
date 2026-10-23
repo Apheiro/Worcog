@@ -8,6 +8,12 @@ import { notifications } from '../infrastructure/notifications';
 import type { UpdateController } from '../infrastructure/use-updates';
 import { Button, Field, Input, Modal } from './core';
 
+function displayExecutablePath(path: string) {
+  if (path.startsWith('\\\\?\\UNC\\')) return '\\\\' + path.slice(8);
+  if (path.startsWith('\\\\?\\') && /^[a-z]:\\/i.test(path.slice(4))) return path.slice(4);
+  return path;
+}
+
 function ReleaseLink({ href, children }: { href?: string; children?: ReactNode }) {
   let safeHref: string | null = null;
   try {
@@ -177,9 +183,9 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
             <h3>Verified download</h3>
             <dl className="metadata grid [grid-template-columns:100px_minmax(0,_1fr)] [font-size:12px] [gap:10px_15px] [&_dt]:[color:var(--muted)] [&_dd]:m-0 my-3">
               <dt>New executable</dt>
-              <dd>{u.receipt.downloadPath}</dd>
+              <dd>{displayExecutablePath(u.receipt.downloadPath)}</dd>
               <dt>Running executable</dt>
-              <dd>{u.receipt.currentExecutable}</dd>
+              <dd>{displayExecutablePath(u.receipt.currentExecutable)}</dd>
             </dl>
             <ol>
               <li>Close Worklog normally.</li>

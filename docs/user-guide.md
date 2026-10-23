@@ -506,6 +506,12 @@ On supported Windows x64 builds, Worklog checks GitHub Releases on startup.
 Use **Settings → Updates → Check for updates** for a manual check. An available
 update offers release notes and **Download update**.
 
+Click the update notification to open its details in a modal over the current
+view, without reloading the workspace. The notification follows the app's theme.
+
+The download and running executable paths are displayed in standard Windows
+notation, without the internal extended-path prefix.
+
 The downloaded executable is verified and kept separately from workspace
 data. Installation is manual: Worklog does not close itself, replace the
 running executable or launch the update automatically. A GitHub credential
