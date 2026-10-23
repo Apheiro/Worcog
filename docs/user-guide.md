@@ -319,6 +319,9 @@ copies them into its managed attachments directory; changing or removing the
 original outside Worklog does not change that copy. Topic-level general files
 can also be attached from the topic workspace.
 
+Each linked resource appears once in the task form, including while newly
+uploaded files become saved resources.
+
 Supported attachments include PDF, text, Markdown, CSV, JSON, logs, common
 images, DOCX, XLSX, PPTX, ODT, ODS and ODP. Each file may be at most **100 MiB**.
 Executables, scripts, shortcuts, HTML and macro-enabled Office files are not

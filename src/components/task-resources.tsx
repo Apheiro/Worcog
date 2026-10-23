@@ -2,7 +2,7 @@
 import { useEffect, useImperativeHandle, useRef, useState, type DragEvent, type Ref } from 'react';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { IconFile, IconLink, IconUpload, IconX } from '@tabler/icons-react';
-import type { TaskResourcesDraft } from '../application/task-resources';
+import { mergeResourceDrafts, type TaskResourcesDraft } from '../application/task-resources';
 import type { Workspace } from '../domain/model';
 import { sourceSchema } from '../domain/validation';
 import { clearSourcePlatforms, emptySourceForm, isSourceType, type SourceFormValues } from '../domain/sources';
@@ -55,8 +55,9 @@ export function TaskResources({
     },
   }));
   const savedSources = clearSourcePlatforms(w.sources, value.removedSourcePlatforms ?? []);
-  const sources = [...savedSources, ...value.sources].filter((s) => value.sourceIds.includes(s.id));
-  const files = [...w.attachments, ...value.files].filter((f) => value.fileIds.includes(f.id));
+  const sources = mergeResourceDrafts(savedSources, value.sources).filter((s) => value.sourceIds.includes(s.id));
+  const files = mergeResourceDrafts(w.attachments, value.files).filter((f) => value.fileIds.includes(f.id));
+  const savedFileIds = new Set(w.attachments.map((file) => file.id));
   const term = query.trim().toLocaleLowerCase();
   // Existing resources appear only after an explicit search, never as an unfiltered catalogue.
   const matches =
@@ -92,8 +93,8 @@ export function TaskResources({
         const current = latest.current.value;
         const next = {
           ...current,
-          files: [...current.files, file],
-          fileIds: [...current.fileIds, file.id],
+          files: mergeResourceDrafts(current.files, [file]),
+          fileIds: [...new Set([...current.fileIds, file.id])],
         };
         latest.current.value = next;
         latest.current.onChange(next);
@@ -206,7 +207,7 @@ export function TaskResources({
       setError('Open the desktop application to import files.');
   }
   async function removeFile(id: string) {
-    const draft = value.files.find((file) => file.id === id);
+    const draft = savedFileIds.has(id) ? undefined : value.files.find((file) => file.id === id);
     if (draft) {
       onBusyChange(true);
       try {
@@ -294,7 +295,7 @@ export function TaskResources({
             {files.map((f) => (
               <li key={f.id} className="flex items-center gap-2 text-xs min-w-0">
                 <IconFile size={15} className="shrink-0" />
-                {value.files.some((draft) => draft.id === f.id) ? (
+                {!savedFileIds.has(f.id) ? (
                   <span className="break-words">
                     {f.originalName} <span className="[color:var(--muted)]">· Pending save</span>
                   </span>
@@ -346,8 +347,8 @@ export function TaskResources({
                 onClick={() => {
                   onChange(
                     match.kind === 'source'
-                      ? { ...value, sourceIds: [...value.sourceIds, match.id] }
-                      : { ...value, fileIds: [...value.fileIds, match.id] },
+                      ? { ...value, sourceIds: [...new Set([...value.sourceIds, match.id])] }
+                      : { ...value, fileIds: [...new Set([...value.fileIds, match.id])] },
                   );
                   setQuery('');
                 }}

@@ -12,6 +12,15 @@ export interface TaskResourcesDraft {
   removedSourcePlatforms?: SourcePlatform[];
 }
 
+/** Saved resources take precedence when a draft has already been committed. */
+export function mergeResourceDrafts<T extends { id: string }>(saved: T[], drafts: T[]): T[] {
+  const resources = new Map(saved.map((resource) => [resource.id, resource]));
+  for (const draft of drafts) {
+    if (!resources.has(draft.id)) resources.set(draft.id, draft);
+  }
+  return [...resources.values()];
+}
+
 /** Commit a task and its resource relationships together in the existing workspace transaction. */
 export function saveTaskWithResources(
   w: Workspace,
@@ -28,6 +37,7 @@ export function saveTaskWithResources(
   for (const source of draft.sources.filter((s) => draft.sourceIds.includes(s.id))) {
     const existing = sources.find(
       (s) =>
+        s.id === source.id ||
         (source.url && s.url === source.url) ||
         (source.identifier &&
           s.identifier.toLocaleLowerCase() === source.identifier.toLocaleLowerCase() &&
@@ -50,10 +60,10 @@ export function saveTaskWithResources(
   };
   const next = id ? updateTask(base, id, values) : createTask(base, values);
   const taskId = id ?? next.tasks[next.tasks.length - 1].id;
-  const attachments = [
-    ...next.attachments,
-    ...draft.files.filter((file) => draft.fileIds.includes(file.id)),
-  ].map((file) => {
+  const attachments = mergeResourceDrafts(
+    next.attachments,
+    draft.files.filter((file) => draft.fileIds.includes(file.id)),
+  ).map((file) => {
     const linked = file.taskIds.includes(taskId);
     const selected = draft.fileIds.includes(file.id);
     if (linked === selected) return file;
