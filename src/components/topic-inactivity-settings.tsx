@@ -16,6 +16,7 @@ export function TopicInactivitySettingsForm({
   onSave: (settings: TopicInactivitySettings) => void;
 }) {
   const [error, setError] = useState('');
+  const [excludedWeekdays, setExcludedWeekdays] = useState(settings.excludedWeekdays);
   const [colors, setColors] = useState({
     initialColor: settings.initialColor,
     midpointColor: settings.midpointColor,
@@ -26,11 +27,21 @@ export function TopicInactivitySettingsForm({
     { key: 'midpointColor', label: 'Midpoint', position: '50%', align: 'center' },
     { key: 'extremeColor', label: 'Final', position: '100%', align: 'end' },
   ] as const;
+  const weekdays = [
+    { value: 1, label: 'Monday', short: 'Mon' },
+    { value: 2, label: 'Tuesday', short: 'Tue' },
+    { value: 3, label: 'Wednesday', short: 'Wed' },
+    { value: 4, label: 'Thursday', short: 'Thu' },
+    { value: 5, label: 'Friday', short: 'Fri' },
+    { value: 6, label: 'Saturday', short: 'Sat' },
+    { value: 0, label: 'Sunday', short: 'Sun' },
+  ];
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const result = topicInactivitySchema.safeParse({
       days: Number(data.get('days')),
+      excludedWeekdays,
       ...colors,
     });
     if (!result.success) {
@@ -126,6 +137,29 @@ export function TopicInactivitySettingsForm({
               </div>
             </div>
           </div>
+          <fieldset className="m-0 mb-4 flex min-w-0 flex-col gap-2 border-0 p-0" aria-describedby="inactivity-weekdays-hint">
+            <legend className="mb-2 text-xs font-medium [color:var(--secondary)]">Pause inactivity on</legend>
+            <div className="flex flex-wrap gap-1.5">
+              {weekdays.map(({ value, label, short }) => (
+                <Button
+                  key={value}
+                  type="button"
+                  size="sm"
+                  tone={excludedWeekdays.includes(value) ? 'primary' : 'quiet'}
+                  aria-label={label}
+                  aria-pressed={excludedWeekdays.includes(value)}
+                  title={label}
+                  className="min-w-10"
+                  onClick={() => setExcludedWeekdays((current) => current.includes(value)
+                    ? current.filter((day) => day !== value)
+                    : [...current, value].sort((a, b) => a - b))}
+                >
+                  {short}
+                </Button>
+              ))}
+            </div>
+            <p id="inactivity-weekdays-hint" className="text-xs [color:var(--muted)]">Selected weekdays do not count, using local time. All days count by default. Deadlines are unaffected.</p>
+          </fieldset>
           {error && (
             <p role="alert" className="text-xs [color:var(--danger-ink)] mb-3">
               {error}

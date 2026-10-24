@@ -111,6 +111,10 @@ The slim color bar uses the Initial, Midpoint and Final colors configured in
 Settings. Without a target date it represents time since the topic's last
 activity, relative to the configured inactivity period. Changes to related
 tasks and resources also update topic activity.
+Weekdays selected under **Settings → General → Topic inactivity → Pause inactivity
+on** do not contribute to this time. The bar pauses throughout each excluded
+weekday, using local time, and resumes on counted days. The tooltip reports
+counted days when exclusions are configured.
 
 When a topic has a target date, its bar instead represents elapsed time from
 its Start date to the end of its target day. If no Start date is available,
@@ -578,6 +582,11 @@ an older backup may bring back records deleted since that backup.
   Final colors. Click the markers on the horizontal gradient to adjust colors,
   then choose **Save inactivity settings**. The default period is 14 days and
   the palette runs from grayish white through a midpoint to red.
+  Under **Pause inactivity on**, select the weekdays to exclude (for example,
+  Saturday and Sunday). Selected buttons mark excluded days; all weekdays count
+  by default. Save to apply the selection to existing and new topics immediately.
+  Selecting all seven weekdays pauses inactivity entirely. This setting also
+  affects the overview's inactive-topic list, but never task or topic deadlines.
 - **Tray & reminders:** enable the tray and Worcog reminder notifications,
   configure a custom sound and volume, preview it and manage pending alerts.
   Both optional features start disabled. Appearance, document-editor and
