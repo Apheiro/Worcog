@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.8.0](https://github.com/Apheiro/Worcog/compare/v0.7.0...v0.8.0) (2026-10-24)
+
+
+### Features
+
+* **documents:** animate viewers and switch embedded windows ([c2f144a](https://github.com/Apheiro/Worcog/commit/c2f144af05a779dac9dfe280070cdb1c832a5344))
+* **links:** connect tasks and topics with directed relationships ([16c8f36](https://github.com/Apheiro/Worcog/commit/16c8f367867be00016f29f3445646402d53049a7))
+* **resources:** distinguish source types with dedicated icons ([14afa85](https://github.com/Apheiro/Worcog/commit/14afa852b2e458a8316350cc53e4bab6f1522f51))
+* **tasks:** support hierarchy dragging and persistent free ordering ([f60d9eb](https://github.com/Apheiro/Worcog/commit/f60d9eb93c71a7f5c19e126a055ba66e61c1397f))
+* **topics:** group by requester and align grouped columns ([162bf05](https://github.com/Apheiro/Worcog/commit/162bf05937ad576c841da6172fb0746567c14be1))
+* **ui:** add optional task and topic context menus ([1bebfe0](https://github.com/Apheiro/Worcog/commit/1bebfe00c5e0d928ace6d0fbe7b3f39a8b150e3b))
+
+
+### Bug Fixes
+
+* **import:** accept attachment directories in repacked archives ([c2e6fd7](https://github.com/Apheiro/Worcog/commit/c2e6fd7c70d0a4cacc3d2983dccac33c32d64eac))
+* **navigation:** preserve workspace during client-side route changes ([fb6d280](https://github.com/Apheiro/Worcog/commit/fb6d280f168bdb0019872554ebf1fca24bf4bbd5))
+* **resources:** deduplicate saved task attachments and drafts ([a5ac1e9](https://github.com/Apheiro/Worcog/commit/a5ac1e92e5f68013b7b95ecc17f454093b79ed51))
+* **updates:** polish notifications and executable paths ([42d7da9](https://github.com/Apheiro/Worcog/commit/42d7da9649122467a8cd98521b2a56e86c51008a))
+
 ## [0.7.0](https://github.com/Apheiro/Worcog/compare/v0.6.0...v0.7.0) (2026-10-22)
 
 
