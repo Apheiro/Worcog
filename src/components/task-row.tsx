@@ -15,6 +15,7 @@ import {
 } from '@tabler/icons-react';
 import { useId, useState, type FormEvent, type ReactNode, type Ref } from 'react';
 import { cva } from 'cva';
+import dayjs from 'dayjs';
 import { formatDate, isOverdue } from '../domain/dates';
 import type { Status, Task, Workspace } from '../domain/model';
 import { assignedNames } from '../domain/responsibles';
@@ -81,7 +82,12 @@ export function TaskRow({
   const parent = w.tasks.find((t) => t.id === task.parentId);
   const sources = w.sources.filter((source) => task.sourceIds.includes(source.id));
   const files = w.attachments.filter((file) => file.taskIds.includes(task.id));
-  const deadline = deadlineIndicator(task.createdAt, task.dueDate, inactivitySettings);
+  const deadline = deadlineIndicator(
+    task.createdAt,
+    task.dueDate,
+    inactivitySettings,
+    task.status === 'completed' && task.completedAt ? dayjs(task.completedAt) : undefined,
+  );
   const [blocking, setBlocking] = useState(false);
   const [addingUpdate, setAddingUpdate] = useState(false);
   const [updatesExpanded, setUpdatesExpanded] = useState(false);

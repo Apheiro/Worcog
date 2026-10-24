@@ -158,7 +158,9 @@ controls remain available.
 
 A task with a deadline shows a small color pill below its checkbox. It uses
 your configured Initial, Midpoint and Final colors, based on elapsed time from
-creation to the end of the deadline day. Tasks without a deadline have no pill.
+creation to the end of the deadline day. Completing a task freezes its progress
+at the recorded completion time, using the configured colors. Reopening it
+resumes calculation from the current time. Tasks without a deadline have no pill.
 The date, with an Overdue label when applicable, appears below the actions.
 
 **Order by** offers Free, creation date oldest/newest first, deadline, priority
