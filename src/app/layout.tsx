@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import './globals.css';
 import { themeInitializationScript } from '../infrastructure/theme';
 export const metadata: Metadata = {
-  title: 'Worklog · Personal operations',
+  title: 'Worcog · Personal operations',
   description: 'A local workspace for topics, evidence, decisions and next actions.',
 };
 export default function RootLayout({ children }: { children: ReactNode }) {

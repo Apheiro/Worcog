@@ -54,7 +54,7 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
       </CardHeader>
       <CardContent className="settings-body">
         <p>
-          Download verified Windows x64 updates from Apheiro/Worklog on GitHub. Updates are
+          Download verified Windows x64 updates from Apheiro/Worcog on GitHub. Updates are
           installed manually.
         </p>
         <p className="muted [color:var(--muted)] text-sm my-3">
@@ -105,7 +105,7 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
             </Field>
             <p className="muted [color:var(--muted)] text-sm my-3">
               Public repositories work without a token. For a private repository, use a fine-grained
-              personal access token restricted to Apheiro/Worklog with Contents: Read. This also
+              personal access token restricted to Apheiro/Worcog with Contents: Read. This also
               permits reading repository source code; GitHub does not provide a releases-only read
               permission here. Production tokens stay in Windows Credential Manager.
             </p>
@@ -147,7 +147,7 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
   return (
     <Modal
       className="update-modal [&.update-modal]:[top:20px] [&.update-modal]:[transform:translateX(-50%)] [&.update-modal]:[height:min(780px,_calc(100dvh_-_140px))] [&.update-modal]:[max-height:calc(100dvh_-_140px)]"
-      title={`Worklog ${u.available.version} is available`}
+      title={`Worcog ${u.available.version} is available`}
       description={`Installed: ${u.available.currentVersion} · Download: ${u.available.filename} · ${(u.available.size / 1024 / 1024).toFixed(1)} MiB`}
       onClose={u.close}
       wide
@@ -188,7 +188,7 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
               <dd>{displayExecutablePath(u.receipt.currentExecutable)}</dd>
             </dl>
             <ol>
-              <li>Close Worklog normally.</li>
+              <li>Close Worcog normally.</li>
               <li>Keep a copy of your previous EXE.</li>
               <li>
                 Replace the previous EXE with the downloaded file in the application location shown
@@ -203,7 +203,7 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
         )}
         <p className="muted [color:var(--muted)] text-xs my-3">
           SHA-256 checks integrity against GitHub metadata. It does not replace an independent
-          publisher signature. Worklog will not close, run or replace executables automatically.
+          publisher signature. Worcog will not close, run or replace executables automatically.
         </p>
       </div>
     </Modal>

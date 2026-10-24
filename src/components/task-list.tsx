@@ -7,7 +7,7 @@ import { pointerIntersection } from '@dnd-kit/collision';
 import { canReparentTask, orderTasksForDisplay, type TaskMove, type TaskSort } from '../application/task-order';
 import { moveTask } from '../application/task-movement';
 import type { Task } from '../domain/model';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { Button, Empty } from './core';
 import { TaskRow, type TaskRowProps } from './task-row';
 import { TaskConnections } from './task-connections';
@@ -50,7 +50,7 @@ function TaskDropLine({ id, move, label, disabled, detached = false }: {
 
 function DraggableTaskRow({ activeTask, ...props }: ListRowProps & { activeTask: Task | null }) {
   const { task, workspace, busy } = props;
-  const { relations } = useWorklog();
+  const { relations } = useWorcog();
   const { ref: dragRef, handleRef } = useDraggable({ id: task.id, disabled: busy || !!relations.source });
   const canNest = !!activeTask && activeTask.parentId !== task.id && canReparentTask(workspace.tasks, activeTask.id, task.id);
   const { ref: dropRef, isDropTarget } = useDroppable<DropData>({
@@ -97,7 +97,7 @@ export function TaskList({ tasks, sort = 'created', ...rowProps }: Omit<ListRowP
   tasks: Task[];
   sort?: TaskSort;
 }) {
-  const { wb, relations } = useWorklog();
+  const { wb, relations } = useWorcog();
   const container = useRef<HTMLDivElement>(null);
   const { workspace, busy } = rowProps;
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());

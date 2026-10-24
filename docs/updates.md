@@ -1,12 +1,12 @@
 # Application updates
 
-Worklog checks GitHub Releases for **Apheiro/Worklog** when a Windows x64
+Worcog checks GitHub Releases for **Apheiro/Worcog** when a Windows x64
 application starts. You can also use **Storage & backups → Application updates →
 Check for updates**. Automatic connection/authentication failures stay silent;
 manual checks report connection, authentication, access and rate-limit errors.
 
 This downloads a new executable for **manual replacement**. It never closes
-Worklog, starts the downloaded executable, invokes PowerShell, deletes the
+Worcog, starts the downloaded executable, invokes PowerShell, deletes the
 running executable or installs an update automatically. Application versions,
 the Tauri identifier, storage locations and the release workflows are unchanged.
 
@@ -18,7 +18,7 @@ Drafts, prereleases, older/equal versions and build-metadata-only changes are
 ignored. A downloadable release must contain exactly one asset named:
 
 ```text
-worklog-vX.Y.Z-windows-x64.exe
+worcog-vX.Y.Z-windows-x64.exe
 ```
 
 The asset must have a nonzero ID, `state: uploaded`, a size between 2 bytes and
@@ -36,7 +36,7 @@ jobs without publishing extra checksum files; the app uses GitHub's asset digest
 
 Without a token, requests are anonymous and can access public releases. For a
 private repository, create a **fine-grained personal access token** restricted to
-`Apheiro/Worklog`, granting **Contents: Read** and any organization approval
+`Apheiro/Worcog`, granting **Contents: Read** and any organization approval
 required by the repository. This permission also reads repository source code;
 there is no separate releases-only read permission in this flow. GitHub's
 normal API limits apply, including anonymous rate limits.
@@ -45,12 +45,12 @@ Save, replace or remove the credential in **Application updates**. The replaceme
 field always starts empty and never retrieves an existing token.
 
 - **Production Windows builds:** a dedicated Rust credential service uses Windows
-  Credential Manager under `com.worklog.desktop.updates.production` for the
-  `Apheiro/Worklog` account. Only Rust reads the secret. IPC status contains
+  Credential Manager under `com.worcog.desktop.updates.production` for the
+  `Apheiro/Worcog` account. Only Rust reads the secret. IPC status contains
   presence information, never its value. Deploy keys and Git credentials are not
   used.
 - **Development/debug builds:** the existing development profile uses only
-  `worklog.updates.github-token.development.v1` in the webview's localStorage.
+  `worcog.updates.github-token.development.v1` in the webview's localStorage.
   This storage is unencrypted and independent of production. Rust receives the
   development credential transiently for a request; it does not persist it or
   fall back to the production vault. Production rejects development credential
@@ -77,7 +77,7 @@ protection in both the UI and backend. The backend retains the validated asset
 ID, filename, size and digest. The frontend cannot supply a download URL, trusted
 hash or output path.
 
-Networking uses reqwest with normal TLS certificate validation, a Worklog
+Networking uses reqwest with normal TLS certificate validation, a Worcog
 User-Agent, GitHub API version headers and explicit Accept headers. System and
 environment proxies are disabled. Redirects are followed manually, at most five
 times, and only HTTPS on these exact hosts is accepted:
@@ -109,7 +109,7 @@ After verification, the modal shows both the downloaded file's absolute path and
 the running executable's location. **Open download folder** opens a backend-resolved
 and validated folder; it does not accept a caller-supplied path.
 
-1. Close Worklog normally.
+1. Close Worcog normally.
 2. Keep a copy of the previous executable.
 3. Replace it with the verified download in the shown application location,
    using normal operating-system file permissions.

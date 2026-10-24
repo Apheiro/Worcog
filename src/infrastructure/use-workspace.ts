@@ -56,7 +56,7 @@ export function useWorkspace() {
     ): Promise<boolean> => {
       const result = await run(async () => {
         if (!desktopAvailable())
-          throw new Error('Open Worklog using pnpm tauri dev to save to the desktop database.');
+          throw new Error('Open Worcog using pnpm tauri dev to save to the desktop database.');
         const next = generateOccurrences(transform(current.current));
         const saved = await repository.save(next, current.current.revision, options);
         accept(saved.workspace);

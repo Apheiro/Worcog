@@ -5,7 +5,7 @@ import { topicTimeline } from '../application/queries';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
 import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
 import { ActionMenu, Badge, Button, ContextMenu, Empty, Select, type ActionMenuItem } from './core';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { sourceKindLabel } from '../domain/sources';
 import { selectOptions, activityKinds, human } from '../domain/options';
 import { assignedNames } from '../domain/responsibles';
@@ -18,7 +18,7 @@ import { AttachmentStatus } from './attachment-status';
 import { SourceIcon } from './source-icon';
 import { EntityLinks, EntityLinkTarget } from './entity-links';
 export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
-  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations } = useWorklog();
+  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations } = useWorcog();
   const showActions = page === 'topics' && !taskContextMenu;
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">

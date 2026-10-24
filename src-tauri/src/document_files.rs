@@ -47,7 +47,7 @@ fn read_attachment(store: &storage::Store, file: &Value) -> Result<Vec<u8>> {
     fs::File::open(path).map_err(|e| e.to_string())?
         .take(MAX_SIZE as u64 + 1).read_to_end(&mut bytes).map_err(|e| e.to_string())?;
     if bytes.len() > MAX_SIZE || bytes.len() as u64 != file["size"].as_u64().unwrap_or(0) {
-        return Err("Attachment changed outside Worklog. Reopen it before editing.".into());
+        return Err("Attachment changed outside Worcog. Reopen it before editing.".into());
     }
     Ok(bytes)
 }

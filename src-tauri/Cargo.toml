@@ -1,10 +1,10 @@
 [package]
-name = "worklog"
+name = "worcog"
 version = "0.7.0"
 edition = "2021"
 
 [lib]
-name = "worklog_lib"
+name = "worcog_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
@@ -12,7 +12,7 @@ default = ["desktop"]
 desktop = ["dep:tauri", "dep:tauri-plugin-opener", "dep:rfd", "dep:mime_guess", "dep:rodio", "dep:tauri-plugin-single-instance"]
 
 [[bin]]
-name = "worklog"
+name = "worcog"
 path = "src/main.rs"
 required-features = ["desktop"]
 

@@ -6,7 +6,7 @@ import { TaskOrder } from '../../components/task-order';
 import type { Status } from '../../domain/model';
 import { Button } from '../../components/core/button';
 import { TaskList } from '../../components/work-lists';
-import { useWorklog } from '../../providers/worklog';
+import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 export default function Page() {
   const {
@@ -21,7 +21,7 @@ export default function Page() {
     hideCompletedRootTasks,
     effective,
     askDeleteTask,
-  } = useWorklog();
+  } = useWorcog();
   const taskFilter = {
     ...effective,
     openOnly: taskView === 'open',

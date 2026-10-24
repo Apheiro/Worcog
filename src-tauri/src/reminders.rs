@@ -32,7 +32,7 @@ impl Service {
         (Self { status: Mutex::new(Status::default()), sender, window_ready: AtomicBool::new(false), exit_guard: AtomicBool::new(false), exit_confirmation: AtomicBool::new(false), preferences_lock: Mutex::new(()) }, receiver)
     }
     pub fn status(&self) -> Result<Status> { self.status.lock().map(|value| value.clone()).map_err(|_| "Reminder state is unavailable.".into()) }
-    pub fn send(&self, command: Command) -> Result<()> { self.sender.send(command).map_err(|_| "Reminder worker is unavailable. Restart Worklog.".into()) }
+    pub fn send(&self, command: Command) -> Result<()> { self.sender.send(command).map_err(|_| "Reminder worker is unavailable. Restart Worcog.".into()) }
     pub fn wake(&self) { let _ = self.send(Command::Refresh); }
 }
 
@@ -49,7 +49,7 @@ pub fn request_exit(app: &tauri::AppHandle) {
     if state.reminders.exit_confirmation.swap(true, Ordering::Relaxed) { return; }
     let app = app.clone();
     std::thread::spawn(move || {
-        let answer = rfd::MessageDialog::new().set_title("Exit Worklog?")
+        let answer = rfd::MessageDialog::new().set_title("Exit Worcog?")
             .set_description("A form, document or operation is open. Finish saving your changes before exiting. Exit anyway?")
             .set_buttons(rfd::MessageButtons::YesNo).show();
         app.state::<AppState>().reminders.exit_confirmation.store(false, Ordering::Relaxed);
@@ -59,13 +59,13 @@ pub fn request_exit(app: &tauri::AppHandle) {
 }
 
 pub fn ensure_tray(app: &tauri::AppHandle) -> Result<()> {
-    if app.tray_by_id("worklog").is_some() { return Ok(()); }
-    let open = MenuItem::with_id(app, "open-worklog", "Open Worklog", true, None::<&str>).map_err(|error| error.to_string())?;
-    let exit = MenuItem::with_id(app, "exit-worklog", "Exit", true, None::<&str>).map_err(|error| error.to_string())?;
+    if app.tray_by_id("worcog").is_some() { return Ok(()); }
+    let open = MenuItem::with_id(app, "open-worcog", "Open Worcog", true, None::<&str>).map_err(|error| error.to_string())?;
+    let exit = MenuItem::with_id(app, "exit-worcog", "Exit", true, None::<&str>).map_err(|error| error.to_string())?;
     let menu = Menu::with_items(app, &[&open, &exit]).map_err(|error| error.to_string())?;
-    TrayIconBuilder::with_id("worklog")
+    TrayIconBuilder::with_id("worcog")
         .icon(app.default_window_icon().ok_or("Application icon is unavailable.")?.clone())
-        .tooltip("Worklog")
+        .tooltip("Worcog")
         .menu(&menu).show_menu_on_left_click(false)
         .on_tray_icon_event(|tray, event| {
             if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. }) {
@@ -73,8 +73,8 @@ pub fn ensure_tray(app: &tauri::AppHandle) -> Result<()> {
             }
         })
         .on_menu_event(|app, event| match event.id.as_ref() {
-            "open-worklog" => { let _ = show_main(app); },
-            "exit-worklog" => {
+            "open-worcog" => { let _ = show_main(app); },
+            "exit-worcog" => {
                 request_exit(app);
             },
             _ => {},
@@ -140,7 +140,7 @@ fn present(app: &tauri::AppHandle, service: &Service, count: usize) -> Result<()
     let window = if let Some(window) = app.get_webview_window("reminders") { window } else {
         service.window_ready.store(false, Ordering::Relaxed);
         tauri::WebviewWindowBuilder::new(app, "reminders", tauri::WebviewUrl::App("reminders/".into()))
-            .title("Worklog reminders").decorations(false).resizable(false).always_on_top(true)
+            .title("Worcog reminders").decorations(false).resizable(false).always_on_top(true)
             .skip_taskbar(true).focused(false).visible(false).inner_size(400.0, 240.0)
             .build().map_err(|error| format!("Could not open reminder window: {error}"))?
     };

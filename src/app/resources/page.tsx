@@ -2,12 +2,12 @@
 import { searchWorkspace } from '../../application/queries';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/core';
 import { SourceList, FileList } from '../../components/work-lists';
-import { useWorklog } from '../../providers/worklog';
+import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 
 export default function Page() {
   const { w, setSourceId, setFileId, openFile, effective, filter, setFilter, askDelete } =
-    useWorklog();
+    useWorcog();
   const selected = filter.type === 'file' ? 'file' : 'source';
   const results = searchWorkspace(w, { ...effective, type: selected });
   const ids = new Set(results.map((result) => result.id));

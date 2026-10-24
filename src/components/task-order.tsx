@@ -2,12 +2,12 @@
 import { useId } from 'react';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { taskSortOptions } from '../application/task-order';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { Button, Select } from './core';
 
 export function TaskOrder() {
   const id = useId();
-  const { taskSort, setTaskSort, hideCompletedRootTasks, setHideCompletedRootTasks } = useWorklog();
+  const { taskSort, setTaskSort, hideCompletedRootTasks, setHideCompletedRootTasks } = useWorcog();
   return (
     <div className="flex flex-wrap items-center gap-2">
       <label htmlFor={id} className="shrink-0 text-xs [color:var(--muted)]">Order by</label>

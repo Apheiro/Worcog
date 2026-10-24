@@ -8,7 +8,7 @@ import type { DeletionTarget } from '../application/deletion';
 import { updateTask } from '../application/workspace';
 import { filterCompletedRootTasks } from '../application/task-order';
 import { TaskOrder } from './task-order';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { formatDate, isOpen } from '../domain/dates';
 import type { Topic } from '../domain/model';
 import { attachmentTopicIds, sourceTopicIds } from '../domain/relationships';
@@ -44,7 +44,7 @@ export function TopicDetail({
   deleteTask: (id: string) => void;
 }) {
   const w = wb.workspace;
-  const { taskSort, hideCompletedRootTasks, relations } = useWorklog();
+  const { taskSort, hideCompletedRootTasks, relations } = useWorcog();
   const tasks = w.tasks.filter((t) => t.topicId === topic.id);
   const visibleTasks = filterCompletedRootTasks(tasks, hideCompletedRootTasks);
   const sources = w.sources.filter((s) => sourceTopicIds(w, s).includes(topic.id));

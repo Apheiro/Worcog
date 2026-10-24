@@ -24,7 +24,7 @@ pub async fn set_reminder_preferences(input: PreferenceInput, app: tauri::AppHan
     let _guard = state.reminders.preferences_lock.lock().map_err(|_| "Reminder settings are unavailable.")?;
     if input.volume == 0 || input.volume > 100 { return Err("Volume must be between 1 and 100%.".into()); }
     if input.notifications_enabled && !input.tray_enabled { return Err("Enable Tray icon before Reminder notifications.".into()); }
-    let had_tray = app.tray_by_id("worklog").is_some();
+    let had_tray = app.tray_by_id("worcog").is_some();
     if input.tray_enabled { reminders::ensure_tray(&app)?; }
     else { reminders::show_main(&app)?; }
     let result = state.store.with(|store| {
@@ -34,9 +34,9 @@ pub async fn set_reminder_preferences(input: PreferenceInput, app: tauri::AppHan
         Ok(preferences)
     });
     if let Ok(preferences) = &result {
-        if !preferences.tray_enabled { app.remove_tray_by_id("worklog"); }
+        if !preferences.tray_enabled { app.remove_tray_by_id("worcog"); }
         state.reminders.wake();
-    } else if !had_tray { app.remove_tray_by_id("worklog"); }
+    } else if !had_tray { app.remove_tray_by_id("worcog"); }
     result
 }
 
@@ -147,5 +147,5 @@ pub async fn open_reminder_task(id: String, app: tauri::AppHandle, webview: taur
 pub async fn minimize_workspace(app: tauri::AppHandle, webview: tauri::Webview) -> Result<()> {
     main_only(&webview)?;
     let window = app.get_webview_window("main").ok_or("Main window is unavailable.")?;
-    if app.tray_by_id("worklog").is_some() { window.hide() } else { window.minimize() }.map_err(|error| error.to_string())
+    if app.tray_by_id("worcog").is_some() { window.hide() } else { window.minimize() }.map_err(|error| error.to_string())
 }

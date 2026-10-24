@@ -3,7 +3,7 @@ import { useId, useRef, useState, type FormEvent } from 'react';
 import type { Activity, Task } from '../domain/model';
 import { createActivity } from '../application/workspace';
 import { compareTimestamps, formatTimestamp } from '../domain/dates';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { Button, Field, Modal, Textarea } from './core';
 
 export function TaskProgress({ task, entries, regionId }: { task: Task; entries: Activity[]; regionId: string }) {
@@ -33,7 +33,7 @@ export function TaskProgress({ task, entries, regionId }: { task: Task; entries:
 }
 
 export function TaskUpdateForm({ task, onClose }: { task: Task; onClose: () => void }) {
-  const { wb } = useWorklog();
+  const { wb } = useWorcog();
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
   const locked = useRef(false);

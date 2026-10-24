@@ -8,7 +8,7 @@ import { compareTimestamps, formatTimestamp, isOpen, isOverdue, today } from '..
 import { Badge, Button, Empty } from '../components/core';
 import { human } from '../domain/options';
 import { TopicTable } from '../components/work-lists';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 
 export default function Page() {
   const {
@@ -20,7 +20,7 @@ export default function Page() {
     navigate,
     setFilters,
     setTaskView,
-  } = useWorklog();
+  } = useWorcog();
   function showTasks(view: 'open' | 'overdue' | 'blocked') {
     setFilters((current) => ({ ...current, tasks: {} }));
     setTaskView(view);

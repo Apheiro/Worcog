@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { workspaceHistory, type HistoryEntry } from '../../application/queries';
 import { calendarDate, formatDate, formatTimestamp } from '../../domain/dates';
 import { Button, Empty } from '../../components/core';
-import { useWorklog } from '../../providers/worklog';
+import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 import { SourceIcon } from '../../components/source-icon';
 
@@ -20,7 +20,7 @@ const icons = {
 };
 
 export default function Page() {
-  const { w, setEditor, setSourceId, setFileId, effective, openTopic } = useWorklog();
+  const { w, setEditor, setSourceId, setFileId, effective, openTopic } = useWorcog();
   const history = useMemo(() => workspaceHistory(w, effective), [w, effective]);
   const filterKey = JSON.stringify(effective);
   const [pagination, setPagination] = useState({ filterKey, limit: batchSize });

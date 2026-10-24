@@ -1,11 +1,11 @@
 'use client';
 import { useId, useLayoutEffect, useState, type RefObject } from 'react';
 import { entityLinks, linkKey, sameEntity } from '../domain/entity-links';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 
 /** Draw in the list's left gutter; the solid subtask tree remains independent. */
 export function TaskConnections({ container }: { container: RefObject<HTMLDivElement | null> }) {
-  const { w, relations } = useWorklog();
+  const { w, relations } = useWorcog();
   const active = relations.active;
   const arrowId = useId();
   const [paths, setPaths] = useState<{ key: string; d: string; directed: boolean }[]>([]);

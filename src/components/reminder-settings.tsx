@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { Button, Card, CardContent, CardHeader, Input, Switch } from './core';
 
 export function ReminderSettings() {
-  const { reminders, wb } = useWorklog();
+  const { reminders, wb } = useWorcog();
   const { status, ready, busy, error } = reminders;
   const disabled = !ready || busy || wb.busy;
   const { preferences } = status;
@@ -22,14 +22,14 @@ export function ReminderSettings() {
         <div className="flex items-center justify-between gap-5">
           <div className="flex flex-col gap-1">
             <p id="tray-setting-label" className="text-sm font-medium">Tray icon</p>
-            <p id="tray-setting-help" className="text-xs [color:var(--muted)]">Minimize or close the window to keep Worklog running in the tray. Use its menu to exit.</p>
+            <p id="tray-setting-help" className="text-xs [color:var(--muted)]">Minimize or close the window to keep Worcog running in the tray. Use its menu to exit.</p>
           </div>
           <Switch aria-labelledby="tray-setting-label" aria-describedby="tray-setting-help" checked={preferences.trayEnabled} disabled={disabled} onCheckedChange={(trayEnabled) => void reminders.update({ trayEnabled })} />
         </div>
         <div className="flex items-center justify-between gap-5 pt-5 [border-top:1px_solid_var(--border)]">
           <div className="flex flex-col gap-1">
             <p id="reminders-setting-label" className="text-sm font-medium">Reminder notifications</p>
-            <p id="reminders-setting-help" className="text-xs [color:var(--muted)]">Persistent Worklog alerts with repeating sound until dismissed. Enable Tray icon first. Turning it off pauses reminders without deleting them.</p>
+            <p id="reminders-setting-help" className="text-xs [color:var(--muted)]">Persistent Worcog alerts with repeating sound until dismissed. Enable Tray icon first. Turning it off pauses reminders without deleting them.</p>
           </div>
           <Switch aria-labelledby="reminders-setting-label" aria-describedby="reminders-setting-help" checked={preferences.notificationsEnabled} disabled={disabled || !preferences.trayEnabled} onCheckedChange={(notificationsEnabled) => void reminders.update({ notificationsEnabled })} />
         </div>
@@ -45,7 +45,7 @@ export function ReminderSettings() {
               <Button size="sm" disabled={disabled || status.pending.length > 0} onClick={() => void reminders.preview()}>{status.previewing ? 'Stop preview' : 'Preview'}</Button>
             </div>
           </div>
-          <p className="text-xs [color:var(--muted)]">WAV, MP3, OGG or FLAC · up to 10 MiB / 60 seconds. Worklog keeps a local copy. Preview stops after five seconds; actual reminders repeat until dismissed.</p>
+          <p className="text-xs [color:var(--muted)]">WAV, MP3, OGG or FLAC · up to 10 MiB / 60 seconds. Worcog keeps a local copy. Preview stops after five seconds; actual reminders repeat until dismissed.</p>
           <label className="flex flex-wrap items-center gap-3 text-xs [color:var(--secondary)]">
             Volume
             <Input type="range" min={1} max={100} step={1} value={volumeDraft} onChange={(event) => setVolumeDraft(Number(event.target.value))} disabled={disabled}

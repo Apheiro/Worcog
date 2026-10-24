@@ -64,14 +64,14 @@ pnpm tauri build --target x86_64-pc-windows-msvc --no-bundle -- --locked
 This builds only the portable application executable using the committed Cargo
 lockfile. Bundling is disabled in Tauri configuration as well. The workflow creates:
 
-- `worklog-v<version>-windows-x64.exe`: portable application executable.
+- `worcog-v<version>-windows-x64.exe`: portable application executable.
 
 No checksum or build-info text files are generated. The build passes the executable
 name and SHA-256 through job outputs; the publication job verifies the downloaded
 artifact against those values before uploading it. Source commit and workflow
 details remain available in the Actions run.
 
-Download the `worklog-windows-x64-v<version>` artifact from the run's
+Download the `worcog-windows-x64-v<version>` artifact from the run's
 **Artifacts** section; it expires after 14 days. Publication failure leaves
 that build artifact available. If packaging fails after Release Please succeeds,
 the release/tag still exists without Windows assets; fix the error and rerun

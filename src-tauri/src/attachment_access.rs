@@ -31,7 +31,7 @@ pub fn require(store: &Store, file: &Value) -> Result<PathBuf> {
     match status(store, file) {
         AttachmentStatus::Available => Ok(store.root.join("attachments").join(string(file, "managedName")?)),
         AttachmentStatus::Missing => Err("File not found.".into()),
-        AttachmentStatus::Inaccessible => Err("File inaccessible or changed outside Worklog.".into()),
+        AttachmentStatus::Inaccessible => Err("File inaccessible or changed outside Worcog.".into()),
     }
 }
 

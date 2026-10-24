@@ -38,7 +38,7 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: '1'
     outputs:
-      artifact_name: worklog-windows-x64-v${{ steps.versions.outputs.version }}
+      artifact_name: worcog-windows-x64-v${{ steps.versions.outputs.version }}
       binary_file: ${{ steps.assets.outputs.binary_file }}
       binary_sha256: ${{ steps.assets.outputs.binary_sha256 }}
     steps:
@@ -88,9 +88,9 @@ jobs:
           if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
             throw "Application executable was not found: $exe"
           }
-          $assets = Join-Path $env:RUNNER_TEMP "worklog-assets"
+          $assets = Join-Path $env:RUNNER_TEMP "worcog-assets"
           New-Item -ItemType Directory -Path $assets -Force | Out-Null
-          $prefix = "worklog-v$($env:APP_VERSION)-windows-x64"
+          $prefix = "worcog-v$($env:APP_VERSION)-windows-x64"
           $binary = Join-Path $assets "$prefix.exe"
           Copy-Item -LiteralPath $exe -Destination $binary
           $hash = (Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -100,7 +100,7 @@ jobs:
       - name: Upload Windows assets
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: worklog-windows-x64-v${{ steps.versions.outputs.version }}
+          name: worcog-windows-x64-v${{ steps.versions.outputs.version }}
           path: ${{ steps.assets.outputs.directory }}/*.exe
           if-no-files-found: error
           retention-days: 14

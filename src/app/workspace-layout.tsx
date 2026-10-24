@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { cva } from 'cva';
 import { IconDatabase } from '@tabler/icons-react';
 import { native } from '../infrastructure/native';
-import { navigation, useWorklog } from '../providers/worklog';
+import { navigation, useWorcog } from '../providers/worcog';
 import dynamic from 'next/dynamic';
 import { EntityEditor } from '../components/editors';
 import { FileDetail, SourceDetail } from '../components/related-dialogs';
@@ -59,7 +59,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
     heading,
     textureEnabled,
     textureOpacity,
-  } = useWorklog();
+  } = useWorcog();
   return (
     <div inert={documents.activeId !== null} className="app-shell flex h-full min-h-0 w-full">
       {textureEnabled && (
@@ -75,7 +75,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
             W
           </span>
           <span>
-            Worklog<small>Personal operations</small>
+            Worcog<small>Personal operations</small>
           </span>
         </div>
         <nav aria-label="Main navigation">
@@ -222,7 +222,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
                 disabled={wb.busy}
                 onCheckedChange={(checked) => setPurgeBackups(checked === true)}
               />{' '}
-              Also delete local backups stored by Worklog
+              Also delete local backups stored by Worcog
             </label>
           )}
         </Confirm>

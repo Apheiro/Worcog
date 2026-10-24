@@ -2,7 +2,7 @@ use super::Result;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-pub const REPOSITORY: &str = "Apheiro/Worklog";
+pub const REPOSITORY: &str = "Apheiro/Worcog";
 pub const MAX_DOWNLOAD: u64 = 256 * 1024 * 1024;
 #[derive(Deserialize)]
 pub struct Release {
@@ -50,7 +50,7 @@ pub fn select(release: Release, current: &str) -> Result<Option<Selection>> {
     if !version.pre.is_empty() || !version.cmp_precedence(&installed).is_gt() {
         return Ok(None);
     }
-    let filename = format!("worklog-v{version}-windows-x64.exe");
+    let filename = format!("worcog-v{version}-windows-x64.exe");
     let mut matches = release.assets.into_iter().filter(|a| a.name == filename);
     let Some(asset) = matches.next() else {
         return Ok(None);

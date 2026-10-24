@@ -1,6 +1,9 @@
-Worklog brings topics, tasks, references, contacts and managed files together in
+Worcog brings topics, tasks, references, contacts and managed files together in
 one local workspace. This guide describes the controls available in the app.
-It is bundled with Worklog and can be read without an internet connection.
+It is bundled with Worcog and can be read without an internet connection.
+
+Worcog uses its own application data and preferences. To bring an existing
+workspace into Worcog, use **Settings → Storage & backups → Import / restore**.
 
 ## Contents
 
@@ -192,7 +195,7 @@ still apply. The Tasks page offers Open, All, Overdue and Blocked views.
 ### Repeating tasks
 
 Set **Advanced fields → Repeat** to Daily, Weekly or Monthly and provide a
-deadline. Each occurrence is a separate task. Worklog generates due occurrences
+deadline. Each occurrence is a separate task. Worcog generates due occurrences
 when loading or saving the workspace. Repeat controls task generation; reminder
 alerts are scheduled separately on individual tasks. Generated occurrences do
 not inherit the original task's absolute reminder date.
@@ -270,23 +273,23 @@ a new reminder.
 
 ### Persistent alerts
 
-When a reminder becomes due, Worklog opens its own compact window at the lower
+When a reminder becomes due, Worcog opens its own compact window at the lower
 right of the main window's monitor, within the monitor's working area. The
 window stays above ordinary windows and does not request keyboard focus when
-it appears. Long lists scroll inside it. These are **Worklog windows**, not
+it appears. Long lists scroll inside it. These are **Worcog windows**, not
 Windows notification-center toasts, and they also work with the portable app.
 
 Each alert shows the topic, task and scheduled time. Click its content to
-restore Worklog and open that task. If a form or save operation is already
-open, Worklog asks you to finish it first instead of discarding it. Opening a
+restore Worcog and open that task. If a form or save operation is already
+open, Worcog asks you to finish it first instead of discarding it. Opening a
 task does not dismiss the alert. Use the alert's **×** to dismiss it explicitly.
 Alerts do not time out, and Escape / Alt+F4 does not dismiss the whole queue.
 
 A single sound loops while any reminder is pending; simultaneous reminders do
 not stack multiple sounds. Dismissing the last one stops playback and hides
-the window. Dismissal is saved with the task, so reopening Worklog does not
+the window. Dismissal is saved with the task, so reopening Worcog does not
 repeat an acknowledged reminder. Settings also lists pending reminders with
-Open and Dismiss controls. If the separate window cannot be presented, Worklog
+Open and Dismiss controls. If the separate window cannot be presented, Worcog
 restores the main window and provides fallback dismissal controls there.
 
 Completing or canceling a task acknowledges its current reminder. Removing a
@@ -300,18 +303,18 @@ unacknowledged overdue reminders eligible again.
 ### Tray behavior and app lifetime
 
 With Tray icon enabled, minimizing **or closing** the main window hides it
-while Worklog continues running. Click the tray icon or choose **Open Worklog**
+while Worcog continues running. Click the tray icon or choose **Open Worcog**
 from its menu to restore it. **Exit** fully quits and asks for confirmation
 when a form, document or operation is open; save your changes first. Turning the tray off restores the main
 window. With the feature off, normal minimize/close behavior applies.
 
-Only one Worklog process runs for this application identity. Starting it again
+Only one Worcog process runs for this application identity. Starting it again
 restores the existing instance, preventing duplicate reminder engines.
 
 The native reminder clock and audio do not depend on a visible browser tab.
 Due reminders are checked about every two seconds while the process runs.
 After computer sleep or a later app restart, overdue unacknowledged reminders
-are detected again. Worklog does not wake a sleeping/off computer, automatically
+are detected again. Worcog does not wake a sleeping/off computer, automatically
 start at login, or issue alerts while the process is fully exited. Scheduling
 depends on the system clock, so keep the computer's date/time accurate.
 
@@ -322,7 +325,7 @@ In **Settings → General → Tray & reminders**, choose a custom audio file or
 gentle pulse with pauses, repeated indefinitely for pending alerts.
 
 **Choose audio…** accepts WAV, MP3, OGG and FLAC, up to **10 MiB / 60 seconds**,
-mono or stereo, at up to **96 kHz**. Worklog validates the audio and keeps its
+mono or stereo, at up to **96 kHz**. Worcog validates the audio and keeps its
 own copy; moving the original file does not break reminders. A custom sound
 repeats as supplied, so include any desired quiet interval in the file.
 **Preview** plays up to five seconds and **Stop preview** stops it. Preview is
@@ -331,9 +334,9 @@ reminders are sounding. Stopping a preview cannot silence pending reminders.
 
 Volume is adjustable from 1–100%, with a default of 25%. The operating system's
 volume, mute state and selected output device still apply. If the custom file
-is missing or unreadable, Worklog reports it and falls back to the default
+is missing or unreadable, Worcog reports it and falls back to the default
 tone. If audio output is unavailable or interrupted, the visual alerts remain;
-Worklog reports the failure and retries audio output. Dismissal stays available.
+Worcog reports the failure and retries audio output. Dismissal stays available.
 
 Tray/reminder settings and custom sounds belong to this device and are not
 included in workspace archives. Task schedules and their dismissal state are
@@ -384,7 +387,7 @@ calendar for Meeting and conversation bubbles for Messaging. Older references
 without a recognized type retain the general link icon.
 
 Finish adding the source before saving the task. If a resource form has a
-pending draft, Worklog warns and keeps the task form open until you add the
+pending draft, Worcog warns and keeps the task form open until you add the
 resource or explicitly discard that draft. Saving the task commits its resource
 relationships together. Canceling the task discards its uncommitted uploads.
 
@@ -400,9 +403,9 @@ confirmation and saving. The sources and their task links remain.
 
 ## Managed files
 
-Use the file picker or drop files into a task form's Resources area. Worklog
+Use the file picker or drop files into a task form's Resources area. Worcog
 copies them into its managed attachments directory; changing or removing the
-original outside Worklog does not change that copy. Topic-level general files
+original outside Worcog does not change that copy. Topic-level general files
 can also be attached from the topic workspace.
 Each linked resource appears once in the task form, including while newly
 uploaded files become saved resources.
@@ -413,13 +416,13 @@ Executables, scripts, shortcuts, HTML and macro-enabled Office files are not
 accepted. Attachment support does not mean every format has an embedded editor.
 
 Click a file chip to open it. Depending on the format and your document-editor
-setting, it opens in Worklog or through the system's default application.
+setting, it opens in Worcog or through the system's default application.
 Files details in Resources let you inspect ownership and metadata or delete
 the managed file.
 
 Unlinking a saved file from a task retains its managed copy. Explicitly deleting
 the file removes that copy and its relationships; it leaves the original
-outside Worklog untouched. If a managed file is removed manually, Worklog
+outside Worcog untouched. If a managed file is removed manually, Worcog
 reports **File not found** or **File inaccessible** when accessing it, instead
 of preventing unrelated work.
 
@@ -436,24 +439,24 @@ minimized documents. **×** clears the selection.
 
 1. Select the attachments you want to share.
 2. Choose **Export (N)** and a new destination filename in the save dialog.
-3. With one selected file, Worklog writes a standalone copy. With several, it
+3. With one selected file, Worcog writes a standalone copy. With several, it
    creates a ZIP containing only those files, using their original names where
    valid. Duplicate names receive numeric suffixes inside the ZIP.
 4. Send the exported copy or ZIP through your usual email, chat or file service.
 
-The managed originals remain in Worklog. Existing destination files are not
+The managed originals remain in Worcog. Existing destination files are not
 overwritten. Canceling or a failed export retains the selection; success clears
 it. Missing or inaccessible selected files stop the export with an error.
 The combined export size limit is **2 GiB**.
 
 Export uses the saved local files. Save pending changes in an embedded editor
-before exporting. An exported copy is independent: later edits in Worklog do
+before exporting. An exported copy is independent: later edits in Worcog do
 not update copies already shared. File export is different from a full
 workspace backup and does not include tasks, contacts or a workspace manifest.
 
 ## Editing documents
 
-**Settings → General → Open documents in Worklog** enables the optional
+**Settings → General → Open documents in Worcog** enables the optional
 integrated editor for DOCX, XLSX, PPTX and CSV. Other supported attachments,
 including PDF, open with the system's default application. Turning the setting
 off restores that behavior for all new file openings; existing document
@@ -461,7 +464,7 @@ windows remain available.
 
 The embedded editor loads from **edit.chaxus.com** and needs an internet
 connection to load. File editing is processed on the device. This is distinct
-from Worklog's local database and does not add automatic cloud synchronization
+from Worcog's local database and does not add automatic cloud synchronization
 or Microsoft Office account integration.
 
 Documents open in a large floating modal. Its controls minimize or close it.
@@ -477,7 +480,7 @@ remains visible throughout the slide.
 Clicking the dark overlay also minimizes the viewer. Minimization is blocked
 while saving, checking for unsaved changes or answering the close confirmation.
 The main window's title bar remains available above the overlay, so you can
-drag, minimize, maximize or close Worklog while a document is open. The
+drag, minimize, maximize or close Worcog while a document is open. The
 underlying workspace is inactive until you minimize or close the document.
 You can open multiple documents; minimized instances appear as individual
 dots at the lower right. Hover a dot to identify its document and click to
@@ -491,7 +494,7 @@ during the slide, without replaying the loading screen, taking snapshots or
 reloading the document.
 The Windows desktop build captures these shortcuts even inside the embedded
 editor. In browser previews and other systems, they apply when focus is on
-Worklog's viewer controls. Shortcuts pause while saving or confirming a close.
+Worcog's viewer controls. Shortcuts pause while saving or confirming a close.
 Transitions respect the system's reduced-motion preference.
 
 When closing a document that may contain unsaved changes, choose **Save &
@@ -564,7 +567,7 @@ an older backup may bring back records deleted since that backup.
   system. This preference is saved on the device.
 - **Texture overlay:** enable or disable the grain texture. Opacity adjusts its
   strength, with a default of 50%.
-- **Open documents in Worklog:** switch between the integrated document editor
+- **Open documents in Worcog:** switch between the integrated document editor
   and opening attachments with the system's default application.
 - **Context menus:** replace task three-dot buttons with a right-click menu
   and enable Edit, Archive/Unarchive and Delete on rows in the Topics list.
@@ -573,7 +576,7 @@ an older backup may bring back records deleted since that backup.
   Final colors. Click the markers on the horizontal gradient to adjust colors,
   then choose **Save inactivity settings**. The default period is 14 days and
   the palette runs from grayish white through a midpoint to red.
-- **Tray & reminders:** enable the tray and Worklog reminder notifications,
+- **Tray & reminders:** enable the tray and Worcog reminder notifications,
   configure a custom sound and volume, preview it and manage pending alerts.
   Both optional features start disabled. Appearance, document-editor and
   tray/reminder toggles use accessible switches.
@@ -591,11 +594,11 @@ contains application update controls.
 
 Use **Settings → Storage & backups**:
 
-- **Create backup:** writes a local backup in Worklog's backups directory.
+- **Create backup:** writes a local backup in Worcog's backups directory.
 - **Export archive…:** writes a full workspace ZIP to a destination you choose.
   Keep a copy on another device to protect against disk loss.
-- **Import / restore…:** select a Worklog workspace ZIP, review the summary and
-  confirm. Worklog validates it and creates a safety backup before replacement.
+- **Import / restore…:** select a Worcog workspace ZIP, review the summary and
+  confirm. Worcog validates it and creates a safety backup before replacement.
 - **Show locations:** displays the resolved database, attachments, backups and
   cache locations for this installation.
 - **Retry file cleanup:** retries pending removals, for example after another
@@ -622,7 +625,7 @@ controls for moving workspace data.
 
 ## Application updates
 
-On supported Windows x64 builds, Worklog checks GitHub Releases on startup.
+On supported Windows x64 builds, Worcog checks GitHub Releases on startup.
 Use **Settings → Updates → Check for updates** for a manual check. An available
 update offers release notes and **Download update**.
 
@@ -633,7 +636,7 @@ The download and running executable paths are displayed in standard Windows
 notation, without the internal extended-path prefix.
 
 The downloaded executable is verified and kept separately from workspace
-data. Installation is manual: Worklog does not close itself, replace the
+data. Installation is manual: Worcog does not close itself, replace the
 running executable or launch the update automatically. A GitHub credential
 can be configured for private releases; entering one does not change how your
 workspace data is stored. Connection or access problems from a manual check
@@ -641,7 +644,7 @@ are reported in the interface.
 
 ## Keyboard shortcuts and navigation
 
-These shortcuts apply in the Worklog interface. Embedded document editors may
+These shortcuts apply in the Worcog interface. Embedded document editors may
 handle their own shortcuts while their iframe has focus.
 
 | Shortcut / gesture | Where | Action |
@@ -649,7 +652,7 @@ handle their own shortcuts while their iframe has focus.
 | Ctrl + click | File chips on task cards | Select or deselect a file for export without opening it |
 | Command + click | File chips on task cards, macOS | Same file selection action |
 | Ctrl / Command + Enter or Space | Focused file chip on a task card | Toggle export selection from the keyboard |
-| Alt + T | Worklog notifications | Focus the notifications area |
+| Alt + T | Worcog notifications | Focus the notifications area |
 | Shift + F10 / Menu key | Focused task card, topic row or their controls, with Context menus enabled | Open that task or topic's actions menu |
 | Space / Enter | Focused task grip | Start dragging a task or drop it at the highlighted destination |
 | Arrow keys | While dragging a task with the keyboard | Move toward a hierarchy destination or a Free insertion line |
@@ -657,7 +660,7 @@ handle their own shortcuts while their iframe has focus.
 | Enter / Space | Focused destination task or topic in Link mode | Save a connection to that item |
 | Escape | Link mode | Cancel destination selection |
 | Ctrl + Left / Right arrow | Open document viewer with multiple documents; Windows also captures these inside the editor | Slide to the previous / next document, wrapping at either end |
-| Tab / Shift + Tab | Worklog controls | Move focus forward or backward |
+| Tab / Shift + Tab | Worcog controls | Move focus forward or backward |
 | Enter / Space | Focused buttons and checkboxes | Activate the control or toggle its checkbox |
 | Space | Focused settings switch | Toggle the setting |
 | Arrow keys and Enter | Open menus and searchable selectors | Navigate options and select one |
@@ -669,12 +672,12 @@ available. Hover or focus shows task descriptions, blocked reasons and document
 dot tooltips. Closing an embedded document may ask what to do with unsaved
 changes. Ordinary file clicks still open files; export selection requires the
 modifier key.
-Worklog reminder alerts require explicit dismissal with their × button; Escape
+Worcog reminder alerts require explicit dismissal with their × button; Escape
 and Alt+F4 do not dismiss the pending reminder queue.
 
 ## Storage, privacy and troubleshooting
 
-Worklog saves its SQLite database and managed files in the operating system's
+Worcog saves its SQLite database and managed files in the operating system's
 persistent application-data directory. Cache contains regenerable data such
 as downloaded application updates. The sidebar reports whether storage is
 available or an operation is running.
@@ -682,7 +685,7 @@ available or an operation is running.
 The workspace is local-first. Entering a source does not connect to its email,
 ticketing or messaging service or import data automatically. There is no
 workspace cloud sync or telemetry. The optional embedded editor loads an
-external website, and update checks contact GitHub. Worklog does not encrypt
+external website, and update checks contact GitHub. Worcog does not encrypt
 the database, attached documents or exported archives.
 
 ### Common situations
@@ -707,8 +710,8 @@ the database, attached documents or exported archives.
   finishes; check again after the build has completed.
 - **Cannot enable a reminder:** enable both Tray icon and Reminder notifications
   in Settings → General first. Existing schedules remain paused when disabled.
-- **Reminder is visible but silent:** check Worklog volume, system mute/output
+- **Reminder is visible but silent:** check Worcog volume, system mute/output
   and the reported sound error. A missing custom file uses the default tone;
   unavailable devices are retried. You can still dismiss the visual alert.
-- **Worklog disappeared after closing:** with Tray icon enabled, closing hides
+- **Worcog disappeared after closing:** with Tray icon enabled, closing hides
   the window. Restore it from the tray; use Exit there to quit fully.

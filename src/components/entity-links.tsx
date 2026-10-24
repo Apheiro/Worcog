@@ -5,12 +5,12 @@ import { Slot } from '@radix-ui/react-slot';
 import { IconArrowLeft, IconArrowRight, IconLink, IconX } from '@tabler/icons-react';
 import type { EntityRef } from '../domain/model';
 import { entityKey, resolveEntity, sameEntity } from '../domain/entity-links';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { Button } from './core';
 
 /** Intercept selection before buttons/checkboxes when choosing a link destination. */
 export function useLinkTarget(entity: EntityRef) {
-  const { wb, relations } = useWorklog();
+  const { wb, relations } = useWorcog();
   const choosing = !!relations.source;
   const valid = relations.canChoose(entity);
   const highlighted = !!relations.active && (sameEntity(relations.active, entity)
@@ -46,7 +46,7 @@ export function EntityLinkTarget({ entity, className, ...props }: ComponentProps
 }
 
 export function EntityLinks({ entity, className = '', onOpen }: { entity: EntityRef; className?: string; onOpen?: () => void }) {
-  const { w, wb, relations, openLinkedEntity } = useWorklog();
+  const { w, wb, relations, openLinkedEntity } = useWorcog();
   const connections = relations.connections(entity);
   if (!connections.length) return null;
   return (
@@ -75,7 +75,7 @@ export function EntityLinks({ entity, className = '', onOpen }: { entity: Entity
 }
 
 export function EntityLinkIndicator({ entity }: { entity: EntityRef }) {
-  const { relations } = useWorklog();
+  const { relations } = useWorcog();
   const [open, setOpen] = useState(false);
   const openingItem = useRef(false);
   const targets = relations.targets(entity);
@@ -110,7 +110,7 @@ export function EntityLinkIndicator({ entity }: { entity: EntityRef }) {
 }
 
 export function LinkingBanner() {
-  const { w, wb, relations } = useWorklog();
+  const { w, wb, relations } = useWorcog();
   if (!relations.source) return null;
   const source = resolveEntity(w, relations.source);
   if (!source) return null;

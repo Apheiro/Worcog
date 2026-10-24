@@ -9,10 +9,10 @@ import { WorkspaceSection } from '../../components/workspace-section';
 import { contactDirectory } from '../../domain/contacts';
 import type { Contact } from '../../domain/model';
 import { assignedNames, responsibleKey } from '../../domain/responsibles';
-import { useWorklog } from '../../providers/worklog';
+import { useWorcog } from '../../providers/worcog';
 
 export default function Page() {
-  const { w, wb, enabled } = useWorklog();
+  const { w, wb, enabled } = useWorcog();
   const formId = useId();
   const [query, setQuery] = useState('');
   const [editor, setEditor] = useState<{ contact: Contact; previousName?: string } | null>(null);

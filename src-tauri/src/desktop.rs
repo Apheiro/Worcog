@@ -200,10 +200,10 @@ async fn export_workspace(state: State<'_, AppState>) -> Result<Option<String>> 
     let Some(file) = rfd::AsyncFileDialog::new()
         .set_title("Export complete workspace to a new ZIP file")
         .set_file_name(format!(
-            "worklog-{}.zip",
+            "worcog-{}.zip",
             chrono::Utc::now().format("%Y%m%dT%H%M%SZ")
         ))
-        .add_filter("Worklog export", &["zip"])
+        .add_filter("Worcog export", &["zip"])
         .save_file()
         .await
     else {
@@ -218,7 +218,7 @@ async fn export_workspace(state: State<'_, AppState>) -> Result<Option<String>> 
 async fn inspect_import(state: State<'_, AppState>) -> Result<Option<Value>> {
     let Some(file) = rfd::AsyncFileDialog::new()
         .set_title("Inspect workspace ZIP before restore")
-        .add_filter("Worklog export", &["zip"])
+        .add_filter("Worcog export", &["zip"])
         .pick_file()
         .await
     else {
@@ -312,14 +312,14 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             if window.label() == "main" && matches!(event, tauri::WindowEvent::Resized(_))
-                && window.app_handle().tray_by_id("worklog").is_some()
+                && window.app_handle().tray_by_id("worcog").is_some()
                 && window.is_minimized().unwrap_or(false) {
                 let _ = window.hide();
             }
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
                 if window.label() == "main" {
-                    if window.app_handle().tray_by_id("worklog").is_some() { let _ = window.hide(); }
+                    if window.app_handle().tray_by_id("worcog").is_some() { let _ = window.hide(); }
                     else { crate::reminders::request_exit(window.app_handle()); }
                 }
             }
@@ -359,5 +359,5 @@ pub fn run() {
             restore_import
         ])
         .run(tauri::generate_context!())
-        .expect("Unable to start Worklog");
+        .expect("Unable to start Worcog");
 }

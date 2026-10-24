@@ -8,7 +8,7 @@ import { TopicInactivitySettingsForm } from '../../components/topic-inactivity-s
 import { ApplicationUpdates } from '../../components/application-updates';
 import { Button, Switch, Input } from '../../components/core';
 import { ReminderSettings } from '../../components/reminder-settings';
-import { useWorklog } from '../../providers/worklog';
+import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 import { ThemeControl } from '../../components/theme-control';
 export default function Page() {
@@ -30,7 +30,7 @@ export default function Page() {
     setDocumentEditorEnabled,
     taskContextMenu,
     setTaskContextMenu,
-  } = useWorklog();
+  } = useWorcog();
   return (
     <WorkspaceSection>
       <Tabs defaultValue="general" className="settings max-w-5xl">
@@ -96,7 +96,7 @@ export default function Page() {
           <Card>
             <CardContent className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 flex-col gap-2">
-                <h2 id="document-editor-label">Open documents in Worklog</h2>
+                <h2 id="document-editor-label">Open documents in Worcog</h2>
                 <p id="document-editor-description" className="max-w-xl text-xs [color:var(--muted)]">
                   Open Word, Excel, PowerPoint and CSV attachments in the integrated editor.
                   PDFs and other formats use your default application.

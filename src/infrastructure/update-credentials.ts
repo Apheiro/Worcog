@@ -1,4 +1,4 @@
-export const developmentTokenKey = 'worklog.updates.github-token.development.v1';
+export const developmentTokenKey = 'worcog.updates.github-token.development.v1';
 export function developmentToken(): string | null {
   return window.localStorage.getItem(developmentTokenKey);
 }

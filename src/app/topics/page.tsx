@@ -9,7 +9,7 @@ import { TopicDetail } from '../../components/topic-detail';
 import { CategoryTag } from '../../components/category-tag';
 import { Select } from '../../components/core';
 import { TopicTable } from '../../components/work-lists';
-import { useWorklog } from '../../providers/worklog';
+import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 
 const groupOptions = [
@@ -26,7 +26,7 @@ type TopicGroup = typeof groupOptions[number]['value'];
 
 export default function Page() {
   const [groupBy, setGroupBy] = useLocalStorage<TopicGroup>({
-    key: 'worklog.topic-group',
+    key: 'worcog.topic-group',
     defaultValue: 'none',
   });
   const {
@@ -46,7 +46,7 @@ export default function Page() {
     askArchive,
     askDeleteTask,
     askDelete,
-  } = useWorklog();
+  } = useWorcog();
   const topics = filterTopics(w, effective, sort, page === 'archive');
   const dateGrouping = ['created', 'updated', 'deadline'].includes(groupBy);
   const groups = new Map<string, Topic[]>();

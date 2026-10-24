@@ -1,9 +1,9 @@
 'use client';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { Button } from './core';
 
 export function ResourceTasks({ sourceId, fileId }: { sourceId?: string; fileId?: string }) {
-  const { w, editTask, openTopic, setFileId } = useWorklog();
+  const { w, editTask, openTopic, setFileId } = useWorcog();
   const file = fileId ? w.attachments.find((item) => item.id === fileId) : undefined;
   const tasks = w.tasks.filter((task) =>
     sourceId ? task.sourceIds.includes(sourceId) : file?.taskIds.includes(task.id),

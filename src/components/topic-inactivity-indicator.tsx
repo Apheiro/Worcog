@@ -1,7 +1,7 @@
 'use client';
 import type { Topic } from '../domain/model';
 import { topicIndicator } from '../application/topic-inactivity';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 
 export function TopicInactivityIndicator({
   topic,
@@ -10,7 +10,7 @@ export function TopicInactivityIndicator({
   topic: Topic;
   edge?: boolean;
 }) {
-  const { inactivitySettings } = useWorklog();
+  const { inactivitySettings } = useWorcog();
   const indicator = topicIndicator(topic, inactivitySettings);
   return (
     <span

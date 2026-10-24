@@ -34,7 +34,7 @@ export function useUpdates() {
             className="update-toast min-w-0 flex-1 flex-col gap-1 p-0 [&.button]:items-start [&.button]:justify-start [&.button]:text-left [&.button]:border-0 [&.button]:font-normal [&.button]:[color:inherit] [&.button:hover]:bg-transparent"
             onClick={() => setOpen(true)}
           >
-            <strong>Worklog {found.version} is available</strong>
+            <strong>Worcog {found.version} is available</strong>
             <span className="text-xs [color:var(--muted)]">View release notes and download</span>
           </Button>
         );
@@ -43,7 +43,7 @@ export function useUpdates() {
           autoClose: false,
           type: 'info',
           role: 'status',
-          ariaLabel: `Worklog ${found.version} update available. View release notes.`,
+          ariaLabel: `Worcog ${found.version} update available. View release notes.`,
         };
         if (toast.isActive(updateToast)) toast.update(updateToast, { ...options, render: content });
         else toast(content, options);

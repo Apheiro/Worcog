@@ -10,7 +10,7 @@ src-tauri/gen/
 *.db
 *.db-*
 *.sqlite*
-*.worklog
+*.worcog
 *.zip
 .DS_Store
 playwright-report/

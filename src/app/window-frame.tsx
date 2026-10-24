@@ -47,7 +47,7 @@ export function WindowFrame({ children }: { children: ReactNode }) {
               draggable={false}
               className="pointer-events-none shrink-0"
             />
-            <span className="pointer-events-none truncate text-[11px]">Worklog</span>
+            <span className="pointer-events-none truncate text-[11px]">Worcog</span>
           </div>
           <div className="flex h-full shrink-0" role="group" aria-label="Window controls">
             {controls.map((control) => (

@@ -61,7 +61,7 @@ export const navigation = [
   { id: 'settings', label: 'Settings', icon: IconSettings },
 ] as const;
 
-function useWorklogController() {
+function useWorcogController() {
   const wb = useWorkspace();
   const reminders = useReminders();
   const updates = useUpdates();
@@ -71,7 +71,7 @@ function useWorklogController() {
   const attachmentExport = useAttachmentExport(w, wb);
   const documents = useDocumentWindows();
   const [documentEditorEnabled, setDocumentEditorEnabled] = useLocalStorage<boolean>({
-    key: 'worklog.document-editor-enabled',
+    key: 'worcog.document-editor-enabled',
     defaultValue: true,
     deserialize: (value) => value === undefined ? true : value === 'true',
   });
@@ -117,37 +117,37 @@ function useWorklogController() {
   const [purgeBackups, setPurgeBackups] = useState(false);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [filters, setFilters] = useLocalStorage<Record<string, SearchFilter>>({
-    key: 'worklog.filters.v1',
+    key: 'worcog.filters.v1',
     defaultValue: {},
   });
   const [sort, setSort] = useLocalStorage<'updated' | 'due' | 'priority' | 'name'>({
-    key: 'worklog.topic-sort',
+    key: 'worcog.topic-sort',
     defaultValue: 'updated',
   });
   const [inactivitySettings, setInactivitySettings] = useLocalStorage<TopicInactivitySettings>({
-    key: 'worklog.topic-inactivity.v1',
+    key: 'worcog.topic-inactivity.v1',
     defaultValue: defaultTopicInactivitySettings,
     deserialize: deserializeTopicInactivity,
   });
   const [taskView, setTaskView] = useState('open');
   const [taskSort, setTaskSort] = useLocalStorage<TaskSort>({
-    key: 'worklog.task-sort',
+    key: 'worcog.task-sort',
     defaultValue: 'created',
   });
   const [hideCompletedRootTasks, setHideCompletedRootTasks] = useLocalStorage<boolean>({
-    key: 'worklog.hide-completed-root-tasks',
+    key: 'worcog.hide-completed-root-tasks',
     defaultValue: false,
   });
   const [taskContextMenu, setTaskContextMenu] = useLocalStorage<boolean>({
-    key: 'worklog.task-context-menu',
+    key: 'worcog.task-context-menu',
     defaultValue: false,
   });
   const [textureEnabled, setTextureEnabled] = useLocalStorage<boolean>({
-    key: 'worklog.texture-enabled',
+    key: 'worcog.texture-enabled',
     defaultValue: true,
   });
   const [textureOpacity, setTextureOpacity] = useLocalStorage<number>({
-    key: 'worklog.texture-opacity',
+    key: 'worcog.texture-opacity',
     defaultValue: 50,
     deserialize: (value) => {
       const opacity = Number(value);
@@ -275,9 +275,9 @@ function useWorklogController() {
       includeBackups: target.kind === 'workspace',
       description: `${name ? `Delete “${name}”?\n\n` : ''}This removes: ${preview.description}.
 
-${target.kind === 'workspace' ? 'All records, previous corrections and managed files, including orphaned copies, will be removed.' : target.kind === 'topic' ? 'Tasks and their linked activity records are deleted in full, including records shared elsewhere. Other shared activity records, sources and files are preserved with their remaining relationships.' : target.kind === 'source' ? 'References to this source are removed from tasks and activity records; their text remains. Files exclusive to this source are deleted.' : target.kind === 'activity' ? 'The activity record and all previous corrections are removed, along with files exclusive to it.' : 'The managed copy is physically deleted from disk and removed from all workspace views. The original file outside Worklog is untouched.'}
+${target.kind === 'workspace' ? 'All records, previous corrections and managed files, including orphaned copies, will be removed.' : target.kind === 'topic' ? 'Tasks and their linked activity records are deleted in full, including records shared elsewhere. Other shared activity records, sources and files are preserved with their remaining relationships.' : target.kind === 'source' ? 'References to this source are removed from tasks and activity records; their text remains. Files exclusive to this source are deleted.' : target.kind === 'activity' ? 'The activity record and all previous corrections are removed, along with files exclusive to it.' : 'The managed copy is physically deleted from disk and removed from all workspace views. The original file outside Worcog is untouched.'}
 
-No recycle bin or deletion history is kept. Existing exports outside Worklog are unchanged. This cannot be undone.`,
+No recycle bin or deletion history is kept. Existing exports outside Worcog are unchanged. This cannot be undone.`,
       action: async (includeBackups) => {
         if (
           await wb.update(
@@ -403,13 +403,13 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     newItemName,
   };
 }
-const WorklogContext = createContext<ReturnType<typeof useWorklogController> | null>(null);
-export function useWorklog() {
-  const context = useContext(WorklogContext);
-  if (!context) throw new Error('WorklogProvider is required');
+const WorcogContext = createContext<ReturnType<typeof useWorcogController> | null>(null);
+export function useWorcog() {
+  const context = useContext(WorcogContext);
+  if (!context) throw new Error('WorcogProvider is required');
   return context;
 }
-export function WorklogProvider({ children }: { children: ReactNode }) {
-  const value = useWorklogController();
-  return <WorklogContext.Provider value={value}>{children}</WorklogContext.Provider>;
+export function WorcogProvider({ children }: { children: ReactNode }) {
+  const value = useWorcogController();
+  return <WorcogContext.Provider value={value}>{children}</WorcogContext.Provider>;
 }

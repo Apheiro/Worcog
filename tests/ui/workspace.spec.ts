@@ -35,7 +35,7 @@ async function mockDesktop(page: Page) {
           if (command === 'update_status')
             return {
               currentVersion: '0.1.0',
-              repository: 'Apheiro/Worklog',
+              repository: 'Apheiro/Worcog',
               tokenSaved: sessionStorage.getItem('test.updateTokenSaved') === 'yes',
               credentialSupported: true,
               platformSupported: true,
@@ -50,7 +50,7 @@ async function mockDesktop(page: Page) {
             sessionStorage.setItem('test.updateTokenSaved', token ? 'yes' : 'no');
             return {
               currentVersion: '0.1.0',
-              repository: 'Apheiro/Worklog',
+              repository: 'Apheiro/Worcog',
               tokenSaved: !!token,
               credentialSupported: true,
               platformSupported: true,
@@ -81,8 +81,8 @@ async function mockDesktop(page: Page) {
               throw new Error('Update SHA-256 does not match GitHub metadata.');
             }
             return {
-              downloadPath: 'C:/WorklogCache/updates/worklog-v0.2.0-windows-x64.exe',
-              currentExecutable: 'C:/Apps/Worklog/worklog.exe',
+              downloadPath: 'C:/WorcogCache/updates/worcog-v0.2.0-windows-x64.exe',
+              currentExecutable: 'C:/Apps/Worcog/worcog.exe',
             };
           }
           if (command === 'open_update_folder') {
@@ -234,7 +234,7 @@ test('manual reference, dated annotation, task, attachment, search and restore',
   await page.getByRole('button', { name: 'Confirm', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Workspace restored' })).toBeVisible();
   await page.getByRole('navigation').getByRole('link', { name: 'Overview', exact: true }).click();
-  await page.screenshot({ path: 'test-results/worklog-ui.png', fullPage: true });
+  await page.screenshot({ path: 'test-results/worcog-ui.png', fullPage: true });
   expect(errors).toEqual([]);
 });
 test('recoverable write failure retains the form and does not insert data', async ({ page }) => {
@@ -387,9 +387,9 @@ test('dark theme persists across reloads and applies to dialogs and form fields'
     'color',
     'rgb(240, 240, 240)',
   );
-  await page.screenshot({ path: 'test-results/worklog-dark-dialog.png' });
+  await page.screenshot({ path: 'test-results/worcog-dark-dialog.png' });
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await page.screenshot({ path: 'test-results/worklog-dark.png', fullPage: true });
+  await page.screenshot({ path: 'test-results/worcog-dark.png', fullPage: true });
   await chooseOption(theme, 'light');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(250, 250, 250)');
@@ -400,7 +400,7 @@ test('system theme follows OS changes while an explicit selection takes preceden
   page,
 }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.addInitScript(() => localStorage.setItem('worklog.theme.v1', 'invalid-preference'));
+  await page.addInitScript(() => localStorage.setItem('worcog.theme.v1', 'invalid-preference'));
   await page.goto('/');
   const theme = page.getByRole('combobox', { name: 'Color theme' });
   await expect(theme).toHaveText('System');
@@ -652,7 +652,7 @@ test('clear workspace requires confirmation and allows including local backups',
   await page.getByRole('button', { name: 'Delete all workspace data', exact: true }).click();
   const confirmation = page.getByRole('alertdialog');
   await expect(
-    confirmation.getByRole('checkbox', { name: 'Also delete local backups stored by Worklog' }),
+    confirmation.getByRole('checkbox', { name: 'Also delete local backups stored by Worcog' }),
   ).not.toBeChecked();
   await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click();
   expect(
@@ -660,7 +660,7 @@ test('clear workspace requires confirmation and allows including local backups',
   ).toBe(1);
   await page.getByRole('button', { name: 'Delete all workspace data', exact: true }).click();
   await confirmation
-    .getByRole('checkbox', { name: 'Also delete local backups stored by Worklog' })
+    .getByRole('checkbox', { name: 'Also delete local backups stored by Worcog' })
     .check();
   await page.screenshot({ path: 'test-results/deletion-confirmation.png' });
   await confirmation.getByRole('button', { name: 'Delete permanently' }).click();
@@ -752,7 +752,7 @@ test('Toastify covers loading, success, information, warnings and errors with a 
   expect(tinted).toEqual([]);
   await page.keyboard.press('Alt+t');
   await expect(warning).toBeFocused();
-  await page.screenshot({ path: 'test-results/worklog-toast-dark.png' });
+  await page.screenshot({ path: 'test-results/worcog-toast-dark.png' });
   await warning.getByRole('button', { name: 'Dismiss notification' }).click();
   await expect(warning).toHaveCount(0);
 });
@@ -760,10 +760,10 @@ test('Toastify covers loading, success, information, warnings and errors with a 
 const updateFixture = {
   currentVersion: '0.1.0',
   version: '0.2.0',
-  filename: 'worklog-v0.2.0-windows-x64.exe',
+  filename: 'worcog-v0.2.0-windows-x64.exe',
   size: 10485760,
   notes:
-    '# Worklog 0.2.0\n\n## Improvements\n\n- Faster searches\n- Better keyboard navigation\n\n[Read documentation](https://github.com/Apheiro/Worklog)\n\n[Unsafe link](javascript:alert(1))\n\n![Remote image](https://example.invalid/track.png)\n\n<script>window.untrustedRelease=true</script>\n\n' +
+    '# Worcog 0.2.0\n\n## Improvements\n\n- Faster searches\n- Better keyboard navigation\n\n[Read documentation](https://github.com/Apheiro/Worcog)\n\n[Unsafe link](javascript:alert(1))\n\n![Remote image](https://example.invalid/track.png)\n\n<script>window.untrustedRelease=true</script>\n\n' +
     Array.from(
       { length: 50 },
       (_, i) => `### Change ${i + 1}\n\nDetailed release notes for this synthetic update.`,
@@ -782,11 +782,11 @@ test('updates announce only available releases, render safe scrollable notes and
     updateFixture,
   );
   await page.goto('/');
-  const announcement = page.getByRole('button', { name: /Worklog 0.2.0 is available/ });
+  const announcement = page.getByRole('button', { name: /Worcog 0.2.0 is available/ });
   await expect(announcement).toBeVisible();
   await announcement.click();
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('heading', { name: 'Worklog 0.2.0 is available' })).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Worcog 0.2.0 is available' })).toBeVisible();
   await expect(dialog.getByRole('heading', { name: 'Improvements', exact: true })).toBeVisible();
   await expect(dialog.locator('img,script,iframe')).toHaveCount(0);
   await expect(dialog.getByRole('link', { name: 'Unsafe link' })).toHaveCount(0);
@@ -805,7 +805,7 @@ test('updates announce only available releases, render safe scrollable notes and
   expect(await page.evaluate(() => sessionStorage.getItem('test.downloadCount'))).toBe('1');
   await dialog.getByRole('button', { name: 'Retry download' }).click();
   await expect(dialog.getByRole('heading', { name: 'Verified download' })).toBeVisible();
-  await expect(dialog).toContainText('C:/Apps/Worklog/worklog.exe');
+  await expect(dialog).toContainText('C:/Apps/Worcog/worcog.exe');
   await expect(dialog).toContainText('Keep a copy of your previous EXE');
   await dialog.getByRole('button', { name: 'Open download folder' }).click();
   await expect
@@ -835,7 +835,7 @@ test('automatic update failures stay silent while manual checks and token manage
   await page.addInitScript(() => {
     sessionStorage.setItem('test.updateCheckError', 'yes');
     localStorage.setItem(
-      'worklog.updates.github-token.development.v1',
+      'worcog.updates.github-token.development.v1',
       'development-token-ignored-by-production',
     );
   });
@@ -873,7 +873,7 @@ test('development update credentials use only their separate localStorage entry'
   await page.addInitScript(() => {
     sessionStorage.setItem('test.updateProfile', 'development');
     sessionStorage.setItem('test.updateTokenSaved', 'yes');
-    localStorage.setItem('worklog.updates.github-token.development.v1', 'synthetic-dev-token');
+    localStorage.setItem('worcog.updates.github-token.development.v1', 'synthetic-dev-token');
   });
   await page.goto('/');
   await expect
@@ -889,13 +889,13 @@ test('development update credentials use only their separate localStorage entry'
   await page.getByRole('button', { name: 'Save / replace token' }).click();
   await expect(token).toHaveValue('');
   expect(
-    await page.evaluate(() => localStorage.getItem('worklog.updates.github-token.development.v1')),
+    await page.evaluate(() => localStorage.getItem('worcog.updates.github-token.development.v1')),
   ).toBe('synthetic-dev-replacement');
   expect(await page.evaluate(() => sessionStorage.getItem('test.updateTokenSaved'))).toBe('yes');
   await page.getByRole('button', { name: 'Remove token', exact: true }).click();
   await expect
     .poll(() =>
-      page.evaluate(() => localStorage.getItem('worklog.updates.github-token.development.v1')),
+      page.evaluate(() => localStorage.getItem('worcog.updates.github-token.development.v1')),
     )
     .toBeNull();
   expect(await page.evaluate(() => sessionStorage.getItem('test.updateTokenSaved'))).toBe('yes');

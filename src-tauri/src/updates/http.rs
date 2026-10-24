@@ -47,7 +47,7 @@ impl Github {
             .redirect(Policy::none())
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(180))
-            .user_agent("Worklog-Updates")
+            .user_agent("Worcog-Updates")
             .build()
             .map_err(network_error)?;
         Ok(Self {

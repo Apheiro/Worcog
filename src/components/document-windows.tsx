@@ -6,7 +6,7 @@ import { listen } from '@tauri-apps/api/event';
 import { IconFileSpreadsheet, IconFileText, IconFileTypePpt, IconFileWord } from '@tabler/icons-react';
 import { Button, Card } from './core';
 import { FloatingWindow } from './core/floating-window';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import type { DocumentWindow } from '../infrastructure/use-document-windows';
 import { useDocumentEditor } from '../infrastructure/use-document-editor';
 import { documentEditorUrl, documentFormat } from '../infrastructure/document-editor';
@@ -35,7 +35,7 @@ function DocumentLoadingScreen({ filename }: { filename: string }) {
 }
 
 function DocumentInstance({ instance, active, nativeShortcuts }: { instance: DocumentWindow; active: boolean; nativeShortcuts: boolean }) {
-  const { documents, wb } = useWorklog();
+  const { documents, wb } = useWorcog();
   const [url] = useState(documentEditorUrl);
   const [confirmClose, setConfirmClose] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -49,7 +49,7 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
         return true;
       } catch (cause) { failure = cause; throw cause; }
     }, 'Document saved locally.');
-    if (saved !== true) throw new Error(failure ? errorMessage(failure) : 'Worklog is busy. Keep the document open and retry saving.');
+    if (saved !== true) throw new Error(failure ? errorMessage(failure) : 'Worcog is busy. Keep the document open and retry saving.');
   }, [instance.file.id, wb.run, wb.accept]);
   const editor = useDocumentEditor(instance.file, persist);
   const busy = editor.phase === 'saving' || checking;
@@ -155,7 +155,7 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
 }
 
 export function DocumentWindows() {
-  const { documents } = useWorklog();
+  const { documents } = useWorcog();
   const [nativeShortcuts, setNativeShortcuts] = useState(false);
   const canNavigate = documents.activeId !== null && documents.windows.length > 1;
   useEffect(() => {

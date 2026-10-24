@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/assets/icons/ico.svg" alt="Worklog icon" width="128" height="128" />
+  <img src="public/assets/icons/ico.svg" alt="Worcog icon" width="128" height="128" />
 </p>
 
-<h1 align="center">Worklog</h1>
+<h1 align="center">Worcog</h1>
 
 A local-first desktop workspace for topics, dated activity, tasks, manually
 recorded external sources, and managed documents. Email, Teams and InvGate

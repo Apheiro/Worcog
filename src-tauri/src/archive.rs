@@ -28,7 +28,7 @@ pub fn export(store: &Store, destination: &Path) -> Result<()> {
         return Err("Export exceeds portable format limits".into());
     }
     let parent = destination.parent().ok_or("Invalid destination")?;
-    let temp = parent.join(format!(".worklog-{}.tmp", uuid::Uuid::new_v4()));
+    let temp = parent.join(format!(".worcog-{}.tmp", uuid::Uuid::new_v4()));
     let result = (|| {
         let file = fs::OpenOptions::new()
             .write(true)

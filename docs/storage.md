@@ -1,7 +1,7 @@
 # Storage, export and recovery
 
-Worklog resolves locations through Tauri's path APIs using the application
-identifier `com.worklog.desktop`. Open the app's storage/settings view to see
+Worcog resolves locations through Tauri's path APIs using the application
+identifier `com.worcog.desktop`. Open the app's storage/settings view to see
 the resolved locations on your machine; do not assume a fixed home-directory
 path or move an active SQLite database manually.
 
@@ -88,7 +88,7 @@ location. Exports are not encrypted and may contain confidential notes and files
 
 ## Import and restore
 
-1. Choose **Import / restore** and select a Worklog ZIP archive.
+1. Choose **Import / restore** and select a Worcog ZIP archive.
 2. Review the inspected archive summary and the replacement warning.
 3. Confirm only when you intend to replace the current workspace.
 
@@ -152,7 +152,7 @@ affected counts and requires confirmation against the reviewed workspace revisio
   does not delete its original outside the managed directory.
 - **Delete all workspace data:** clears all records and managed file copies,
   including unreferenced copies left by earlier restores. An optional checkbox
-  also deletes local archives inside Worklog's backups directory. External
+  also deletes local archives inside Worcog's backups directory. External
   exports, originals, preferences and files on other devices are unaffected.
 
 No operation creates a deletion history, trash record or automatic backup.

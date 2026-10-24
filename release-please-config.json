@@ -20,7 +20,7 @@
         {
           "type": "toml",
           "path": "src-tauri/Cargo.lock",
-          "jsonpath": "$.package[?(@.name.value=='worklog' && !@.source)].version"
+          "jsonpath": "$.package[?(@.name.value=='worcog' && !@.source)].version"
         }
       ]
     }

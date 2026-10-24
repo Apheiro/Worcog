@@ -4,18 +4,18 @@ import { useResizeObserver } from '@mantine/hooks';
 import { IconDownload, IconX } from '@tabler/icons-react';
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { Button, Tooltip } from './core';
 
 export function WorkspaceDock() {
-  const { documents, attachmentExport, wb } = useWorklog();
+  const { documents, attachmentExport, wb } = useWorcog();
   const minimized = documents.windows.filter((instance) => instance.id !== documents.activeId);
   const visible = minimized.length > 0 || attachmentExport.selected.length > 0;
   const [ref, bounds] = useResizeObserver<HTMLDivElement>();
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--worklog-dock-height', `${visible && bounds.height ? bounds.height + 12 : 0}px`);
-    return () => { root.style.removeProperty('--worklog-dock-height'); };
+    root.style.setProperty('--worcog-dock-height', `${visible && bounds.height ? bounds.height + 12 : 0}px`);
+    return () => { root.style.removeProperty('--worcog-dock-height'); };
   }, [bounds.height, visible]);
   if (!visible) return null;
   return createPortal(

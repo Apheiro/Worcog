@@ -11,7 +11,7 @@ import type { EntityEditorProps } from './editors';
 import { Button, DateInput, Field, Input, Modal, Select, Switch, Textarea } from './core';
 import { today, toTimestamp } from '../domain/dates';
 import dayjs from 'dayjs';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { ResponsiblePicker, useResponsibleDraft } from './responsible-picker';
 import { TaskResources, type TaskResourcesHandle } from './task-resources';
 
@@ -26,7 +26,7 @@ export function TaskEditor({
   onSave,
 }: EntityEditorProps) {
   const task = w.tasks.find((item) => item.id === editor.id);
-  const { reminders } = useWorklog();
+  const { reminders } = useWorcog();
   const initialReminder = task?.reminderAt ? dayjs(task.reminderAt).format('YYYY-MM-DDTHH:mm') : '';
   const [reminderEnabled, setReminderEnabled] = useState(!!task?.reminderAt);
   const [reminderDate, setReminderDate] = useState(initialReminder);

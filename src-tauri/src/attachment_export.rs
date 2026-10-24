@@ -51,7 +51,7 @@ pub fn suggested_name(store: &Store, ids: &[String]) -> Result<String> {
     let workspace = store.load()?;
     let files = selected(&workspace, ids)?;
     if files.len() == 1 { export_name(files[0]) }
-    else { Ok(format!("worklog-files-{}.zip", chrono::Utc::now().format("%Y%m%dT%H%M%SZ"))) }
+    else { Ok(format!("worcog-files-{}.zip", chrono::Utc::now().format("%Y%m%dT%H%M%SZ"))) }
 }
 
 pub fn export(store: &Store, ids: &[String], destination: &Path) -> Result<()> {
@@ -75,7 +75,7 @@ pub fn export(store: &Store, ids: &[String], destination: &Path) -> Result<()> {
         }
         entries.push((entry, path, size));
     }
-    // Never replace an existing file, including Worklog's own managed copies.
+    // Never replace an existing file, including Worcog's own managed copies.
     let output = fs::OpenOptions::new().write(true).create_new(true).open(destination)
         .map_err(|error| if error.kind() == std::io::ErrorKind::AlreadyExists {
             "Destination already exists. Choose a new filename.".to_string()

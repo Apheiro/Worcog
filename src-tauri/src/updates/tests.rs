@@ -19,7 +19,7 @@ fn release(version: &str) -> Release {
         body: Some("# Changes".into()),
         assets: vec![Asset {
             id: 42,
-            name: format!("worklog-v{version}-windows-x64.exe"),
+            name: format!("worcog-v{version}-windows-x64.exe"),
             state: "uploaded".into(),
             size: GOOD.len() as u64,
             digest: Some(format!("sha256:{:x}", Sha256::digest(GOOD))),
@@ -110,7 +110,7 @@ fn stable_semantic_precedence_and_complete_asset_gate() {
             3 => r.assets[0].size = MAX_DOWNLOAD + 1,
             4 => r.assets[0].digest = None,
             5 => r.assets[0].digest = Some("sha256:not-a-hash".into()),
-            6 => r.assets[0].name = "worklog-v2.0.0-windows-x64-setup.exe".into(),
+            6 => r.assets[0].name = "worcog-v2.0.0-windows-x64-setup.exe".into(),
             7 => r.assets.push(r.assets[0].clone()),
             _ => r.assets[0].id = 0,
         }
@@ -176,7 +176,7 @@ fn stale_partials_cleanup_is_narrow_and_log_is_bounded() {
     let dir = tempfile::tempdir().unwrap();
     let stale = dir
         .path()
-        .join(format!("worklog-{}.part", uuid::Uuid::new_v4()));
+        .join(format!("worcog-{}.part", uuid::Uuid::new_v4()));
     fs::write(&stale, b"MZpartial").unwrap();
     fs::write(dir.path().join("keep.part"), b"unrelated").unwrap();
     download::cleanup(dir.path()).unwrap();
@@ -216,7 +216,7 @@ fn anonymous_authenticated_and_redirected_requests_use_correct_headers() {
     assert!(requests[0]
         .to_lowercase()
         .contains("x-github-api-version: 2022-11-28"));
-    assert!(requests[0].contains("Worklog-Updates"));
+    assert!(requests[0].contains("Worcog-Updates"));
 }
 #[test]
 fn request_errors_are_useful_and_never_echo_network_secrets() {
@@ -342,7 +342,7 @@ fn profiles_are_isolated_and_frontend_status_never_exposes_the_secret() {
 #[test]
 fn service_checks_downloads_reports_locations_and_never_logs_credentials() {
     let dir = tempfile::tempdir().unwrap();
-    let body=serde_json::json!({"tag_name":"v1.2.0","draft":false,"prerelease":false,"body":"# Complete notes","assets":[{"id":42,"name":"worklog-v1.2.0-windows-x64.exe","state":"uploaded","size":GOOD.len(),"digest":format!("sha256:{:x}",Sha256::digest(GOOD))}]}).to_string();
+    let body=serde_json::json!({"tag_name":"v1.2.0","draft":false,"prerelease":false,"body":"# Complete notes","assets":[{"id":42,"name":"worcog-v1.2.0-windows-x64.exe","state":"uploaded","size":GOOD.len(),"digest":format!("sha256:{:x}",Sha256::digest(GOOD))}]}).to_string();
     let (origin, task) = server(vec![
         response("200 OK", "", body.as_bytes()),
         response("200 OK", "", GOOD),

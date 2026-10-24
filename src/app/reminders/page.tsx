@@ -15,7 +15,7 @@ export default function Page() {
   const [error, setError] = useState('');
   useEffect(() => {
     const stopTheme = subscribeToTheme(() => {});
-    if (!desktopAvailable()) { setError('Reminders require the Worklog desktop application.'); return stopTheme; }
+    if (!desktopAvailable()) { setError('Reminders require the Worcog desktop application.'); return stopTheme; }
     let disposed = false;
     let stop: (() => void) | undefined;
     let received = 0;
@@ -45,7 +45,7 @@ export default function Page() {
     <main id="main-content" className="flex h-dvh min-h-0 flex-col overflow-hidden [background:var(--surface)] [color:var(--ink)] [border:1px_solid_var(--border-strong)]">
       <header className="flex shrink-0 items-center gap-2 px-4 py-3 [border-bottom:1px_solid_var(--border)]">
         <IconBellRinging size={17} aria-hidden="true" />
-        <h1 className="flex-1 text-sm font-semibold">Worklog reminders</h1>
+        <h1 className="flex-1 text-sm font-semibold">Worcog reminders</h1>
         <span className="text-xs [color:var(--muted)]">{status.pending.length}</span>
       </header>
       <ScrollArea label="Pending reminders" className="min-h-0 flex-1">

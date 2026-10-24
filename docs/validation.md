@@ -107,7 +107,7 @@ Validation passed: actionlint 1.7.7 for both workflows, frozen pnpm install,
 Fourteen new tests exercise the version gate, mismatches, exact crate matching,
 CRLF files, tags and checked-in metadata. The real Release Please 16.18.0 generic
 JSON/TOML updaters were run in an isolated temporary tool installation against
-all configured extra files; only Worklog's local Cargo.lock version was changed
+all configured extra files; only Worcog's local Cargo.lock version was changed
 in the simulated update. No application dependency was added.
 
 Windows compilation/NSIS packaging, the Windows PowerShell staging script,
@@ -125,7 +125,7 @@ focus, manual dismissal and neutral dark toast colors. A dark screenshot was
 visually inspected. No native permissions or storage changes were needed.
 
 The repository was initialized on `main` at the user's request, with the existing
-Worklog README retained. The empty remote `Apheiro/Worklog` was checked over SSH.
+Worcog README retained. The empty remote `Apheiro/Worcog` was checked over SSH.
 Generated builds, databases, environment files and test artifacts are excluded
 from version control. HTTPS remains the origin fetch URL and the same repository's
 SSH URL is configured for authenticated pushes. Windows packaging and actual

@@ -110,7 +110,7 @@ pub fn cleanup(root: &Path) -> Result<()> {
         let entry = entry.map_err(|_| "Could not inspect partial update.")?;
         let name = entry.file_name().to_string_lossy().into_owned();
         if let Some(id) = name
-            .strip_prefix("worklog-")
+            .strip_prefix("worcog-")
             .and_then(|s| s.strip_suffix(".part"))
         {
             if uuid::Uuid::parse_str(id).is_ok()
@@ -133,7 +133,7 @@ pub fn save(root: &Path, selection: &Selection, source: impl Read) -> Result<Pat
         verify(&final_path, selection, root)?;
         return Ok(final_path);
     }
-    let partial_path = root.join(format!("worklog-{}.part", uuid::Uuid::new_v4()));
+    let partial_path = root.join(format!("worcog-{}.part", uuid::Uuid::new_v4()));
     let mut file = OpenOptions::new()
         .create_new(true)
         .write(true)

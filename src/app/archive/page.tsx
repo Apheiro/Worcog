@@ -2,10 +2,10 @@
 import { filterTopics } from '../../application/queries';
 import { Select } from '../../components/core';
 import { TopicTable } from '../../components/work-lists';
-import { useWorklog } from '../../providers/worklog';
+import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 export default function Page() {
-  const { w, page, sort, setSort, effective, openTopic } = useWorklog();
+  const { w, page, sort, setSort, effective, openTopic } = useWorcog();
   const topics = filterTopics(w, effective, sort, page === 'archive');
   return (
     <WorkspaceSection>

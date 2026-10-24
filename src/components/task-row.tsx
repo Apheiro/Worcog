@@ -22,7 +22,7 @@ import { Checkbox } from './core/checkbox';
 import { ActionMenu, ContextMenu, Button, Card, Field, Modal, Textarea, Tooltip, type ActionMenuItem } from './core';
 import { deadlineIndicator } from '../application/topic-inactivity';
 import { human, taskPriority } from '../domain/options';
-import { useWorklog } from '../providers/worklog';
+import { useWorcog } from '../providers/worcog';
 import { AttachmentStatus } from './attachment-status';
 import { TaskProgress, TaskUpdateForm } from './task-progress';
 import { SourceIcon } from './source-icon';
@@ -75,7 +75,7 @@ export function TaskRow({
   cardRef,
   dropTarget,
 }: TaskRowProps) {
-  const { inactivitySettings, attachmentExport, taskContextMenu, relations } = useWorklog();
+  const { inactivitySettings, attachmentExport, taskContextMenu, relations } = useWorcog();
   const entity = { kind: 'task' as const, id: task.id };
   const linkTarget = useLinkTarget(entity);
   const parent = w.tasks.find((t) => t.id === task.parentId);

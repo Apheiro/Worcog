@@ -9,7 +9,7 @@ provide keyboard-accessible date selection.
 
 Each section has a statically exported App Router page (`/`, `/topics/`,
 `/tasks/`, `/sources/`, `/search/`, `/files/`, `/archive/`, `/settings/`).
-The root `app/layout.tsx` mounts `WorklogProvider` and the shared
+The root `app/layout.tsx` mounts `WorcogProvider` and the shared
 `app/workspace-layout.tsx`, preserving workspace state and dialogs across navigation.
 Navigation uses Next.js links; topic details use `/topics/?topic=<id>` so local
 records do not require build-time dynamic routes. Direct entry, reload and
@@ -75,13 +75,13 @@ are recorded from tasks; status changes continue to be recorded automatically.
 
 ## Optional document editor
 
-Settings → General → **Open documents in Worklog** controls how attachment clicks
+Settings → General → **Open documents in Worcog** controls how attachment clicks
 are handled. It defaults to enabled; disabling it restores the default system
 application for subsequent opens. DOCX, XLSX, PPTX and CSV use an iframe at
 `https://edit.chaxus.com/editor?embed=1`; PDFs and other formats retain the system opener.
-The editor is remote code, not bundled with Worklog. Loading requires connectivity
+The editor is remote code, not bundled with Worcog. Loading requires connectivity
 and trusts that provider's deployed code. No account or cloud storage integration
-is configured by Worklog.
+is configured by Worcog.
 
 `use-document-windows` owns independent instances for the provider lifetime.
 `FloatingWindow` keeps each iframe mounted when minimized, with one restore dot

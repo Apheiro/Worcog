@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Worklog",
+  "productName": "Worcog",
   "version": "0.7.0",
-  "identifier": "com.worklog.desktop",
+  "identifier": "com.worcog.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://127.0.0.1:3000",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Worklog",
+        "title": "Worcog",
         "decorations": false,
         "resizable": true,
         "width": 1320,
@@ -38,5 +38,5 @@
       "icons/icon.ico"
     ]
   },
-  "mainBinaryName": "worklog"
+  "mainBinaryName": "worcog"
 }

@@ -1,5 +1,5 @@
-export const themeStorageKey = 'worklog.theme.v1';
-const themeChanged = 'worklog:theme-changed';
+export const themeStorageKey = 'worcog.theme.v1';
+const themeChanged = 'worcog:theme-changed';
 export const themeOptions = ['system', 'light', 'dark'] as const;
 export type ThemePreference = (typeof themeOptions)[number];
 const preference = (value: string | null | undefined): ThemePreference =>

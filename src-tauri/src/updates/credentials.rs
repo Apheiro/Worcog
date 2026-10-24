@@ -7,9 +7,9 @@ pub trait TokenStore: Send + Sync {
 #[cfg(any(windows, test))]
 pub fn service_name(development: bool) -> &'static str {
     if development {
-        "com.worklog.desktop.updates.development"
+        "com.worcog.desktop.updates.development"
     } else {
-        "com.worklog.desktop.updates.production"
+        "com.worcog.desktop.updates.production"
     }
 }
 pub struct WindowsCredentials;

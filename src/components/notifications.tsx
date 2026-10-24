@@ -56,7 +56,7 @@ export function Notifications() {
       className="[--toastify-color-light:var(--surface)] [--toastify-color-dark:var(--surface)] [--toastify-color-info:var(--ink)] [--toastify-color-success:var(--ink)] [--toastify-color-warning:var(--warning-ink)] [--toastify-color-error:var(--danger-ink)] [--toastify-color-progress-light:var(--ink)] [--toastify-color-progress-dark:var(--ink)] [--toastify-color-progress-success:var(--ink)] [--toastify-color-progress-info:var(--ink)] [--toastify-color-progress-warning:var(--warning-ink)] [--toastify-color-progress-error:var(--danger-ink)] [--toastify-text-color-light:var(--ink)] [--toastify-text-color-dark:var(--ink)] [--toastify-font-family:inherit] [--toastify-toast-width:390px] [--toastify-z-index:100] [&_.Toastify__toast-icon]:[color:inherit] [@media(prefers-reduced-motion:reduce)]:[&_.Toastify__progress-bar]:invisible"
       toastClassName="[border:1px_solid_var(--border-strong)] [border-radius:5px] [background:var(--surface)] [color:var(--ink)] [font-size:13px] [gap:10px] [overflow-wrap:anywhere] [&.Toastify__toast]:min-h-0 [&.Toastify__toast]:pl-3 [&.Toastify__toast]:pr-10 [&.Toastify__toast]:py-3 [&.Toastify__toast--warning]:[background:var(--warning-bg)] [&.Toastify__toast--warning]:[border-color:var(--warning-border)] [&.Toastify__toast--warning]:[color:var(--warning-ink)] [&.Toastify__toast--error]:[background:var(--danger-bg)] [&.Toastify__toast--error]:[border-color:var(--danger-border)] [&.Toastify__toast--error]:[color:var(--danger-ink)]"
       position="bottom-right"
-      style={{ bottom: 'calc(20px + var(--worklog-dock-height, 0px))' }}
+      style={{ bottom: 'calc(20px + var(--worcog-dock-height, 0px))' }}
       limit={4}
       closeOnClick={false}
       draggable={false}
