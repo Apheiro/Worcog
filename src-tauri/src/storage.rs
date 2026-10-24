@@ -21,7 +21,7 @@ impl Store {
         let version: u32 = db
             .query_row("PRAGMA user_version", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        if version > 6 {
+        if version > 7 {
             return Err("Database was created by a newer application".into());
         }
         if version == 0 {
@@ -50,6 +50,9 @@ impl Store {
         if version < 6 {
             db.execute_batch("BEGIN IMMEDIATE; CREATE TABLE desktop_preferences(id INTEGER PRIMARY KEY CHECK(id=1),payload TEXT NOT NULL CHECK(json_valid(payload))); CREATE INDEX tasks_reminder ON tasks(json_extract(payload,'$.reminderAt')) WHERE json_extract(payload,'$.reminderAt') IS NOT NULL; PRAGMA user_version=6; COMMIT;").map_err(|e| e.to_string())?;
         }
+        if version < 7 {
+            db.execute_batch("BEGIN IMMEDIATE; ALTER TABLE metadata ADD COLUMN entity_links TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(entity_links)); PRAGMA user_version=7; COMMIT;").map_err(|e| e.to_string())?;
+        }
         Ok(Self { db, root })
     }
     pub fn load(&self) -> Result<Value> {
@@ -76,7 +79,12 @@ impl Store {
             .query_row("SELECT contacts FROM metadata WHERE id=1", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
         let contacts: Value = serde_json::from_str(&contacts).map_err(|e| e.to_string())?;
+        let links: String = snapshot
+            .query_row("SELECT entity_links FROM metadata WHERE id=1", [], |r| r.get(0))
+            .map_err(|e| e.to_string())?;
+        let links: Value = serde_json::from_str(&links).map_err(|e| e.to_string())?;
         let mut w = json!({"formatVersion":1,"revision":revision,"responsibleNames":names,"categoryColors":colors,"contacts":contacts});
+        w["links"] = links;
         for kind in COLLECTIONS {
             let mut stmt = snapshot
                 .prepare(&format!("SELECT payload FROM {kind} ORDER BY id"))
@@ -200,7 +208,7 @@ impl Store {
             }
         }
         tx.execute(
-            "UPDATE metadata SET revision=?1,responsible_names=?2,category_colors=?3,contacts=?4 WHERE id=1",
+            "UPDATE metadata SET revision=?1,responsible_names=?2,category_colors=?3,contacts=?4,entity_links=?5 WHERE id=1",
             params![
                 revision + 1,
                 serde_json::to_string(
@@ -216,6 +224,8 @@ impl Store {
                 )
                 .map_err(|e| e.to_string())?,
                 serde_json::to_string(&w.get("contacts").cloned().unwrap_or_else(|| json!([])))
+                .map_err(|e| e.to_string())?,
+                serde_json::to_string(&w.get("links").cloned().unwrap_or_else(|| json!([])))
                 .map_err(|e| e.to_string())?
             ],
         )

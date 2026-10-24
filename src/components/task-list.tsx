@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { IconGripVertical } from '@tabler/icons-react';
 import { DragDropProvider, KeyboardSensor, PointerSensor, useDraggable, useDroppable } from '@dnd-kit/react';
 import { Feedback, PointerActivationConstraints } from '@dnd-kit/dom';
@@ -10,6 +10,7 @@ import type { Task } from '../domain/model';
 import { useWorklog } from '../providers/worklog';
 import { Button, Empty } from './core';
 import { TaskRow, type TaskRowProps } from './task-row';
+import { TaskConnections } from './task-connections';
 
 const sensors = [
   PointerSensor.configure({ activationConstraints: [new PointerActivationConstraints.Distance({ value: 5 })] }),
@@ -49,7 +50,8 @@ function TaskDropLine({ id, move, label, disabled, detached = false }: {
 
 function DraggableTaskRow({ activeTask, ...props }: ListRowProps & { activeTask: Task | null }) {
   const { task, workspace, busy } = props;
-  const { ref: dragRef, handleRef } = useDraggable({ id: task.id, disabled: busy });
+  const { relations } = useWorklog();
+  const { ref: dragRef, handleRef } = useDraggable({ id: task.id, disabled: busy || !!relations.source });
   const canNest = !!activeTask && activeTask.parentId !== task.id && canReparentTask(workspace.tasks, activeTask.id, task.id);
   const { ref: dropRef, isDropTarget } = useDroppable<DropData>({
     id: `child:${task.id}`,
@@ -67,7 +69,7 @@ function DraggableTaskRow({ activeTask, ...props }: ListRowProps & { activeTask:
         {...props}
         cardRef={cardRef}
         dropTarget={isDropTarget}
-        dragHandle={
+        dragHandle={!relations.source &&
           <Button
             ref={handleRef}
             type="button"
@@ -95,7 +97,8 @@ export function TaskList({ tasks, sort = 'created', ...rowProps }: Omit<ListRowP
   tasks: Task[];
   sort?: TaskSort;
 }) {
-  const { wb } = useWorklog();
+  const { wb, relations } = useWorklog();
+  const container = useRef<HTMLDivElement>(null);
   const { workspace, busy } = rowProps;
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -166,7 +169,7 @@ export function TaskList({ tasks, sort = 'created', ...rowProps }: Omit<ListRowP
       onDragEnd={(event) => {
         setActiveTask(null);
         const { source, target } = event.operation;
-        if (event.canceled || busy || !source || !target) return;
+        if (event.canceled || busy || relations.source || !source || !target) return;
         const data = target.data;
         const id = String(source.id);
         const moving = workspace.tasks.find((task) => task.id === id);
@@ -189,9 +192,12 @@ export function TaskList({ tasks, sort = 'created', ...rowProps }: Omit<ListRowP
           )}
         </div>
       )}
-      <ul className="task-list m-0 flex list-none flex-col gap-[5px] p-0" aria-label="Task hierarchy">
-        {branches(roots)}
-      </ul>
+      <div ref={container} className="relative isolate">
+        <TaskConnections container={container} />
+        <ul className="task-list relative m-0 flex list-none flex-col gap-[5px] p-0" aria-label="Task hierarchy">
+          {branches(roots)}
+        </ul>
+      </div>
     </DragDropProvider>
   );
 }

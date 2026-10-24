@@ -62,7 +62,8 @@ pub fn validate(w: &Value) -> Result<()> {
     let expected = 7
         + usize::from(w.get("responsibleNames").is_some())
         + usize::from(w.get("contacts").is_some())
-        + usize::from(w.get("categoryColors").is_some());
+        + usize::from(w.get("categoryColors").is_some())
+        + usize::from(w.get("links").is_some());
     if w.as_object().map(|v| v.len()) != Some(expected) {
         return Err("Unexpected workspace fields".into());
     }
@@ -316,6 +317,45 @@ pub fn validate(w: &Value) -> Result<()> {
             }
         }
         ids.insert(kind, set);
+    }
+    if w.get("links").is_some() {
+        let links = list(w, "links")?;
+        if links.len() > 100_000 {
+            return Err("Too many item connections".into());
+        }
+        let mut keys = HashSet::new();
+        for link in links {
+            let object = link.as_object().ok_or("Invalid item connection")?;
+            if object.len() != 2 || !object.contains_key("from") || !object.contains_key("to") {
+                return Err("Invalid item connection fields".into());
+            }
+            let mut endpoints = Vec::new();
+            for field in ["from", "to"] {
+                let endpoint = &link[field];
+                let object = endpoint.as_object().ok_or("Invalid connection endpoint")?;
+                if object.len() != 2 || !object.contains_key("kind") || !object.contains_key("id") {
+                    return Err("Invalid connection endpoint fields".into());
+                }
+                let kind = string(endpoint, "kind")?;
+                let collection = match kind {
+                    "task" => "tasks",
+                    "topic" => "topics",
+                    _ => return Err("Invalid connection kind".into()),
+                };
+                let id = string(endpoint, "id")?;
+                if !ids[collection].contains(id) {
+                    return Err("Missing connection endpoint".into());
+                }
+                endpoints.push((kind, id));
+            }
+            if endpoints[0] == endpoints[1] {
+                return Err("An item cannot link to itself".into());
+            }
+            endpoints.sort_unstable();
+            if !keys.insert(endpoints) {
+                return Err("Duplicate item connection".into());
+            }
+        }
     }
     for kind in COLLECTIONS {
         for e in list(w, kind)? {

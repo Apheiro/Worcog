@@ -8,6 +8,7 @@ It is bundled with Worklog and can be read without an internet connection.
 - [Overview](#overview)
 - [Topics](#topics)
 - [Tasks and subtasks](#tasks-and-subtasks)
+- [Links between topics and tasks](#links-between-topics-and-tasks)
 - [Reminders and system tray](#reminders-and-system-tray)
 - [Task updates](#task-updates)
 - [Resources and sources](#resources-and-sources)
@@ -138,11 +139,11 @@ is no need to enter a creation date yourself.
 
 Task icons appear in this order: blocked warning, updates, description, then
 **…**. The actions menu opens on hover and also works by click or keyboard.
-It groups Add update, Add subtask, Remove and Blocked / Unblocked.
+It groups Link, Add update, Add subtask, Remove and Blocked / Unblocked.
 
 By default, the vertical three-dot (⋮) menu provides the task's secondary actions.
 Enable **Settings → General → Context menus** to replace that button with
-a right-click menu on the task card. It offers the same Add update, Add
+a right-click menu on the task card. It offers the same Link, Add update, Add
 subtask, Remove and Blocked/Unblocked actions. Focus the card or one of its
 controls and press **Shift + F10** or the **Menu key** to open it with the
 keyboard; touch devices support a long press. This device preference is off
@@ -198,6 +199,52 @@ not inherit the original task's absolute reminder date.
 
 Deleting any task belonging to a recurring series deletes the series, as
 explained in the confirmation, so deleted occurrences are not recreated.
+
+## Links between topics and tasks
+
+Use **⋮ → Link…** (or the right-click menu when enabled) on a task card or
+topic row to start linking. The topic workspace header also offers **Link…**.
+A banner identifies the source. Click the destination task card, topic row or
+topic workspace title to save the connection. Eligible destinations highlight
+on hover; the source and already-linked items cannot be selected again.
+
+You can navigate between views and topics without leaving Link mode. In a
+topic row, use the small **Open topic to choose a task** arrow beside the title
+to open that topic instead of linking to it. Then click the desired task.
+Choose **Cancel** in the banner or press **Escape** to leave Link mode without
+creating a connection. Keyboard users can Tab to a destination and press
+**Enter** or **Space**. Saving errors leave the selection mode available to retry.
+
+Connections work between tasks, topics, or a task and a topic, including across
+topics. They record **previous → next**: the item where you choose Link is the
+previous/source item; the clicked destination is the next item. Both endpoints
+show the connection. References are labeled **Previous** for incoming links
+and **Next** for outgoing links. This records precedence without automatically
+changing parents, topic ownership, task order or completion/blocking states.
+To correct the direction, unlink the pair and create it from the other item;
+the reverse pair cannot be added as a duplicate connection.
+
+Linked items appear as compact references below a task's resources, below topic
+metadata in the list and below the topic workspace heading. Click a reference
+to open its topic or task editor. The small **Unlink** control removes only the
+connection, preserving both items and their resources.
+
+Tasks with connections show a small point on their left edge. Hover or focus
+the point to reveal thin dashed curves to related tasks currently rendered in
+the same list and highlight their borders. Arrows point toward the next item,
+regardless of which endpoint you hover. Click it to keep the connections
+visible and open a list of linked items. These references also let you reach
+items in other topics, hidden by filters or inside collapsed branches; curves
+are drawn only when both task cards are rendered. The connection curves use a
+separate left gutter from the solid parent/subtask tree. Dismiss the popover
+to release the selection.
+
+Links are saved with the local workspace and included in backups and exports.
+Deleting an endpoint removes its connections without deleting the other
+endpoint. Existing connections created through Link retain their recorded
+source/destination. Older related-topic records without a known direction
+remain labeled **Related**, with no arrow; unlink and recreate them to assign
+precedence.
 
 ## Reminders and system tray
 
@@ -603,6 +650,8 @@ handle their own shortcuts while their iframe has focus.
 | Space / Enter | Focused task grip | Start dragging a task or drop it at the highlighted destination |
 | Arrow keys | While dragging a task with the keyboard | Move toward a hierarchy destination or a Free insertion line |
 | Escape | While dragging a task | Cancel the move without saving changes |
+| Enter / Space | Focused destination task or topic in Link mode | Save a connection to that item |
+| Escape | Link mode | Cancel destination selection |
 | Ctrl + Left / Right arrow | Open document viewer with multiple documents; Windows also captures these inside the editor | Slide to the previous / next document, wrapping at either end |
 | Tab / Shift + Tab | Worklog controls | Move focus forward or backward |
 | Enter / Space | Focused buttons and checkboxes | Activate the control or toggle its checkbox |

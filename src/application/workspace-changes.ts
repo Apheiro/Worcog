@@ -8,6 +8,13 @@ export function applyWorkspaceChanges(
   now: string,
 ): Workspace {
   const next = { ...workspace, ...patch };
+  if (next.links) {
+    const taskIds = new Set(next.tasks.map((task) => task.id));
+    const topicIds = new Set(next.topics.map((topic) => topic.id));
+    const exists = (ref: NonNullable<Workspace['links']>[number]['from']) =>
+      (ref.kind === 'task' ? taskIds : topicIds).has(ref.id);
+    next.links = next.links.filter((link) => exists(link.from) && exists(link.to));
+  }
   const affected = new Set<string>();
   function collect<T extends { id: string }>(
     before: T[],

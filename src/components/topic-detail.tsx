@@ -3,7 +3,7 @@ import { TopicInactivityIndicator } from './topic-inactivity-indicator';
 import { CategoryTag } from './category-tag';
 import { Card } from './core/card';
 import * as Tabs from '@radix-ui/react-tabs';
-import { IconArchive, IconArrowLeft, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconArchive, IconArrowLeft, IconEdit, IconLink, IconPlus, IconTrash } from '@tabler/icons-react';
 import type { DeletionTarget } from '../application/deletion';
 import { updateTask } from '../application/workspace';
 import { filterCompletedRootTasks } from '../application/task-order';
@@ -19,6 +19,7 @@ import { assignedNames } from '../domain/responsibles';
 import { human } from '../domain/options';
 import { FileList, SourceList, TaskList, Timeline } from './work-lists';
 import { TopicFiles } from './topic-files';
+import { EntityLinks, EntityLinkTarget } from './entity-links';
 export function TopicDetail({
   topic,
   wb,
@@ -43,7 +44,7 @@ export function TopicDetail({
   deleteTask: (id: string) => void;
 }) {
   const w = wb.workspace;
-  const { taskSort, hideCompletedRootTasks } = useWorklog();
+  const { taskSort, hideCompletedRootTasks, relations } = useWorklog();
   const tasks = w.tasks.filter((t) => t.topicId === topic.id);
   const visibleTasks = filterCompletedRootTasks(tasks, hideCompletedRootTasks);
   const sources = w.sources.filter((s) => sourceTopicIds(w, s).includes(topic.id));
@@ -59,7 +60,9 @@ export function TopicDetail({
           <p className="eyebrow [font-size:11px] [letter-spacing:1.1px] uppercase [color:var(--muted)] [font-weight:600] [margin-bottom:10px]">
             <CategoryTag category={topic.category} /> {topic.archived && '· Archived'}
           </p>
-          <h1 className="break-words">{topic.title}</h1>
+          <EntityLinkTarget entity={{ kind: 'topic', id: topic.id }}>
+            <h1 className="break-words">{topic.title}</h1>
+          </EntityLinkTarget>
           <div className="flex gap-2 items-center flex-wrap mt-3">
             <TopicInactivityIndicator topic={topic} />
             <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
@@ -80,8 +83,9 @@ export function TopicDetail({
         <div className="flex items-center gap-2 shrink-0">
           <ActionMenu
             label={`Actions for ${topic.title}`}
-            disabled={wb.busy}
+            disabled={wb.busy || !!relations.source}
             items={[
+              { label: 'Link…', icon: <IconLink size={15} />, onSelect: () => relations.start({ kind: 'topic', id: topic.id }) },
               {
                 label: 'Edit topic',
                 icon: <IconEdit size={15} />,
@@ -103,6 +107,7 @@ export function TopicDetail({
           </Button>
         </div>
       </div>
+      <EntityLinks entity={{ kind: 'topic', id: topic.id }} className="mb-4" />
       {topic.summary.trim() && (
         <Card className="topic-summary [&_>_div]:[padding:21px_23px] [&_p]:[font-size:13px]">
           <div>

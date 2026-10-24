@@ -11,6 +11,7 @@ import {
   IconLockOpen,
   IconNotes,
   IconTimeline,
+  IconLink,
 } from '@tabler/icons-react';
 import { useId, useState, type FormEvent, type ReactNode, type Ref } from 'react';
 import { cva } from 'cva';
@@ -25,6 +26,7 @@ import { useWorklog } from '../providers/worklog';
 import { AttachmentStatus } from './attachment-status';
 import { TaskProgress, TaskUpdateForm } from './task-progress';
 import { SourceIcon } from './source-icon';
+import { EntityLinks, EntityLinkIndicator, useLinkTarget } from './entity-links';
 
 const taskRow = cva({
   base: [
@@ -73,7 +75,9 @@ export function TaskRow({
   cardRef,
   dropTarget,
 }: TaskRowProps) {
-  const { inactivitySettings, attachmentExport, taskContextMenu } = useWorklog();
+  const { inactivitySettings, attachmentExport, taskContextMenu, relations } = useWorklog();
+  const entity = { kind: 'task' as const, id: task.id };
+  const linkTarget = useLinkTarget(entity);
   const parent = w.tasks.find((t) => t.id === task.parentId);
   const sources = w.sources.filter((source) => task.sourceIds.includes(source.id));
   const files = w.attachments.filter((file) => file.taskIds.includes(task.id));
@@ -88,6 +92,7 @@ export function TaskRow({
   const [savingBlock, setSavingBlock] = useState(false);
   const blocked = task.status === 'blocked';
   const actions: ActionMenuItem[] = [
+    { label: 'Link…', icon: <IconLink size={15} />, onSelect: () => relations.start(entity) },
     {
       label: 'Add update',
       icon: <IconNotes size={15} />,
@@ -138,12 +143,13 @@ export function TaskRow({
   return (
     <>
       <div className="group/task-card relative isolate">
-        <ContextMenu label={`Actions for ${task.title}`} items={actions} disabled={!taskContextMenu || busy}>
+        <ContextMenu label={`Actions for ${task.title}`} items={actions} disabled={!taskContextMenu || busy || linkTarget.choosing}>
           <Card
+            {...linkTarget.props}
             ref={cardRef}
             className={taskRow({
               completed: task.status === 'completed',
-              className: `relative z-10 ${dropTarget ? '[&.card]:[border-color:var(--ink)] [&.card]:[background:var(--selected)]' : ''}`,
+              className: `relative z-10 [&.card[data-link-source=true]]:[border-color:var(--ink)] [&.card[data-link-source=true]]:[background:var(--selected)] [&.card[data-link-target=true]]:cursor-crosshair [&.card[data-link-target=true]:hover]:[border-color:var(--ink)] [&.card[data-linked-highlight=true]]:[border-color:var(--secondary)] ${dropTarget ? '[&.card]:[border-color:var(--ink)] [&.card]:[background:var(--selected)]' : ''}`,
             })}
             role="group"
             aria-label={task.title}
@@ -262,6 +268,7 @@ export function TaskRow({
                   ))}
                 </ul>
               )}
+              <EntityLinks entity={entity} />
             </div>
             <div className="task-actions ml-auto flex flex-col items-end gap-2">
               <div className="flex items-center gap-2">
@@ -300,7 +307,7 @@ export function TaskRow({
                     </span>
                   </Tooltip>
                 )}
-                {!taskContextMenu && <ActionMenu label={`Actions for ${task.title}`} disabled={busy} items={actions} />}
+                {!taskContextMenu && <ActionMenu label={`Actions for ${task.title}`} disabled={busy || linkTarget.choosing} items={actions} />}
               </div>
               {task.dueDate && (
                 <span className="text-xs [color:var(--muted)]">
@@ -311,6 +318,7 @@ export function TaskRow({
             </div>
           </Card>
         </ContextMenu>
+        <EntityLinkIndicator entity={entity} />
         {dragHandle}
       </div>
       {updatesExpanded && <TaskProgress task={task} entries={updates} regionId={updatesRegionId} />}

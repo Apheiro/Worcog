@@ -1,5 +1,5 @@
 'use client';
-import { IconActivity, IconArchive, IconEdit, IconFile, IconPaperclip, IconTrash } from '@tabler/icons-react';
+import { IconActivity, IconArchive, IconArrowUpRight, IconEdit, IconFile, IconLink, IconPaperclip, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { topicTimeline } from '../application/queries';
 import { formatDate, formatTimestamp, today } from '../domain/dates';
@@ -16,8 +16,9 @@ import { ResourceList } from './resource-list';
 export { TaskList } from './task-list';
 import { AttachmentStatus } from './attachment-status';
 import { SourceIcon } from './source-icon';
+import { EntityLinks, EntityLinkTarget } from './entity-links';
 export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
-  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive } = useWorklog();
+  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations } = useWorklog();
   const showActions = page === 'topics' && !taskContextMenu;
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">
@@ -45,6 +46,7 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
         <tbody>
           {topics.map((topic) => {
             const actions: ActionMenuItem[] = [
+              { label: 'Link…', icon: <IconLink size={15} />, onSelect: () => relations.start({ kind: 'topic', id: topic.id }) },
               {
                 label: 'Edit topic',
                 icon: <IconEdit size={15} />,
@@ -69,53 +71,61 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
               <ContextMenu
                 key={topic.id}
                 label={`Actions for ${topic.title}`}
-                disabled={!taskContextMenu || page !== 'topics' || wb.busy}
+                disabled={!taskContextMenu || page !== 'topics' || wb.busy || !!relations.source}
                 items={actions}
               >
-                <tr>
-                  <td className="relative overflow-hidden">
-                    <TopicInactivityIndicator topic={topic} edge />
-                    <Button tone="link" size="auto" onClick={() => open(topic.id)}>
-                      {topic.title}
-                    </Button>
-                    {showCategory && (
-                      <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-                        <CategoryTag category={topic.category} />
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
-                      {human(topic.status)}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Badge tone={topic.priority === 'urgent' ? 'danger' : 'neutral'}>
-                      {human(topic.priority)}
-                    </Badge>
-                  </td>
-                  <td>{assignedNames(topic).join(', ') || 'Unassigned'}</td>
-                  <td
-                    className={
-                      topic.targetDate &&
-                      topic.targetDate < today() &&
-                      ![
-                        'completed [text-decoration:line-through] [color:var(--muted)]',
-                        'canceled',
-                      ].includes(topic.status)
-                        ? 'overdue [color:var(--danger-ink)] [font-weight:550]'
-                        : ''
-                    }
-                  >
-                    {formatDate(topic.targetDate)}
-                  </td>
-                  <td className="muted [color:var(--muted)]">{formatDate(topic.updatedAt)}</td>
-                  {showActions && (
-                    <td className="topic-actions [&.topic-actions]:p-2">
-                      <ActionMenu label={`Actions for ${topic.title}`} disabled={wb.busy} items={actions} />
+                <EntityLinkTarget entity={{ kind: 'topic', id: topic.id }}>
+                  <tr>
+                    <td className="relative overflow-hidden">
+                      <TopicInactivityIndicator topic={topic} edge />
+                      <Button tone="link" size="auto" onClick={() => open(topic.id)}>
+                        {topic.title}
+                      </Button>
+                      {relations.source && (
+                        <Button data-link-navigate tone="ghost" size="auto" aria-label={`Open ${topic.title} to choose a task`} title="Open topic to choose a task" onClick={() => open(topic.id)} className="ml-2 h-5 w-5 p-0" disabled={wb.busy}>
+                          <IconArrowUpRight size={14} aria-hidden="true" />
+                        </Button>
+                      )}
+                      {showCategory && (
+                        <div className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
+                          <CategoryTag category={topic.category} />
+                        </div>
+                      )}
+                      <EntityLinks entity={{ kind: 'topic', id: topic.id }} className="mt-2" />
                     </td>
-                  )}
-                </tr>
+                    <td>
+                      <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
+                        {human(topic.status)}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Badge tone={topic.priority === 'urgent' ? 'danger' : 'neutral'}>
+                        {human(topic.priority)}
+                      </Badge>
+                    </td>
+                    <td>{assignedNames(topic).join(', ') || 'Unassigned'}</td>
+                    <td
+                      className={
+                        topic.targetDate &&
+                        topic.targetDate < today() &&
+                        ![
+                          'completed [text-decoration:line-through] [color:var(--muted)]',
+                          'canceled',
+                        ].includes(topic.status)
+                          ? 'overdue [color:var(--danger-ink)] [font-weight:550]'
+                          : ''
+                      }
+                    >
+                      {formatDate(topic.targetDate)}
+                    </td>
+                    <td className="muted [color:var(--muted)]">{formatDate(topic.updatedAt)}</td>
+                    {showActions && (
+                      <td className="topic-actions [&.topic-actions]:p-2">
+                        <ActionMenu label={`Actions for ${topic.title}`} disabled={wb.busy || !!relations.source} items={actions} />
+                      </td>
+                    )}
+                  </tr>
+                </EntityLinkTarget>
               </ContextMenu>
             );
           })}

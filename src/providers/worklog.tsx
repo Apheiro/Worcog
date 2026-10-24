@@ -34,6 +34,8 @@ import { useDocumentWindows } from '../infrastructure/use-document-windows';
 import { documentFormat } from '../infrastructure/document-editor';
 import { useAttachmentAccess } from '../infrastructure/use-attachment-access';
 import { useAttachmentExport } from '../infrastructure/use-attachment-export';
+import { useEntityLinks } from '../infrastructure/use-entity-links';
+import type { EntityRef } from '../domain/model';
 import { useReminders } from '../infrastructure/use-reminders';
 import { reminderApi } from '../infrastructure/reminders';
 import { desktopAvailable } from '../infrastructure/native';
@@ -64,6 +66,7 @@ function useWorklogController() {
   const reminders = useReminders();
   const updates = useUpdates();
   const w = wb.workspace;
+  const relations = useEntityLinks(wb);
   const attachmentAccess = useAttachmentAccess(w.attachments);
   const attachmentExport = useAttachmentExport(w, wb);
   const documents = useDocumentWindows();
@@ -327,12 +330,19 @@ No recycle bin or deletion history is kept. Existing exports outside Worklog are
     setFileId('');
     setEditor({ kind: 'task', id });
   }
+  function openLinkedEntity(ref: EntityRef) {
+    relations.clearHighlight();
+    if (ref.kind === 'topic') openTopic(ref.id);
+    else editTask(ref.id);
+  }
 
   return {
     wb,
     reminders,
     updates,
     w,
+    relations,
+    openLinkedEntity,
     page,
     topicId,
     setTopicId,

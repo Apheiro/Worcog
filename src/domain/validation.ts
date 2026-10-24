@@ -21,6 +21,7 @@ const tags = z.array(z.string().trim().min(1).max(100)).max(100);
 export const statusSchema = z.enum(['pending', 'in_progress', 'blocked', 'completed', 'canceled']);
 const priority = z.enum(['low', 'normal', 'high', 'urgent']);
 const base = { id, createdAt: timestamp, updatedAt: timestamp };
+const entityRef = z.object({ kind: z.enum(['task', 'topic']), id }).strict();
 export const contactSchema = z.object({
   name: z.string().trim().min(1, 'A name is required.').max(500),
   email: z.string().trim().max(500),
@@ -170,6 +171,7 @@ export const workspaceSchema: z.ZodType<Workspace> = z
       (contacts) => new Set(contacts.map((contact) => contact.name.toLocaleLowerCase())).size === contacts.length,
       'Duplicate contact name.',
     ).optional(),
+    links: z.array(z.object({ from: entityRef, to: entityRef }).strict()).max(100000).optional(),
     topics: z.array(topicSchema),
     tasks: z.array(taskSchema),
     activities: z.array(activitySchema),
@@ -197,6 +199,16 @@ export const workspaceSchema: z.ZodType<Workspace> = z
     const refs = (values: string[], kind: keyof typeof sets) => {
       if (values.some((value) => !sets[kind].has(value))) fail(`Missing ${kind} relationship.`);
     };
+    const linkKeys = new Set<string>();
+    for (const link of workspace.links ?? []) {
+      refs([link.from.id], link.from.kind);
+      refs([link.to.id], link.to.kind);
+      const endpoints = [JSON.stringify([link.from.kind, link.from.id]), JSON.stringify([link.to.kind, link.to.id])];
+      if (endpoints[0] === endpoints[1]) fail('An item cannot link to itself.');
+      const key = JSON.stringify(endpoints.sort());
+      if (linkKeys.has(key)) fail('Duplicate item connection.');
+      linkKeys.add(key);
+    }
     for (const topic of workspace.topics) {
       refs(topic.relatedTopicIds, 'topic');
       if (topic.relatedTopicIds.includes(topic.id)) fail('A topic cannot relate to itself.');

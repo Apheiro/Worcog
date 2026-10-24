@@ -325,6 +325,27 @@ Pending messages appear after 600 ms and disappear on completion, including
 failure and cancellation. The transition does not depend on animation events;
 with reduced motion the invisible progress clock still permits automatic close.
 
+## Topic and task connections
+
+Directed `Workspace.links` records store typed task/topic endpoints once:
+`from` is previous/source and `to` is next/destination.
+`domain/entity-links.ts` resolves them alongside legacy `relatedTopicIds`,
+deduplicating pairs while preserving explicitly recorded direction. Legacy
+related-topic records retain an unknown direction rather than inventing one.
+Application commands validate creation and remove connections without changing
+hierarchy or resources.
+Workspace transformations prune connections when an endpoint is deleted.
+
+SQLite migration 7 adds `metadata.entity_links`. The existing save transaction,
+backup and import paths preserve this optional manifest field; frontend and
+Rust validation reject missing endpoints, self-links and duplicate pairs.
+The provider owns temporary Link selection across routes and a shared adjacency
+index with incoming/outgoing roles. Reusable entity-link controls provide target
+selection, Previous/Next references and unlinking. Connector arrows always end
+at the recorded destination. Task connector curves observe rendered card
+geometry only while a connection is hovered or selected and do not alter the
+subtask tree.
+
 ## GitHub update boundary
 
 `src-tauri/src/updates/` owns release selection, semantic version comparison,

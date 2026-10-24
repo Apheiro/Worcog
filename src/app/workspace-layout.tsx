@@ -12,6 +12,7 @@ import { UpdateDialog } from '../components/application-updates';
 import { Button, Checkbox, Confirm } from '../components/core';
 import { ScrollArea } from '../components/core/scroll-area';
 import { ReminderFallback } from '../components/reminder-fallback';
+import { LinkingBanner } from '../components/entity-links';
 const DocumentWindows = dynamic(() => import('../components/document-windows').then((m) => m.DocumentWindows), { ssr: false });
 const WorkspaceDock = dynamic(() => import('../components/workspace-dock').then((m) => m.WorkspaceDock), { ssr: false });
 
@@ -112,6 +113,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
         <header className="app-header [height:61px] [border-bottom:1px_solid_var(--border)] flex items-center justify-between [padding:0_35px] [background:var(--surface)] [font-size:12px] [color:var(--muted)] [@media(max-width:800px)]:[padding:0_20px] [@media(max-width:800px)]:[&_.text-xs]:hidden">
           <span>{selectedTopic ? 'Topics / Workspace' : heading}</span>
         </header>
+        <LinkingBanner />
         <ScrollArea label="main" className="flex-1">
           <div className="main-content [max-width:1500px] [padding:35px_38px_60px] [margin:0_auto] [@media(max-width:1150px)]:[padding:27px_25px] [@media(max-width:800px)]:[padding:25px_20px]">
             {!wb.loading && !wb.ready && (

@@ -106,12 +106,16 @@ export interface Workspace {
   responsibleNames?: string[];
   contacts?: Contact[];
   categoryColors?: Record<string, string>;
+  links?: EntityLink[];
   topics: Topic[];
   tasks: Task[];
   activities: Activity[];
   sources: Source[];
   attachments: Attachment[];
 }
+export type EntityRef = { kind: 'task' | 'topic'; id: string };
+/** Directed precedence: from is previous, to is next; visible from either endpoint. */
+export type EntityLink = { from: EntityRef; to: EntityRef };
 export interface Contact {
   name: string;
   email: string;
