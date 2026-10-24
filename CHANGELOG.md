@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.7.0](https://github.com/Apheiro/Worklog/compare/v0.6.0...v0.7.0) (2026-10-22)
+
+
+### Features
+
+* **contacts:** manage assignees and topic requesters ([89a9bdd](https://github.com/Apheiro/Worklog/commit/89a9bddfba3eba81144d716ee078243abd291988))
+* **docs:** add offline application guide and shortcuts ([52a6cf3](https://github.com/Apheiro/Worklog/commit/52a6cf38950cdd08109761f0272c651302c38723))
+* **files:** select task attachments and export copies or ZIPs ([e79637d](https://github.com/Apheiro/Worklog/commit/e79637d94dd38466e38449e6172d4627c579c58a))
+* **reminders:** add persistent tray alerts and configurable audio ([016e8f1](https://github.com/Apheiro/Worklog/commit/016e8f1cc1f0bf4dd1c134a0a01bb2e9afe87d4e))
+* **ui:** use reusable switches for settings toggles ([8bb9b8b](https://github.com/Apheiro/Worklog/commit/8bb9b8b0d68a97d942a20e52836cc19643b31c16))
+
+
+### Bug Fixes
+
+* **ci:** publish only portable executable assets ([a9fe9d6](https://github.com/Apheiro/Worklog/commit/a9fe9d632b6422fb43c781bebcd527ceed221504))
+
 ## [0.6.0](https://github.com/Apheiro/Worklog/compare/v0.5.0...v0.6.0) (2026-10-22)
 
 
