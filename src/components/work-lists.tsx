@@ -18,7 +18,7 @@ import { AttachmentStatus } from './attachment-status';
 import { SourceIcon } from './source-icon';
 import { EntityLinks, EntityLinkTarget } from './entity-links';
 export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
-  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations } = useWorcog();
+  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations, shortcuts } = useWorcog();
   const showActions = page === 'topics' && !taskContextMenu;
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">
@@ -71,6 +71,7 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
               <ContextMenu
                 key={topic.id}
                 label={`Actions for ${topic.title}`}
+                shortcut={shortcuts.active.contextMenu}
                 disabled={!taskContextMenu || page !== 'topics' || wb.busy || !!relations.source}
                 items={actions}
               >

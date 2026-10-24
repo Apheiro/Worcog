@@ -11,5 +11,5 @@ export function ApplicationShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   // The isolated native reminder window must not mount workspace controllers.
   if (pathname === '/reminders' || pathname === '/reminders/') return children;
-  return <><WindowFrame><WorcogProvider><WorkspaceLayout>{children}</WorkspaceLayout></WorcogProvider></WindowFrame><Notifications /></>;
+  return <WorcogProvider><WindowFrame><WorkspaceLayout>{children}</WorkspaceLayout></WindowFrame><Notifications /></WorcogProvider>;
 }

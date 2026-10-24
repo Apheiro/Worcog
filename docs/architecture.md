@@ -318,7 +318,7 @@ Errors also remain visible in their form/confirmation context without a second
 live-region announcement.
 
 Tabler icons and explicit type labels distinguish states without relying on
-color. Shared theme tokens preserve monochromatic dark mode. Alt+T focuses the
+color. Shared theme tokens preserve monochromatic dark mode. The configurable notification shortcut (default Alt+T) focuses the
 notification region. Error/warning messages persist until dismissed or resolved;
 success/info messages close after five seconds, pausing on hover or focus loss.
 Pending messages appear after 600 ms and disappear on completion, including
@@ -366,3 +366,19 @@ secret through IPC, and Rust rejects development-token arguments in production.
 No general-purpose HTTP/filesystem capability, automatic updater plugin, shell
 command or executable-replacement privilege was added. The application version,
 identifier and release system remain unchanged. See [updates](updates.md).
+## Device shortcut profiles
+
+`domain/shortcuts.ts` defines defaults and runtime schemas for independent
+Windows/macOS profiles. `use-shortcuts.ts` persists them in localStorage and
+uses Mantine's hotkey matcher for application actions. Shortcut settings capture
+physical keys, reject duplicate combinations and can restore either profile.
+Core context menus accept a binding without depending on workspace state.
+Notifications and attachment selection use the same active profile. Standard
+keyboard accessibility controls remain unchanged.
+
+Document navigation also configures native menu accelerators while multiple
+documents are available and a viewer is active. Windows keeps the menu hidden;
+macOS adds a Documents submenu while preserving the system menu. These are
+window/application accelerators, not global system shortcuts, and they allow
+navigation even when a remote editor has focus. Bindings are removed when
+navigation is unavailable. Profiles are preferences, not exported workspace data.

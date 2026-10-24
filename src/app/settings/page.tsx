@@ -11,6 +11,7 @@ import { ReminderSettings } from '../../components/reminder-settings';
 import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 import { ThemeControl } from '../../components/theme-control';
+import { ShortcutSettings } from '../../components/shortcut-settings';
 export default function Page() {
   const {
     wb,
@@ -122,7 +123,7 @@ export default function Page() {
                 <p id="task-context-menu-description" className="max-w-xl text-xs [color:var(--muted)]">
                   Replace task three-dot buttons with right-click menus. In the Topics list,
                   right-click a row to edit, archive or delete its topic.
-                  You can also focus a task or topic and press Shift + F10, or long-press on touch devices.
+                  You can also use the keyboard shortcut configured below, the Menu key, or long-press on touch devices.
                 </p>
               </div>
               <Switch
@@ -147,6 +148,7 @@ export default function Page() {
               <Switch aria-labelledby="task-relations-label" aria-describedby="task-relations-description" checked={showTaskRelations} onCheckedChange={setShowTaskRelations} />
             </CardContent>
           </Card>
+          <ShortcutSettings />
           <ReminderSettings />
         </TabsContent>
         <TabsContent forceMount value="storage" className="flex flex-col gap-5">

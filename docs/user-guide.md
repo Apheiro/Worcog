@@ -152,7 +152,8 @@ By default, the vertical three-dot (⋮) menu provides the task's secondary acti
 Enable **Settings → General → Context menus** to replace that button with
 a right-click menu on the task card. It offers the same Link, Add update, Add
 subtask, Remove and Blocked/Unblocked actions. Focus the card or one of its
-controls and press **Shift + F10** or the **Menu key** to open it with the
+controls and use the configured **Open actions menu** shortcut (default
+**Shift + F10**) or the **Menu key** to open it with the
 keyboard; touch devices support a long press. This device preference is off
 by default. Turning it off shows three-dot buttons on task cards and topic rows
 instead of right-click actions. The topic workspace's existing header
@@ -437,8 +438,9 @@ of preventing unrelated work.
 
 ## Selecting and exporting attachments
 
-Hold **Ctrl** and click a file attachment on a task card to select it. Repeat
-the gesture to deselect it. On macOS, Command+click also works. Selected chips
+Hold **Ctrl** on Windows or **Command** on macOS and click a file attachment
+on a task card to select it. The modifier can be changed in **Settings → General
+→ Keyboard shortcuts**. Repeat the gesture to deselect it. Selected chips
 are highlighted; clicking normally still opens the file. Sources are not file
 attachments and are not included in this selection.
 
@@ -495,14 +497,15 @@ You can open multiple documents; minimized instances appear as individual
 dots at the lower right. Hover a dot to identify its document and click to
 restore it.
 
-With a viewer open and at least two documents available, **Ctrl + Left arrow**
-and **Ctrl + Right arrow** switch between documents in opening order, wrapping
+With a viewer open and at least two documents available, **Ctrl + Left/Right
+arrow** on Windows or **Command + Option + Left/Right arrow** on macOS switch
+between documents in opening order, wrapping
 at either end. Switching slides the current document sideways and brings the
 next one in from the opposite side. Loaded editors remain rendered and opaque
 during the slide, without replaying the loading screen, taking snapshots or
 reloading the document.
-The Windows desktop build captures these shortcuts even inside the embedded
-editor. In browser previews and other systems, they apply when focus is on
+Windows and macOS desktop builds capture the configured shortcuts even inside
+the embedded editor. In browser previews and other systems, they apply when focus is on
 Worcog's viewer controls. Shortcuts pause while saving or confirming a close.
 Transitions respect the system's reduced-motion preference.
 
@@ -661,19 +664,32 @@ are reported in the interface.
 These shortcuts apply in the Worcog interface. Embedded document editors may
 handle their own shortcuts while their iframe has focus.
 
+**Settings → General → Keyboard shortcuts** lets you edit separate Windows
+and macOS profiles. Click the shortcut field, marked with a pencil and
+**Click to change**: the field highlights,
+shows **Press a combination…** and **Listening…**, and previews held modifiers.
+Press the new combination to save it immediately on this device; a confirmation
+shows the saved shortcut. Escape leaves the previous binding
+unchanged. Delete/Backspace disables the action, and Restore defaults resets only the selected profile. Duplicate
+action combinations are rejected. The current OS activates its profile
+automatically; Linux/browser previews use the Windows profile. The export
+selection modifier has its own selector. OS-reserved shortcuts may take
+precedence. The table below lists defaults; your configured bindings replace them.
+Tab, Escape, Enter, menu navigation and drag controls remain standard.
+
 | Shortcut / gesture | Where | Action |
 | --- | --- | --- |
-| Ctrl + click | File chips on task cards | Select or deselect a file for export without opening it |
-| Command + click | File chips on task cards, macOS | Same file selection action |
-| Ctrl / Command + Enter or Space | Focused file chip on a task card | Toggle export selection from the keyboard |
-| Alt + T | Worcog notifications | Focus the notifications area |
-| Shift + F10 / Menu key | Focused task card, topic row or their controls, with Context menus enabled | Open that task or topic's actions menu |
+| Ctrl + click (Windows) / Command + click (macOS) | File chips on task cards | Select or deselect a file for export without opening it; modifier is configurable |
+| Ctrl / Command + Enter or Space | Focused file chip on a task card | Toggle export selection using the configured modifier |
+| Alt / Option + T | Worcog notifications | Focus the notifications area; configurable |
+| Shift + F10 / Menu key | Focused task card, topic row or their controls, with Context menus enabled | Open that task or topic's actions menu; the combination is configurable, Menu key stays available |
 | Space / Enter | Focused task grip | Start dragging a task or drop it at the highlighted destination |
 | Arrow keys | While dragging a task with the keyboard | Move toward a hierarchy destination or a Free insertion line |
 | Escape | While dragging a task | Cancel the move without saving changes |
 | Enter / Space | Focused destination task or topic in Link mode | Save a connection to that item |
 | Escape | Link mode | Cancel destination selection |
-| Ctrl + Left / Right arrow | Open document viewer with multiple documents; Windows also captures these inside the editor | Slide to the previous / next document, wrapping at either end |
+| Ctrl + Left / Right arrow (Windows) | Open document viewer with multiple documents, including inside the editor | Slide to the previous / next document, wrapping at either end; configurable |
+| Command + Option + Left / Right arrow (macOS) | Open document viewer with multiple documents, including inside the editor | Same document navigation; configurable independently from Windows |
 | Tab / Shift + Tab | Worcog controls | Move focus forward or backward |
 | Enter / Space | Focused buttons and checkboxes | Activate the control or toggle its checkbox |
 | Space | Focused settings switch | Toggle the setting |
@@ -686,6 +702,10 @@ available. Hover or focus shows task descriptions, blocked reasons and document
 dot tooltips. Closing an embedded document may ask what to do with unsaved
 changes. Ordinary file clicks still open files; export selection requires the
 modifier key.
+Only document-navigation shortcuts are registered natively to work while an
+embedded editor has focus on Windows/macOS. The other app shortcuts apply in
+the Worcog interface. Settings and shortcut profiles are device preferences;
+they are not part of workspace exports.
 Worcog reminder alerts require explicit dismissal with their × button; Escape
 and Alt+F4 do not dismiss the pending reminder queue.
 

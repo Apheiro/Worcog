@@ -5,6 +5,7 @@ import * as Context from '@radix-ui/react-context-menu';
 import { IconDotsVertical } from '@tabler/icons-react';
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { cva } from 'cva';
+import { getHotkeyHandler } from '@mantine/hooks';
 import { Button } from './button';
 
 export type ActionMenuItem = {
@@ -112,11 +113,12 @@ export function ActionMenu({
   );
 }
 
-export function ContextMenu({ label, items, disabled, children }: {
+export function ContextMenu({ label, items, disabled, children, shortcut = 'Shift+F10' }: {
   label: string;
   items: ActionMenuItem[];
   disabled?: boolean;
   children: ReactElement;
+  shortcut?: string;
 }) {
   const [open, setOpen] = useState(false);
   const opensDialog = useRef(false);
@@ -132,7 +134,10 @@ export function ContextMenu({ label, items, disabled, children }: {
         aria-haspopup={disabled ? undefined : 'menu'}
         className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus)]"
         onKeyDown={(event) => {
-          if (disabled || (event.key !== 'ContextMenu' && !(event.shiftKey && event.key === 'F10'))) return;
+          if (disabled || event.defaultPrevented || event.repeat || event.target instanceof Element && event.target.closest('[data-shortcut-recorder]')) return;
+          let matched = event.key === 'ContextMenu';
+          if (shortcut) getHotkeyHandler([[shortcut, () => { matched = true; }, { preventDefault: false, usePhysicalKeys: true }]])(event);
+          if (!matched) return;
           event.preventDefault();
           const bounds = event.currentTarget.getBoundingClientRect();
           event.currentTarget.dispatchEvent(new MouseEvent('contextmenu', {

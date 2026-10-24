@@ -35,6 +35,7 @@ import { documentFormat } from '../infrastructure/document-editor';
 import { useAttachmentAccess } from '../infrastructure/use-attachment-access';
 import { useAttachmentExport } from '../infrastructure/use-attachment-export';
 import { useEntityLinks } from '../infrastructure/use-entity-links';
+import { useShortcuts } from '../infrastructure/use-shortcuts';
 import type { EntityRef } from '../domain/model';
 import { useReminders } from '../infrastructure/use-reminders';
 import { reminderApi } from '../infrastructure/reminders';
@@ -67,6 +68,7 @@ function useWorcogController() {
   const updates = useUpdates();
   const w = wb.workspace;
   const relations = useEntityLinks(wb);
+  const shortcuts = useShortcuts();
   const attachmentAccess = useAttachmentAccess(w.attachments);
   const attachmentExport = useAttachmentExport(w, wb);
   const documents = useDocumentWindows();
@@ -346,6 +348,7 @@ No recycle bin or deletion history is kept. Existing exports outside Worcog are 
     updates,
     w,
     relations,
+    shortcuts,
     showTaskRelations,
     setShowTaskRelations,
     openLinkedEntity,

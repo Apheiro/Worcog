@@ -9,6 +9,8 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { useEffect } from 'react';
+import { useWorcog } from '../providers/worcog';
+import { shortcutLabel } from '../domain/shortcuts';
 import {
   ToastContainer,
   type CloseButtonProps,
@@ -51,6 +53,7 @@ function CloseNotification({ closeToast }: CloseButtonProps) {
   );
 }
 export function Notifications() {
+  const { shortcuts } = useWorcog();
   return (
     <ToastContainer
       className="[--toastify-color-light:var(--surface)] [--toastify-color-dark:var(--surface)] [--toastify-color-info:var(--ink)] [--toastify-color-success:var(--ink)] [--toastify-color-warning:var(--warning-ink)] [--toastify-color-error:var(--danger-ink)] [--toastify-color-progress-light:var(--ink)] [--toastify-color-progress-dark:var(--ink)] [--toastify-color-progress-success:var(--ink)] [--toastify-color-progress-info:var(--ink)] [--toastify-color-progress-warning:var(--warning-ink)] [--toastify-color-progress-error:var(--danger-ink)] [--toastify-text-color-light:var(--ink)] [--toastify-text-color-dark:var(--ink)] [--toastify-font-family:inherit] [--toastify-toast-width:390px] [--toastify-z-index:100] [&_.Toastify__toast-icon]:[color:inherit] [@media(prefers-reduced-motion:reduce)]:[&_.Toastify__progress-bar]:invisible"
@@ -65,7 +68,8 @@ export function Notifications() {
       transition={InstantTransition}
       icon={NotificationIcon}
       closeButton={CloseNotification}
-      aria-label="Notifications (Alt+T to focus)"
+      hotKeys={(event) => !(event.target instanceof Element && event.target.closest('[data-shortcut-recorder]')) && shortcuts.matches(event, 'focusNotifications')}
+      aria-label={`Notifications${shortcuts.active.focusNotifications ? ` (${shortcutLabel(shortcuts.active.focusNotifications, shortcuts.platform)} to focus)` : ''}`}
     />
   );
 }

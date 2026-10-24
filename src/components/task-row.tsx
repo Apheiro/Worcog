@@ -28,6 +28,7 @@ import { AttachmentStatus } from './attachment-status';
 import { TaskProgress, TaskUpdateForm } from './task-progress';
 import { SourceIcon } from './source-icon';
 import { EntityLinks, EntityLinkIndicator, useLinkTarget } from './entity-links';
+import { shortcutLabel } from '../domain/shortcuts';
 
 const taskRow = cva({
   base: [
@@ -76,7 +77,7 @@ export function TaskRow({
   cardRef,
   dropTarget,
 }: TaskRowProps) {
-  const { inactivitySettings, attachmentExport, taskContextMenu, relations, showTaskRelations } = useWorcog();
+  const { inactivitySettings, attachmentExport, taskContextMenu, relations, showTaskRelations, shortcuts } = useWorcog();
   const entity = { kind: 'task' as const, id: task.id };
   const linkTarget = useLinkTarget(entity);
   const parent = w.tasks.find((t) => t.id === task.parentId);
@@ -149,7 +150,7 @@ export function TaskRow({
   return (
     <>
       <div className="group/task-card relative isolate">
-        <ContextMenu label={`Actions for ${task.title}`} items={actions} disabled={!taskContextMenu || busy || linkTarget.choosing}>
+        <ContextMenu label={`Actions for ${task.title}`} items={actions} shortcut={shortcuts.active.contextMenu} disabled={!taskContextMenu || busy || linkTarget.choosing}>
           <Card
             {...linkTarget.props}
             ref={cardRef}
@@ -252,16 +253,16 @@ export function TaskRow({
                         size="auto"
                         type="button"
                         className={`task-resource max-w-full text-left [&_span]:[overflow-wrap:anywhere] [&_svg]:shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${attachmentExport.selectedIds.has(file.id) ? '[&.button]:[background:var(--selected)] [&.button]:[border-color:var(--ink)] [&.button]:[color:var(--ink)]' : ''}`}
-                        aria-label={`Open file ${file.originalName}. Ctrl+click to select for export.`}
+                        aria-label={`Open file ${file.originalName}. ${shortcutLabel(shortcuts.active.selectFileModifier, shortcuts.platform)}+click to select for export.`}
                         aria-pressed={attachmentExport.selectedIds.has(file.id)}
-                        title="Ctrl+click to select or deselect for export"
+                        title={`${shortcutLabel(shortcuts.active.selectFileModifier, shortcuts.platform)}+click to select or deselect for export`}
                         disabled={busy}
                         onClick={(event) => {
-                          if (event.ctrlKey || event.metaKey) attachmentExport.toggle(file.id);
+                          if (shortcuts.selectsFile(event)) attachmentExport.toggle(file.id);
                           else onOpenFile(file.id);
                         }}
                         onKeyDown={(event) => {
-                          if ((event.ctrlKey || event.metaKey) && (event.key === 'Enter' || event.key === ' ')) {
+                          if (shortcuts.selectsFile(event) && (event.key === 'Enter' || event.key === ' ')) {
                             event.preventDefault();
                             if (!event.repeat) attachmentExport.toggle(file.id);
                           }

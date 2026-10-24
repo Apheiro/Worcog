@@ -35,7 +35,7 @@ function DocumentLoadingScreen({ filename }: { filename: string }) {
 }
 
 function DocumentInstance({ instance, active, nativeShortcuts }: { instance: DocumentWindow; active: boolean; nativeShortcuts: boolean }) {
-  const { documents, wb } = useWorcog();
+  const { documents, wb, shortcuts } = useWorcog();
   const [url] = useState(documentEditorUrl);
   const [confirmClose, setConfirmClose] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -61,9 +61,9 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
   useEffect(() => {
     if (!active) return;
     function keydown(event: KeyboardEvent) {
-      if (nativeShortcuts || !event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || event.repeat) return;
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-      if (navigate(event.key === 'ArrowLeft' ? -1 : 1)) {
+      if (nativeShortcuts || event.defaultPrevented || event.target instanceof Element && event.target.closest('[data-shortcut-recorder]')) return;
+      const direction = shortcuts.matches(event, 'previousDocument') ? -1 : shortcuts.matches(event, 'nextDocument') ? 1 : null;
+      if (direction && navigate(direction)) {
         event.preventDefault();
         event.stopPropagation();
       }
@@ -78,7 +78,7 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
         .catch((cause) => notifications.error(errorMessage(cause)));
     }
     return () => { disposed = true; stop?.(); window.removeEventListener('keydown', keydown, true); };
-  }, [active, nativeShortcuts]);
+  }, [active, nativeShortcuts, shortcuts.active]);
   async function close() {
     if (busy) return;
     setChecking(true);
@@ -155,19 +155,23 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
 }
 
 export function DocumentWindows() {
-  const { documents } = useWorcog();
+  const { documents, shortcuts } = useWorcog();
   const [nativeShortcuts, setNativeShortcuts] = useState(false);
   const canNavigate = documents.activeId !== null && documents.windows.length > 1;
   useEffect(() => {
     if (!desktopAvailable()) return;
     let disposed = false;
-    void invoke<boolean>('set_document_shortcuts', { enabled: canNavigate })
+    void invoke<boolean>('set_document_shortcuts', {
+      enabled: canNavigate,
+      previous: shortcuts.active.previousDocument || null,
+      next: shortcuts.active.nextDocument || null,
+    })
       .then((enabled) => { if (!disposed) setNativeShortcuts(enabled); })
-      .catch((cause) => { if (!disposed) notifications.error(errorMessage(cause)); });
+      .catch((cause) => { if (!disposed) { setNativeShortcuts(false); notifications.error(errorMessage(cause)); } });
     return () => { disposed = true; };
-  }, [canNavigate]);
+  }, [canNavigate, shortcuts.active.previousDocument, shortcuts.active.nextDocument]);
   useEffect(() => () => {
-    if (desktopAvailable()) void invoke('set_document_shortcuts', { enabled: false }).catch(() => {});
+    if (desktopAvailable()) void invoke('set_document_shortcuts', { enabled: false, previous: null, next: null }).catch(() => {});
   }, []);
   return (
     <AnimatePresence>
