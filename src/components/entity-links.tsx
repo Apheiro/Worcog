@@ -62,7 +62,7 @@ export function EntityLinks({ entity, className = '', onOpen }: { entity: Entity
           <li key={entityKey(target)} className="group/connection inline-flex min-w-0 max-w-full items-center gap-0.5">
             <Button tone="chip" size="auto" disabled={wb.busy || !!relations.source} title={label} aria-label={`Open linked ${label}`} onClick={() => { openLinkedEntity(target); onOpen?.(); }} className="min-w-0 max-w-full">
               <Icon size={13} className="shrink-0" aria-hidden="true" />
-              <span className="truncate">{relation}: {item.title}</span>
+              <span className="truncate">{item.title}</span>
             </Button>
             <Button tone="ghost" size="auto" disabled={wb.busy || !!relations.source} aria-label={`Unlink ${label}`} title="Unlink" onClick={() => void relations.unlink(entity, target)} className="h-5 w-5 shrink-0 p-0 opacity-0 group-hover/connection:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100">
               <IconX size={12} aria-hidden="true" />
@@ -118,7 +118,7 @@ export function LinkingBanner() {
     <div className="flex shrink-0 items-center gap-3 px-5 py-2 text-xs [background:var(--surface-soft)] [border-bottom:1px_solid_var(--border)]">
       <IconLink size={15} className="shrink-0" aria-hidden="true" />
       <span role="status" className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-        Previous: <strong>{source.title}</strong> → Click the next task or topic. Navigate freely. Escape cancels.
+        <strong>{source.title}</strong> → Click the destination task or topic. Navigate freely. Escape cancels.
       </span>
       <Button size="sm" disabled={wb.busy} onClick={relations.cancel}>Cancel</Button>
     </div>

@@ -30,6 +30,8 @@ export default function Page() {
     setDocumentEditorEnabled,
     taskContextMenu,
     setTaskContextMenu,
+    showTaskRelations,
+    setShowTaskRelations,
   } = useWorcog();
   return (
     <WorkspaceSection>
@@ -136,6 +138,15 @@ export default function Page() {
             settings={inactivitySettings}
             onSave={setInactivitySettings}
           />
+          <Card>
+            <CardContent className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <h2 id="task-relations-label">Show task relationships</h2>
+                <p id="task-relations-description" className="text-xs [color:var(--muted)]">Show linked items below task attachments. Connections remain available from the point on each task when this is off.</p>
+              </div>
+              <Switch aria-labelledby="task-relations-label" aria-describedby="task-relations-description" checked={showTaskRelations} onCheckedChange={setShowTaskRelations} />
+            </CardContent>
+          </Card>
           <ReminderSettings />
         </TabsContent>
         <TabsContent forceMount value="storage" className="flex flex-col gap-5">

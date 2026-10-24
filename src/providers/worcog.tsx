@@ -142,6 +142,10 @@ function useWorcogController() {
     key: 'worcog.task-context-menu',
     defaultValue: false,
   });
+  const [showTaskRelations, setShowTaskRelations] = useLocalStorage<boolean>({
+    key: 'worcog.show-task-relations',
+    defaultValue: false,
+  });
   const [textureEnabled, setTextureEnabled] = useLocalStorage<boolean>({
     key: 'worcog.texture-enabled',
     defaultValue: true,
@@ -342,6 +346,8 @@ No recycle bin or deletion history is kept. Existing exports outside Worcog are 
     updates,
     w,
     relations,
+    showTaskRelations,
+    setShowTaskRelations,
     openLinkedEntity,
     page,
     topicId,

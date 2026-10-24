@@ -76,7 +76,7 @@ export function TaskRow({
   cardRef,
   dropTarget,
 }: TaskRowProps) {
-  const { inactivitySettings, attachmentExport, taskContextMenu, relations } = useWorcog();
+  const { inactivitySettings, attachmentExport, taskContextMenu, relations, showTaskRelations } = useWorcog();
   const entity = { kind: 'task' as const, id: task.id };
   const linkTarget = useLinkTarget(entity);
   const parent = w.tasks.find((t) => t.id === task.parentId);
@@ -274,7 +274,7 @@ export function TaskRow({
                   ))}
                 </ul>
               )}
-              <EntityLinks entity={entity} />
+              {showTaskRelations && <EntityLinks entity={entity} />}
             </div>
             <div className="task-actions ml-auto flex flex-col items-end gap-2">
               <div className="flex items-center gap-2">

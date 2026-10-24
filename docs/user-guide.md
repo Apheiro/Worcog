@@ -227,14 +227,17 @@ creating a connection. Keyboard users can Tab to a destination and press
 Connections work between tasks, topics, or a task and a topic, including across
 topics. They record **previous → next**: the item where you choose Link is the
 previous/source item; the clicked destination is the next item. Both endpoints
-show the connection. References are labeled **Previous** for incoming links
-and **Next** for outgoing links. This records precedence without automatically
+show the connection. References use a left arrow for incoming links and a
+right arrow for outgoing links, without a Previous/Next text prefix. Hover or
+focus a reference to read its direction and destination. This records precedence without automatically
 changing parents, topic ownership, task order or completion/blocking states.
 To correct the direction, unlink the pair and create it from the other item;
 the reverse pair cannot be added as a duplicate connection.
 
-Linked items appear as compact references below a task's resources, below topic
-metadata in the list and below the topic workspace heading. Click a reference
+Linked items appear below topic metadata in the list and below the topic
+workspace heading. Task references below attachments are hidden by default;
+enable **Settings → General → Show task relationships** to display them.
+The task's connection point remains available in either mode. Click a reference
 to open its topic or task editor. The small **Unlink** control removes only the
 connection, preserving both items and their resources.
 
@@ -252,7 +255,7 @@ Links are saved with the local workspace and included in backups and exports.
 Deleting an endpoint removes its connections without deleting the other
 endpoint. Existing connections created through Link retain their recorded
 source/destination. Older related-topic records without a known direction
-remain labeled **Related**, with no arrow; unlink and recreate them to assign
+use a neutral link icon, with no directional arrow; unlink and recreate them to assign
 precedence.
 
 ## Reminders and system tray

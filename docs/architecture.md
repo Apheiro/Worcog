@@ -341,7 +341,9 @@ backup and import paths preserve this optional manifest field; frontend and
 Rust validation reject missing endpoints, self-links and duplicate pairs.
 The provider owns temporary Link selection across routes and a shared adjacency
 index with incoming/outgoing roles. Reusable entity-link controls provide target
-selection, Previous/Next references and unlinking. Connector arrows always end
+selection, directional icon references and unlinking. Inline references below
+task attachments are off by default and controlled by a device setting; the
+connection points and their popovers remain available. Connector arrows always end
 at the recorded destination. Task connector curves observe rendered card
 geometry only while a connection is hovered or selected and do not alter the
 subtask tree.
