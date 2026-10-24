@@ -613,7 +613,11 @@ tray/notification preferences and custom audio do not.
 
 Archives are not encrypted. Missing or changed managed files can prevent a
 complete backup or export; resolve the reported files before retrying. Do not
-move an active SQLite database manually. Use the backup/export and restore
+wrap a restored/repacked archive in another folder: `workspace.json` and
+`attachments/` belong directly at the ZIP root. The empty `attachments/`
+directory entry written by standard ZIP tools is accepted; duplicate files,
+unexpected folders and symbolic links are rejected.
+Do not move an active SQLite database manually. Use the backup/export and restore
 controls for moving workspace data.
 
 ## Application updates

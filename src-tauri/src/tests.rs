@@ -132,6 +132,36 @@ fn rejects_corrupt_archives_unsafe_names_and_executable_content() {
     assert!(crate::storage::safe_document(&path).is_err());
 }
 #[test]
+fn import_accepts_attachment_directory_but_rejects_other_folders() {
+    use std::io::Write;
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("repacked.zip");
+    let name = "00000000-0000-4000-8000-000000000002.txt";
+    let mut workspace = empty();
+    workspace["attachments"] = json!([{"id":"fixture-file","originalName":"fixture.txt","managedName":name,"mime":"text/plain","size":7,"addedAt":"2026-01-01T12:00:00Z","topicIds":[],"taskIds":[],"activityIds":[],"sourceIds":[]}]);
+    let write = |directory: &str| {
+        let mut zip = zip::ZipWriter::new(std::fs::File::create(&path).unwrap());
+        let options = zip::write::SimpleFileOptions::default();
+        zip.add_directory(directory, options).unwrap();
+        zip.start_file("workspace.json", options).unwrap();
+        zip.write_all(serde_json::to_string(&workspace).unwrap().as_bytes()).unwrap();
+        zip.start_file(format!("attachments/{name}"), options).unwrap();
+        zip.write_all(b"fixture").unwrap();
+        zip.finish().unwrap();
+    };
+    write("attachments/");
+    let staged = archive::inspect(&path, dir.path()).unwrap();
+    assert_eq!(staged.workspace, workspace);
+    assert_eq!(std::fs::read(staged.directory.join(name)).unwrap(), b"fixture");
+    drop(staged);
+    for directory in ["wrapped/", "attachments/nested/"] {
+        write(directory);
+        let error = archive::inspect(&path, dir.path()).err().unwrap();
+        assert!(error.contains("Unexpected archive directory"));
+        assert!(error.contains(directory));
+    }
+}
+#[test]
 fn rejects_zip_traversal_and_missing_attachments_without_mutation() {
     use std::io::Write;
     let dir = tempfile::tempdir().unwrap();

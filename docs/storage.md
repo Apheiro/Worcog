@@ -96,7 +96,10 @@ Import is a complete replacement, not a merge. The native service validates the
 format version, fields, dates, IDs, relations, file metadata and archive entries
 before it offers confirmation. It rejects traversal paths, symlinks, duplicate
 entries, unknown entries, unsupported document types and missing files. The
-validated selection is staged behind a token so the confirmation applies to
+optional empty `attachments/` directory entry added by standard ZIP tools is
+accepted. `workspace.json` and `attachments/` must be at the ZIP root, without
+an enclosing folder. Duplicate-entry errors identify the offending name.
+The validated selection is staged behind a token so the confirmation applies to
 that inspected archive.
 
 Before replacing records, restore creates a full safety backup of the current

@@ -83,19 +83,32 @@ pub fn export(store: &Store, destination: &Path) -> Result<()> {
 pub fn inspect(path: &Path, root: &Path) -> Result<StagedImport> {
     let file = fs::File::open(path).map_err(|e| e.to_string())?;
     let mut zip = ZipArchive::new(file).map_err(|_| "Invalid or corrupted ZIP archive")?;
-    if zip.len() > 100_001 {
+    if zip.len() > 100_002 {
         return Err("Archive contains too many files".into());
     }
     let mut names = HashSet::new();
+    let mut seen = HashSet::new();
     let mut total = 0;
     for i in 0..zip.len() {
         let entry = zip.by_index(i).map_err(|e| e.to_string())?;
         let name = entry.name();
-        if entry.is_dir()
-            || entry.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000)
-            || !names.insert(name.to_string())
-        {
-            return Err("Invalid or duplicate archive entry".into());
+        if entry.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000) {
+            return Err(format!("Symbolic links are not allowed in archives: {name}"));
+        }
+        if !seen.insert(name.to_string()) {
+            return Err(format!("Duplicate archive entry: {name}"));
+        }
+        if entry.is_dir() {
+            // Desktop ZIP tools commonly add the containing directory entry.
+            // Only this known empty directory is allowed; files remain strict.
+            if name != "attachments/" || entry.size() != 0 {
+                return Err(format!("Unexpected archive directory: {name}"));
+            }
+            continue;
+        }
+        names.insert(name.to_string());
+        if names.len() > 100_001 {
+            return Err("Archive contains too many files".into());
         }
         if name != "workspace.json" {
             let managed = name
