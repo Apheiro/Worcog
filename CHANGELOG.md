@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.9.0](https://github.com/Apheiro/Worcog/compare/v0.8.0...v0.9.0) (2026-10-24)
+
+
+### Features
+
+* **branding:** rename project and application to Worcog ([cc6b1e0](https://github.com/Apheiro/Worcog/commit/cc6b1e0aad74036fb0f0a4f36ff4f7357b174f1a))
+* **links:** make inline task relationships optional ([b89ff6a](https://github.com/Apheiro/Worcog/commit/b89ff6a5957eada3b7470565238688c1573137da))
+* **macos:** build universal apps and download platform updates ([10956b4](https://github.com/Apheiro/Worcog/commit/10956b44e17ce411b9e8f7bca526fa96bde43b85))
+* **shortcuts:** customize Windows and macOS keyboard profiles ([6b49d4d](https://github.com/Apheiro/Worcog/commit/6b49d4dc638157693b9f37040d78fa4aaf1476c6))
+* **topics:** exclude selected weekdays from inactivity ([e960f52](https://github.com/Apheiro/Worcog/commit/e960f52878d8336d3e591e58a1263d1c0bdb5d04))
+
+
+### Bug Fixes
+
+* **tasks:** freeze deadline indicators at completion time ([1b768e2](https://github.com/Apheiro/Worcog/commit/1b768e211aebd33a7f40d38c2e5e62a39a64edd0))
+
 ## [0.8.0](https://github.com/Apheiro/Worcog/compare/v0.7.0...v0.8.0) (2026-10-24)
 
 
