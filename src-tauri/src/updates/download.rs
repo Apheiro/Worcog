@@ -34,7 +34,8 @@ fn inspect(
     let mut buffer = vec![0u8; 64 * 1024];
     let mut hash = Sha256::new();
     let mut total = 0u64;
-    let mut magic = Vec::with_capacity(2);
+    let signature: &[u8] = if selection.view.filename.ends_with(".zip") { b"PK\x03\x04" } else { b"MZ" };
+    let mut magic = Vec::with_capacity(signature.len());
     let mut reported = 0;
     loop {
         let count = source
@@ -47,7 +48,7 @@ fn inspect(
         if total > selection.view.size || total > MAX_DOWNLOAD {
             return Err("Update exceeds the expected size.".into());
         }
-        for byte in buffer[..count].iter().take(2 - magic.len()) {
+        for byte in buffer[..count].iter().take(signature.len() - magic.len()) {
             magic.push(*byte);
         }
         hash.update(&buffer[..count]);
@@ -63,8 +64,8 @@ fn inspect(
     if total != selection.view.size {
         return Err("Update size does not match GitHub metadata.".into());
     }
-    if magic != b"MZ" {
-        return Err("Update is not a Windows executable (missing MZ header).".into());
+    if magic != signature {
+        return Err("Update format does not match the selected platform.".into());
     }
     if format!("{:x}", hash.finalize()) != selection.hash {
         return Err("Update SHA-256 does not match GitHub metadata.".into());

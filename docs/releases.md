@@ -1,4 +1,7 @@
-# Releases and Windows assets
+# Releases and desktop assets
+
+The package, native executable and product are named `worcog` / Worcog.
+The macOS bundle is `Worcog.app`.
 
 Use Conventional Commits on `main`, for example
 `feat(tasks): add recurring follow-ups`. The release process is:
@@ -8,8 +11,8 @@ Use Conventional Commits on `main`, for example
 2. After the release PR is merged, Release Please creates the `v<version>` tag
    and GitHub release.
 3. Only when `release_created` is true, the same workflow invokes
-   `windows-build.yml` with that exact tag.
-4. Windows validates release versions and builds the selected application. The assets are
+   `windows-build.yml` and `macos-build.yml` with that exact tag.
+4. Each workflow validates release versions and builds its platform application. The assets are
    saved as an Actions artifact. A separate publication job verifies checksums
    and attaches the assets to the existing release.
 
@@ -30,13 +33,13 @@ The reusable workflow call avoids relying on tag events created by
 `GITHUB_TOKEN`, which do not start another workflow. No personal access token
 is required. Enable **Settings → Actions → General → Allow GitHub Actions to
 create and approve pull requests**, subject to repository policy. The Release
-Please job has contents/issues/pull-request write permissions. Windows compilation
+Please job has contents/issues/pull-request write permissions. Platform compilation
 has only contents read; its separate publication job has contents write.
 Actions are pinned by commit SHA and checkout does not persist credentials.
 
 ## Build manually or retry publication
 
-Open **Actions → Windows build → Run workflow**:
+Open **Actions → Windows build** or **macOS build → Run workflow**:
 
 - Leave `release_tag` empty to build the selected ref and keep artifacts only.
 - Manual builds use the selected workflow branch, even when `release_tag` is
@@ -99,12 +102,38 @@ References:
 
 ## In-app update availability
 
-The application selects the versioned standalone Windows x64 executable only
+The application selects the versioned standalone Windows x64 executable or
+macOS universal ZIP according to its running OS, only
 after GitHub reports it as uploaded with valid size and SHA-256 digest metadata.
 A release created before its build completes is therefore not announced yet.
 Do not rename that asset. No workflow or
 versioning change is needed. See [application updates](updates.md) for complete
 publication, private-access and manual replacement requirements.
+
+## macOS portable build
+
+`macos-build.yml` runs on `macos-latest`, installs both Rust targets
+`aarch64-apple-darwin` and `x86_64-apple-darwin`, and builds a universal app:
+
+```sh
+pnpm tauri build --target universal-apple-darwin --bundles app --config '{"bundle":{"active":true}}' -- --locked
+```
+
+The config override enables bundling only for this build; Windows continues
+producing its portable EXE. `ditto` packages `Worcog.app`, preserving bundle
+metadata, as `worcog-v<version>-macos-universal.zip`. There is no DMG, installer,
+checksum text file or build-info file. The Actions artifact is
+`worcog-macos-universal-v<version>`, retained for 14 days.
+
+The app is ad-hoc signed using `APPLE_SIGNING_IDENTITY=-`, without Developer ID
+certificates or notarization. Gatekeeper can require first-launch authorization
+in Privacy & Security. Both Intel and Apple Silicon use this same download.
+
+Release Please calls the workflow alongside Windows after creating a release.
+The separate publish job verifies SHA-256 and attaches only the ZIP to that
+existing release. A manual run accepts the same `release_tag` and `source_ref`
+semantics as Windows; leaving the tag empty only uploads the Actions artifact.
+Neither platform workflow creates a new release or moves an existing tag.
 
 ## Refresh application icons without a new release
 

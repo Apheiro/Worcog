@@ -42,3 +42,12 @@ jobs:
     uses: ./.github/workflows/windows-build.yml
     with:
       release_tag: ${{ needs.release.outputs.tag_name }}
+
+  macos:
+    needs: release
+    if: needs.release.outputs.release_created == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/macos-build.yml
+    with:
+      release_tag: ${{ needs.release.outputs.tag_name }}

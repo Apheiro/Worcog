@@ -73,8 +73,8 @@ export function useUpdates() {
       try {
         const value = await updatesApi.status();
         setStatus(value);
-        if (value.platformSupported || value.profile === 'development') await check(manual);
-        else if (manual) notifications.info('Application updates target Windows x64.');
+        if (value.platformSupported) await check(manual);
+        else if (manual) notifications.info('Application updates are available on Windows x64 and macOS.');
       } catch (cause) {
         if (manual) {
           const message = errorMessage(cause);
@@ -94,7 +94,7 @@ export function useUpdates() {
       .then((value) => {
         if (!active) return;
         setStatus(value);
-        if (value.platformSupported || value.profile === 'development') void check();
+        if (value.platformSupported) void check();
       })
       .catch(() => {
         /* Automatic credential failures are reported by a manual check. */
@@ -120,7 +120,7 @@ export function useUpdates() {
           ? 'Update token removed.'
           : status?.profile === 'development'
             ? 'Update token saved in the separate development browser profile.'
-            : 'Update token saved in Windows Credential Manager.',
+            : `Update token saved in ${status?.credentialStore ?? 'the system credential store'}.`,
       );
       return true;
     } catch (cause) {

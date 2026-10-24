@@ -1,24 +1,26 @@
 # Application updates
 
-Worcog checks GitHub Releases for **Apheiro/Worcog** when a Windows x64
-application starts. You can also use **Storage & backups → Application updates →
+Worcog checks GitHub Releases for **Apheiro/Worcog** when a Windows x64 or
+macOS application starts. You can also use **Settings → Updates →
 Check for updates**. Automatic connection/authentication failures stay silent;
 manual checks report connection, authentication, access and rate-limit errors.
 
-This downloads a new executable for **manual replacement**. It never closes
+This downloads a new application for **manual replacement**. It never closes
 Worcog, starts the downloaded executable, invokes PowerShell, deletes the
 running executable or installs an update automatically. Application versions,
-the Tauri identifier, storage locations and the release workflows are unchanged.
+the Tauri identifier and storage locations remain unchanged.
 
 ## What qualifies as an update
 
 The backend calls GitHub's latest stable release endpoint and compares its tag
 with the running application's package version using semantic precedence.
 Drafts, prereleases, older/equal versions and build-metadata-only changes are
-ignored. A downloadable release must contain exactly one asset named:
+ignored. A downloadable release must contain exactly one matching asset for
+the running OS (the macOS bundle supports Intel and Apple Silicon):
 
 ```text
 worcog-vX.Y.Z-windows-x64.exe
+worcog-vX.Y.Z-macos-universal.zip
 ```
 
 The asset must have a nonzero ID, `state: uploaded`, a size between 2 bytes and
@@ -26,10 +28,10 @@ The asset must have a nonzero ID, `state: uploaded`, a size between 2 bytes and
 The NSIS `-setup.exe` asset is intentionally not selected. The release notes
 are displayed in full, within the 2 MiB metadata-response limit.
 
-A release can exist while its Windows build is still running. It is not announced
-until its executable is uploaded with size and digest metadata. Check again after
+A release can exist while its platform build is still running. It is not announced
+until that platform's asset is uploaded with size and digest metadata. Check again after
 the build finishes. If an old asset has no digest, upload a new asset using the
-existing publication flow. The Windows workflow verifies the executable between
+existing publication flow. Each workflow verifies its asset between
 jobs without publishing extra checksum files; the app uses GitHub's asset digest.
 
 ## Public and private repositories
@@ -49,6 +51,10 @@ field always starts empty and never retrieves an existing token.
   `Apheiro/Worcog` account. Only Rust reads the secret. IPC status contains
   presence information, never its value. Deploy keys and Git credentials are not
   used.
+- **Production macOS builds:** the same service/account pair uses macOS Keychain
+  through keyring's `apple-native` backend. Save, replacement and removal stay
+  in Rust, with presence-only IPC status, just like Windows. Tokens are not
+  included in workspace backups or exports.
 - **Development/debug builds:** the existing development profile uses only
   `worcog.updates.github-token.development.v1` in the webview's localStorage.
   This storage is unencrypted and independent of production. Rust receives the
@@ -57,8 +63,7 @@ field always starts empty and never retrieves an existing token.
   arguments. There is no transfer or migration between profiles.
 - Both profiles contact the real repository through Rust; the development profile
   is not a fake release feed. Browser-only Next previews have no native transport.
-  Linux/macOS production credential storage and updating are outside the Windows
-  x64 target. Automated tests provide isolated synthetic IPC/HTTP fixtures instead.
+  Linux production credential storage and application downloads are unsupported.
 
 A saved token is not a guarantee of access; a subsequent manual check validates
 it with GitHub. Removing a token returns subsequent requests to anonymous access.
@@ -94,7 +99,8 @@ and body transfer, with a 10-second connection timeout. Network errors are
 translated into fixed messages so signed URLs/headers are not exposed.
 
 Downloads stream through a heap-allocated 64 KiB buffer to an exclusively created
-UUID `.part` file in `app_cache_dir()/updates`. Size, the `MZ` header and SHA-256
+UUID `.part` file in `app_cache_dir()/updates`. Size, the platform signature
+(`MZ` for Windows or the ZIP local-file header for macOS) and SHA-256
 must match before a final file is published. A same-directory hard link publishes
 without overwriting an existing file. Existing final files are fully verified
 before reuse; incompatible files are left untouched and require manual relocation.
@@ -110,10 +116,11 @@ the running executable's location. **Open download folder** opens a backend-reso
 and validated folder; it does not accept a caller-supplied path.
 
 1. Close Worcog normally.
-2. Keep a copy of the previous executable.
-3. Replace it with the verified download in the shown application location,
-   using normal operating-system file permissions.
-4. Run the new executable.
+2. Keep a copy of the previous EXE or `Worcog.app`.
+3. On Windows, replace the EXE with the verified download. On macOS, extract
+   the ZIP and replace the previous `Worcog.app` with the extracted bundle.
+4. Open the new application. The macOS build has an ad-hoc signature without
+   notarization and may require authorization in Privacy & Security on first launch.
 
 The workspace stays in its existing application-data directory. The download is
 in cache and can be removed by the OS; copy it to its intended location when
@@ -136,12 +143,12 @@ redirect restrictions and header stripping, proxy bypass, corrupted/interrupted
 streams, size/MZ/hash checks, cleanup, existing-file reuse, locks, profile separation,
 safe Markdown, scrolling, notification behavior, errors/retry and folder opening.
 
-Windows Credential Manager interaction, NSIS packaging, file replacement under
-Windows permissions and a real private-repository download still require a Windows
-runtime check. Cross-checking the credential adapter is not a native Windows run.
+Credential Manager/Keychain access, native shortcuts, platform packaging and
+manual replacement require their respective operating systems to verify in practice.
 
 References:
 [GitHub release assets](https://docs.github.com/en/rest/releases/assets),
 [latest release API](https://docs.github.com/en/rest/releases/releases#get-the-latest-release),
 [reqwest blocking client](https://docs.rs/reqwest/0.13.5/reqwest/blocking/struct.ClientBuilder.html),
-[Windows keyring adapter](https://docs.rs/keyring/3.6.3/keyring/windows/index.html).
+[Windows keyring adapter](https://docs.rs/keyring/3.6.3/keyring/windows/index.html),
+[macOS keyring adapter](https://docs.rs/keyring/3.6.3/keyring/macos/index.html).

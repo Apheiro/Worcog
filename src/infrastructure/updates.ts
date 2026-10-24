@@ -8,6 +8,8 @@ const statusSchema = z.object({
   tokenSaved: z.boolean(),
   credentialSupported: z.boolean(),
   platformSupported: z.boolean(),
+  platform: z.enum(['windows', 'macos', 'unsupported']),
+  credentialStore: z.string(),
   profile: z.enum(['production', 'development']),
 });
 const availableSchema = z.object({

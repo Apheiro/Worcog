@@ -6,8 +6,8 @@ pub mod metadata;
 #[cfg(test)]
 mod tests;
 pub type Result<T> = std::result::Result<T, String>;
-use credentials::{TokenStore, WindowsCredentials};
-use metadata::{Available, Selection, REPOSITORY};
+use credentials::{TokenStore, NativeCredentials};
+use metadata::{Available, Selection, Platform, REPOSITORY};
 use serde::Serialize;
 use std::{
     path::PathBuf,
@@ -21,6 +21,8 @@ pub struct Status {
     token_saved: bool,
     credential_supported: bool,
     platform_supported: bool,
+    platform: &'static str,
+    credential_store: &'static str,
     profile: &'static str,
 }
 #[derive(Clone, Debug, Serialize)]
@@ -35,6 +37,7 @@ pub struct Updates {
     endpoint: Option<String>,
     cache: PathBuf,
     version: String,
+    platform: Option<Platform>,
     vault: Arc<dyn TokenStore>,
     gate: Mutex<()>,
     selected: Mutex<Option<Selection>>,
@@ -48,7 +51,8 @@ impl Updates {
             endpoint: None,
             cache,
             version,
-            vault: Arc::new(WindowsCredentials),
+            platform: Platform::current(),
+            vault: Arc::new(NativeCredentials),
             gate: Mutex::new(()),
             selected: Mutex::new(None),
             receipt: Mutex::new(None),
@@ -71,7 +75,13 @@ impl Updates {
                 self.vault.read()?.is_some()
             },
             credential_supported: self.development || self.vault.supported(),
-            platform_supported: cfg!(all(target_os = "windows", target_arch = "x86_64")),
+            platform_supported: self.platform.is_some(),
+            platform: match self.platform {
+                Some(Platform::WindowsX64) => "windows",
+                Some(Platform::MacUniversal) => "macos",
+                None => "unsupported",
+            },
+            credential_store: credentials::store_name(),
             profile: if self.development {
                 "development"
             } else {
@@ -129,7 +139,8 @@ impl Updates {
         let result = (|| {
             let github = self.github()?;
             let token = self.token(development_token.as_deref())?;
-            let selection = metadata::select(github.release(token.as_deref())?, &self.version)?;
+            let platform = self.platform.ok_or("Application updates are available on Windows x64 and macOS.")?;
+            let selection = metadata::select(github.release(token.as_deref())?, &self.version, platform)?;
             let view = selection.as_ref().map(|s| s.view.clone());
             *self
                 .selected
@@ -186,6 +197,10 @@ impl Updates {
             };
             let current =
                 std::env::current_exe().map_err(|_| "Could not resolve the running executable.")?;
+            #[cfg(target_os = "macos")]
+            let current = current.ancestors()
+                .find(|path| path.extension().is_some_and(|extension| extension == "app"))
+                .unwrap_or(&current).to_path_buf();
             let receipt = Receipt {
                 download_path: path.to_string_lossy().into(),
                 current_executable: current.to_string_lossy().into(),

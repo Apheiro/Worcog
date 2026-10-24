@@ -37,14 +37,15 @@ sources and files through task forms, and record progress with **Add update**.
 Checkboxes complete tasks; blocking requires a reason. Archive topics to preserve
 their context without keeping them in active views.
 
-Ctrl+click attachments on task cards to select them for sharing, then choose
+Ctrl+click (Windows) or Command+click (macOS) attachments on task cards to select them for sharing, then choose
 **Export** at the lower right. A single file is exported as a copy; multiple
 files become a ZIP. This differs from a full workspace archive.
 
 Use **Settings → General** for appearance, indicators and the optional embedded
 document editor. Use **Settings → Storage & backups** for workspace backup,
 export, restore and deletion, and **Settings → Updates** for verified Windows
-executable downloads for manual replacement.
+EXE or macOS app ZIP downloads for manual replacement. General settings also
+include separate configurable shortcut profiles for Windows and macOS.
 
 See [storage and recovery](docs/storage.md) before moving or restoring data,
 and [application updates](docs/updates.md) for update credentials and limits.
@@ -62,13 +63,13 @@ pnpm release:validate
 pnpm build
 pnpm exec playwright install chromium
 pnpm test:ui
-pnpm tauri build --bundles nsis
+pnpm tauri build --target x86_64-pc-windows-msvc --no-bundle -- --locked
 ```
 
-The final command requires Windows for the Windows installer. GitHub Actions
-provides a Windows runner: open **Actions → Windows build → Run workflow** and
-download the run's installer artifact after it succeeds. The installer is
-unsigned. See [release and Windows build instructions](docs/releases.md) for
+The final command produces the portable Windows EXE and requires Windows.
+GitHub Actions provides **Windows build** and **macOS build** workflows; run
+either manually to download its artifact. macOS produces a universal ZIP
+containing `Worcog.app`. See [release and desktop build instructions](docs/releases.md) for
 triggers, artifact retention, and Release Please behavior.
 
 See [architecture](docs/architecture.md) and [development](docs/development.md)

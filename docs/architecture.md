@@ -361,11 +361,17 @@ markdown-to-jsx with raw HTML parsing disabled, image rendering removed and
 HTTPS-only native links; Radix ScrollArea bounds the notes.
 
 The debug profile explicitly selects a development-only localStorage credential
-adapter. Production never reads that storage or returns its Credential Manager
+adapter. Production uses Windows Credential Manager or macOS Keychain via the
+existing keyring dependency. It never reads development storage or returns its
 secret through IPC, and Rust rejects development-token arguments in production.
 No general-purpose HTTP/filesystem capability, automatic updater plugin, shell
-command or executable-replacement privilege was added. The application version,
-identifier and release system remain unchanged. See [updates](updates.md).
+command or executable-replacement privilege was added. Native OS/architecture
+selects the portable Windows x64 EXE or macOS universal app ZIP; size, platform
+signature and SHA-256 are verified before publication in the local update cache.
+Release Please invokes the separate Windows and macOS build workflows with the
+same release tag. The application version and identifier remain unchanged.
+See [updates](updates.md).
+
 ## Device shortcut profiles
 
 `domain/shortcuts.ts` defines defaults and runtime schemas for independent

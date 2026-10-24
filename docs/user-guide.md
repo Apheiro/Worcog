@@ -642,22 +642,34 @@ controls for moving workspace data.
 
 ## Application updates
 
-On supported Windows x64 builds, Worcog checks GitHub Releases on startup.
+On Windows x64 and macOS builds (Intel and Apple Silicon), Worcog checks GitHub Releases on startup.
 Use **Settings → Updates → Check for updates** for a manual check. An available
 update offers release notes and **Download update**.
 
 Click the update notification to open its details in a modal over the current
 view, without reloading the workspace. The notification follows the app's theme.
 
-The download and running executable paths are displayed in standard Windows
-notation, without the internal extended-path prefix.
+Worcog selects the asset for its operating system: a portable `.exe` on
+Windows, or `worcog-v<version>-macos-universal.zip` containing `Worcog.app`
+on macOS. It waits for that platform's build to finish; another platform's asset
+does not trigger an update. Windows paths omit the internal extended-path prefix.
 
-The downloaded executable is verified and kept separately from workspace
+The downloaded file is verified and kept separately from workspace
 data. Installation is manual: Worcog does not close itself, replace the
-running executable or launch the update automatically. A GitHub credential
+running application or launch the update automatically. On macOS, close Worcog,
+extract the ZIP and replace your previous `Worcog.app`. The build is ad-hoc
+signed, without Apple notarization; Gatekeeper may require explicit first-launch
+authorization under **System Settings → Privacy & Security**.
+A GitHub credential
 can be configured for private releases; entering one does not change how your
 workspace data is stored. Connection or access problems from a manual check
 are reported in the interface.
+
+Use **Settings → Updates → Private repository access** to save, replace or
+remove a GitHub token. Production Windows builds use Credential Manager;
+production macOS builds use Keychain. The saved secret is never returned to
+the form or included in workspace backups. Development keeps its separate,
+unencrypted browser-profile token and never accesses production credentials.
 
 ## Keyboard shortcuts and navigation
 
@@ -740,7 +752,7 @@ the database, attached documents or exported archives.
 - **Pending file cleanup:** close applications holding the file and choose
   Settings → Storage & backups → Retry file cleanup.
 - **No update is offered:** the release must be newer and have a compatible,
-  fully uploaded Windows executable. A release may appear before its build
+  fully uploaded asset for your operating system. A release may appear before its build
   finishes; check again after the build has completed.
 - **Cannot enable a reminder:** enable both Tray icon and Reminder notifications
   in Settings → General first. Existing schedules remain paused when disabled.

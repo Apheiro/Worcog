@@ -4,6 +4,23 @@ use serde::{Deserialize, Serialize};
 
 pub const REPOSITORY: &str = "Apheiro/Worcog";
 pub const MAX_DOWNLOAD: u64 = 256 * 1024 * 1024;
+#[derive(Clone, Copy)]
+pub enum Platform { WindowsX64, MacUniversal }
+impl Platform {
+    pub fn current() -> Option<Self> {
+        match (std::env::consts::OS, std::env::consts::ARCH) {
+            ("windows", "x86_64") => Some(Self::WindowsX64),
+            ("macos", "x86_64" | "aarch64") => Some(Self::MacUniversal),
+            _ => None,
+        }
+    }
+    fn suffix(self) -> &'static str {
+        match self {
+            Self::WindowsX64 => "windows-x64.exe",
+            Self::MacUniversal => "macos-universal.zip",
+        }
+    }
+}
 #[derive(Deserialize)]
 pub struct Release {
     pub tag_name: String,
@@ -35,7 +52,7 @@ pub struct Selection {
     pub asset_id: u64,
     pub hash: String,
 }
-pub fn select(release: Release, current: &str) -> Result<Option<Selection>> {
+pub fn select(release: Release, current: &str, platform: Platform) -> Result<Option<Selection>> {
     if release.draft || release.prerelease {
         return Ok(None);
     }
@@ -50,7 +67,7 @@ pub fn select(release: Release, current: &str) -> Result<Option<Selection>> {
     if !version.pre.is_empty() || !version.cmp_precedence(&installed).is_gt() {
         return Ok(None);
     }
-    let filename = format!("worcog-v{version}-windows-x64.exe");
+    let filename = format!("worcog-v{version}-{}", platform.suffix());
     let mut matches = release.assets.into_iter().filter(|a| a.name == filename);
     let Some(asset) = matches.next() else {
         return Ok(None);

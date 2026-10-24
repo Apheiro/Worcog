@@ -27,7 +27,7 @@ fn release(version: &str) -> Release {
     }
 }
 fn selection() -> Selection {
-    metadata::select(release("1.2.0"), "1.0.0")
+    metadata::select(release("1.2.0"), "1.0.0", Platform::WindowsX64)
         .unwrap()
         .unwrap()
 }
@@ -89,7 +89,7 @@ fn stable_semantic_precedence_and_complete_asset_gate() {
         ("2.0.0-beta.1", "1.0.0", false),
     ] {
         assert_eq!(
-            metadata::select(release(latest), current)
+            metadata::select(release(latest), current, Platform::WindowsX64)
                 .unwrap()
                 .is_some(),
             expected
@@ -97,10 +97,10 @@ fn stable_semantic_precedence_and_complete_asset_gate() {
     }
     let mut draft = release("2.0.0");
     draft.draft = true;
-    assert!(metadata::select(draft, "1.0.0").unwrap().is_none());
+    assert!(metadata::select(draft, "1.0.0", Platform::WindowsX64).unwrap().is_none());
     let mut pre = release("2.0.0");
     pre.prerelease = true;
-    assert!(metadata::select(pre, "1.0.0").unwrap().is_none());
+    assert!(metadata::select(pre, "1.0.0", Platform::WindowsX64).unwrap().is_none());
     for case in 0..9 {
         let mut r = release("2.0.0");
         match case {
@@ -115,11 +115,11 @@ fn stable_semantic_precedence_and_complete_asset_gate() {
             _ => r.assets[0].id = 0,
         }
         assert!(
-            metadata::select(r, "1.0.0").unwrap().is_none(),
+            metadata::select(r, "1.0.0", Platform::WindowsX64).unwrap().is_none(),
             "case {case}"
         );
     }
-    assert!(metadata::select(release("nonsense"), "1.0.0").is_err());
+    assert!(metadata::select(release("nonsense"), "1.0.0", Platform::WindowsX64).is_err());
 }
 #[test]
 fn streaming_download_verifies_and_reuses_without_overwrite() {
@@ -349,6 +349,7 @@ fn service_checks_downloads_reports_locations_and_never_logs_credentials() {
     ]);
     let mut updates = Updates::new(dir.path().into(), "1.0.0".into());
     updates.endpoint = Some(origin);
+    updates.platform = Some(Platform::WindowsX64);
     updates.vault = Arc::new(MemoryVault {
         profile: "fixture",
         data: Arc::new(Mutex::new(HashMap::from([(

@@ -4,7 +4,7 @@ pub trait TokenStore: Send + Sync {
     fn write(&self, token: Option<&str>) -> Result<()>;
     fn supported(&self) -> bool;
 }
-#[cfg(any(windows, test))]
+#[cfg(any(windows, target_os = "macos", test))]
 pub fn service_name(development: bool) -> &'static str {
     if development {
         "com.worcog.desktop.updates.development"
@@ -12,34 +12,37 @@ pub fn service_name(development: bool) -> &'static str {
         "com.worcog.desktop.updates.production"
     }
 }
-pub struct WindowsCredentials;
-#[cfg(windows)]
+pub struct NativeCredentials;
+pub fn store_name() -> &'static str {
+    if cfg!(windows) { "Windows Credential Manager" }
+    else if cfg!(target_os = "macos") { "macOS Keychain" }
+    else { "Unavailable" }
+}
+#[cfg(any(windows, target_os = "macos"))]
 fn entry() -> Result<keyring::Entry> {
     keyring::Entry::new(service_name(false), super::metadata::REPOSITORY)
-        .map_err(|_| "Could not open Windows Credential Manager.".into())
+        .map_err(|_| format!("Could not open {}.", store_name()))
 }
-impl TokenStore for WindowsCredentials {
+impl TokenStore for NativeCredentials {
     fn supported(&self) -> bool {
-        cfg!(windows)
+        cfg!(any(windows, target_os = "macos"))
     }
     fn read(&self) -> Result<Option<String>> {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "macos"))]
         {
             match entry()?.get_password() {
                 Ok(token) => Ok(Some(token)),
                 Err(keyring::Error::NoEntry) => Ok(None),
-                Err(_) => Err(
-                    "Could not read the update credential from Windows Credential Manager.".into(),
-                ),
+                Err(_) => Err(format!("Could not read the update credential from {}.", store_name())),
             }
         }
-        #[cfg(not(windows))]
+        #[cfg(not(any(windows, target_os = "macos")))]
         {
             Ok(None)
         }
     }
     fn write(&self, _token: Option<&str>) -> Result<()> {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "macos"))]
         {
             let entry = entry()?;
             match _token {
@@ -52,9 +55,9 @@ impl TokenStore for WindowsCredentials {
                 },
             }
         }
-        #[cfg(not(windows))]
+        #[cfg(not(any(windows, target_os = "macos")))]
         {
-            Err("Update credentials require Windows Credential Manager on Windows.".into())
+            Err("Update credentials require Windows Credential Manager or macOS Keychain.".into())
         }
     }
 }

@@ -54,8 +54,8 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
       </CardHeader>
       <CardContent className="settings-body">
         <p>
-          Download verified Windows x64 updates from Apheiro/Worcog on GitHub. Updates are
-          installed manually.
+          Download verified updates for this operating system from Apheiro/Worcog on GitHub.
+          Windows uses a portable EXE; macOS uses a ZIP containing Worcog.app. Updates are installed manually.
         </p>
         <p className="muted [color:var(--muted)] text-sm my-3">
           Installed: {u.status?.currentVersion ?? '…'} · Profile: {u.status?.profile ?? '…'} ·{' '}
@@ -74,7 +74,7 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
         </div>
         {!u.status?.platformSupported && u.status && (
           <p className="muted [color:var(--muted)] text-sm">
-            Downloading application updates is supported on Windows x64.
+            Downloading application updates is supported on Windows x64 and macOS (Intel and Apple Silicon).
           </p>
         )}
         <details className="mt-5 rounded [border:1px_solid_var(--border)] p-4">
@@ -107,12 +107,12 @@ export function ApplicationUpdates({ updates: u }: { updates: UpdateController }
               Public repositories work without a token. For a private repository, use a fine-grained
               personal access token restricted to Apheiro/Worcog with Contents: Read. This also
               permits reading repository source code; GitHub does not provide a releases-only read
-              permission here. Production tokens stay in Windows Credential Manager.
+              permission here. Production tokens stay in Windows Credential Manager or macOS Keychain.
             </p>
             {u.status?.profile === 'development' && (
               <p className="notice [border:1px_solid_var(--warning-border)] [background:var(--warning-bg)] [color:var(--warning-ink)] [padding:13px_16px] [border-radius:4px] [font-size:12px] [&_p]:[margin-top:5px] my-3">
                 Development profile: this token is stored unencrypted in this browser&apos;s
-                separate localStorage entry. It is never copied to or from Windows production
+                separate localStorage entry. It is never copied to or from the system's production
                 credentials. Requests still go to the real GitHub repository through Rust.
               </p>
             )}
@@ -182,20 +182,21 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
           >
             <h3>Verified download</h3>
             <dl className="metadata grid [grid-template-columns:100px_minmax(0,_1fr)] [font-size:12px] [gap:10px_15px] [&_dt]:[color:var(--muted)] [&_dd]:m-0 my-3">
-              <dt>New executable</dt>
+              <dt>Downloaded file</dt>
               <dd>{displayExecutablePath(u.receipt.downloadPath)}</dd>
-              <dt>Running executable</dt>
+              <dt>Running app</dt>
               <dd>{displayExecutablePath(u.receipt.currentExecutable)}</dd>
             </dl>
             <ol>
               <li>Close Worcog normally.</li>
-              <li>Keep a copy of your previous EXE.</li>
+              <li>Keep a copy of your previous {u.status?.platform === 'macos' ? 'Worcog.app' : 'EXE'}.</li>
+              {u.status?.platform === 'macos' ? (
+                <li>Extract the ZIP and replace the previous Worcog.app with the extracted app. macOS may require you to authorize its first launch in Privacy &amp; Security.</li>
+              ) : (
+                <li>Replace the previous EXE with the downloaded file in the application location shown above.</li>
+              )}
               <li>
-                Replace the previous EXE with the downloaded file in the application location shown
-                above.
-              </li>
-              <li>
-                Run the new executable. Your workspace remains in its existing application-data
+                Open the new app. Your workspace remains in its existing application-data
                 directory.
               </li>
             </ol>
@@ -203,7 +204,7 @@ export function UpdateDialog({ updates: u }: { updates: UpdateController }) {
         )}
         <p className="muted [color:var(--muted)] text-xs my-3">
           SHA-256 checks integrity against GitHub metadata. It does not replace an independent
-          publisher signature. Worcog will not close, run or replace executables automatically.
+          publisher signature. Worcog will not close, run or replace the app automatically.
         </p>
       </div>
     </Modal>

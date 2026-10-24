@@ -39,6 +39,8 @@ async function mockDesktop(page: Page) {
               tokenSaved: sessionStorage.getItem('test.updateTokenSaved') === 'yes',
               credentialSupported: true,
               platformSupported: true,
+              platform: 'windows',
+              credentialStore: 'Windows Credential Manager',
               profile:
                 sessionStorage.getItem('test.updateProfile') === 'development'
                   ? 'development'
@@ -54,6 +56,8 @@ async function mockDesktop(page: Page) {
               tokenSaved: !!token,
               credentialSupported: true,
               platformSupported: true,
+              platform: 'windows',
+              credentialStore: 'Windows Credential Manager',
               profile:
                 sessionStorage.getItem('test.updateProfile') === 'development'
                   ? 'development'
