@@ -420,6 +420,10 @@ can also be attached from the topic workspace.
 Each linked resource appears once in the task form, including while newly
 uploaded files become saved resources.
 
+File copying, availability checks and document reads and saves run in the
+background so they do not block the application window. Wait for an attachment
+to finish copying before saving its form.
+
 Supported attachments include PDF, text, Markdown, CSV, JSON, logs, common
 images, DOCX, XLSX, PPTX, ODT, ODS and ODP. Each file may be at most **100 MiB**.
 Executables, scripts, shortcuts, HTML and macro-enabled Office files are not
@@ -630,6 +634,10 @@ it does not merge two workspaces. A ZIP made by the attachment Export button
 is only a set of documents and cannot serve as a workspace restore archive.
 Task reminder schedules and dismissals travel with workspace archives; device
 tray/notification preferences and custom audio do not.
+
+Archive inspection, backups, export and restore run in the background. Storage
+operations may wait for a backup or restore to finish so that records and files
+remain consistent; the application window remains responsive.
 
 Archives are not encrypted. Missing or changed managed files can prevent a
 complete backup or export; resolve the reported files before retrying. Do not
