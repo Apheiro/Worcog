@@ -2,6 +2,10 @@ Worcog brings topics, tasks, references, contacts and managed files together in
 one local workspace. This guide describes the controls available in the app.
 It is bundled with Worcog and can be read without an internet connection.
 
+Documentation follows **Settings → General → Language**. Both the English guide
+and its Spanish translation are bundled offline; changing language switches the
+guide immediately.
+
 Worcog uses its own application data and preferences. To bring an existing
 workspace into Worcog, use **Settings → Storage & backups → Import / restore**.
 
@@ -599,8 +603,9 @@ an older backup may bring back records deleted since that backup.
   shared selectors and displayed dates change immediately without navigation or
   a reload. This device preference also applies to the reminder window. It does
   not translate saved names, descriptions, notes or other user content. The
-  bundled user guide, external editor, native dialogs and technical diagnostics
-  retain their own language. Language is not included in workspace backups.
+  user guide also follows the selected language. The external editor, native
+  dialogs and technical diagnostics retain their own language. Language is not
+  included in workspace backups.
 - **Appearance:** Light, Dark or System theme. System follows the operating
   system. This preference is saved on the device.
 - **Texture overlay:** enable or disable the grain texture. Opacity adjusts its

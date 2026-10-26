@@ -47,9 +47,11 @@ run merely because its YAML exists.
 Maintain [the user guide](user-guide.md) whenever a user-facing feature,
 workflow, setting or shortcut is added, changed or removed. Update the relevant
 instructions and shortcut table in the same change. Describe implemented
-behavior and its limits, and remove obsolete instructions. Do not duplicate
-the guide inside UI code. The Documentation route reads this Markdown file at
-build time and bundles it with the static app, so it remains available offline.
+behavior and its limits, and remove obsolete instructions. Keep the Spanish
+translation in [user-guide.es.md](user-guide.es.md) in sync in the same change,
+including its contents links and shortcut table. Do not duplicate either guide
+inside UI code. The Documentation route reads both Markdown files at build time,
+bundles them offline and displays the version matching the language preference.
 
 ### Implementation and migrations
 
