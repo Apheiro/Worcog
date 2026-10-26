@@ -1,10 +1,14 @@
 'use client';
+import { useDates } from '../../i18n/use-dates';
+import { useTranslations } from 'next-intl';
+import { useLabels } from '../../i18n/use-labels';
+import { human } from '../../domain/options';
 import { useEffect, useMemo, useState } from 'react';
 import { useIntersection } from '@mantine/hooks';
 import { IconActivity, IconFile, IconFolder, IconLink, IconListCheck } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { workspaceHistory, type HistoryEntry } from '../../application/queries';
-import { calendarDate, formatDate, formatTimestamp } from '../../domain/dates';
+import { calendarDate } from '../../domain/dates';
 import { Button, Empty } from '../../components/core';
 import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
@@ -20,6 +24,9 @@ const icons = {
 };
 
 export default function Page() {
+  const { formatDate, formatTimestamp } = useDates();
+  const tr = useTranslations('ui');
+  const localize = useLabels();
   const { w, setEditor, setSourceId, setFileId, effective, openTopic } = useWorcog();
   const history = useMemo(() => workspaceHistory(w, effective), [w, effective]);
   const filterKey = JSON.stringify(effective);
@@ -46,7 +53,8 @@ export default function Page() {
       {history.length ? (
         <div className="max-w-5xl">
           <p className="mb-5 text-xs [color:var(--muted)]" role="status">
-            {Math.min(limit, history.length)} of {history.length} movements · newest first
+            {Math.min(limit, history.length)} {tr('of')} {history.length}{' '}
+            {tr('movements_newest_first')}{' '}
           </p>
           <ol className="m-0 list-none p-0">
             {[...groups].map(([date, movements]) => (
@@ -79,7 +87,8 @@ export default function Page() {
                             if (movement.type === 'topic') openTopic(movement.id);
                             else if (movement.type === 'source') setSourceId(movement.id);
                             else if (movement.type === 'file') setFileId(movement.id);
-                            else if (movement.type === 'task') setEditor({ kind: 'task', id: movement.id });
+                            else if (movement.type === 'task')
+                              setEditor({ kind: 'task', id: movement.id });
                             else {
                               const topicId = movement.topicIds[0];
                               if (topicId) openTopic(topicId);
@@ -93,22 +102,28 @@ export default function Page() {
                           >
                             {dayjs(movement.date).format('HH:mm')}
                           </time>
-                          {movement.type === 'source' ? <SourceIcon
-                            kind={w.sources.find((source) => source.id === movement.id)?.kind}
-                            size={16}
-                            className="mt-0.5 shrink-0 [color:var(--muted)]"
-                          /> : <Icon
-                            size={16}
-                            aria-hidden="true"
-                            className="mt-0.5 shrink-0 [color:var(--muted)]"
-                          />}
+                          {movement.type === 'source' ? (
+                            <SourceIcon
+                              kind={w.sources.find((source) => source.id === movement.id)?.kind}
+                              size={16}
+                              className="mt-0.5 shrink-0 [color:var(--muted)]"
+                            />
+                          ) : (
+                            <Icon
+                              size={16}
+                              aria-hidden="true"
+                              className="mt-0.5 shrink-0 [color:var(--muted)]"
+                            />
+                          )}
                           <span className="flex min-w-0 flex-1 flex-col gap-1">
                             <span className="text-[10px] [color:var(--muted)] uppercase tracking-wide">
                               {movement.action === 'activity'
-                                ? 'Activity'
+                                ? tr('activity')
                                 : movement.action === 'created'
-                                  ? `Created ${movement.type}`
-                                  : `Last updated ${movement.type}`}
+                                  ? tr('created_value0', { value0: localize(human(movement.type)) })
+                                  : tr('last_updated_value0', {
+                                      value0: localize(human(movement.type)),
+                                    })}
                             </span>
                             <span className="text-[13px] font-medium [overflow-wrap:anywhere]">
                               {movement.title}
@@ -144,13 +159,16 @@ export default function Page() {
                 size="sm"
                 onClick={() => setPagination({ filterKey, limit: limit + batchSize })}
               >
-                Load older movements
+                {tr('load_older_movements')}{' '}
               </Button>
             </div>
           )}
         </div>
       ) : (
-        <Empty title="No movements found">Try another phrase or adjust the filters.</Empty>
+        <Empty title={tr('no_movements_found')}>
+          {' '}
+          {tr('try_another_phrase_or_adjust_the_filters')}{' '}
+        </Empty>
       )}
     </WorkspaceSection>
   );

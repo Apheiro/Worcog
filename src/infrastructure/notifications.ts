@@ -1,4 +1,6 @@
 import { toast, type ToastOptions } from 'react-toastify/unstyled';
+import { createElement } from 'react';
+import { NotificationText } from '../components/notification-text';
 
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 const warningIds = new Set<string>();
@@ -10,6 +12,7 @@ const labels: Record<NotificationType, string> = {
 };
 function show(type: NotificationType, message: string) {
   const content = `${labels[type]}: ${message}`;
+  const render = createElement(NotificationText, { label: labels[type], message });
   const options: ToastOptions = {
     type,
     role: type === 'error' || type === 'warning' ? 'alert' : 'status',
@@ -19,8 +22,8 @@ function show(type: NotificationType, message: string) {
   };
   if (type === 'warning') warningIds.add(String(options.toastId));
   if (type === 'error' && toast.isActive('workspace-error')) {
-    toast.update('workspace-error', { ...options, render: content });
-  } else toast(content, options);
+    toast.update('workspace-error', { ...options, render });
+  } else toast(render, options);
 }
 export const notifications = {
   success: (message: string) => show('success', message),
@@ -28,7 +31,7 @@ export const notifications = {
   info: (message: string) => show('info', message),
   warning: (message: string) => show('warning', message),
   loading: () =>
-    toast.loading('Working: Please wait…', {
+    toast.loading(createElement(NotificationText, { label: 'Working', message: 'Please wait…' }), {
       toastId: 'workspace-operation',
       role: 'status',
       ariaLabel: 'Operation in progress',

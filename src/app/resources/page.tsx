@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { searchWorkspace } from '../../application/queries';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/core';
 import { SourceList, FileList } from '../../components/work-lists';
@@ -6,6 +7,7 @@ import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 
 export default function Page() {
+  const tr = useTranslations('ui');
   const { w, setSourceId, setFileId, openFile, effective, filter, setFilter, askDelete } =
     useWorcog();
   const selected = filter.type === 'file' ? 'file' : 'source';
@@ -21,9 +23,9 @@ export default function Page() {
           if (value === 'source' || value === 'file') setFilter({ type: value, sourceKind: '' });
         }}
       >
-        <TabsList aria-label="Resource sections">
-          <TabsTrigger value="source">Sources</TabsTrigger>
-          <TabsTrigger value="file">Files</TabsTrigger>
+        <TabsList aria-label={tr('resource_sections')}>
+          <TabsTrigger value="source"> {tr('sources')} </TabsTrigger>
+          <TabsTrigger value="file"> {tr('files')} </TabsTrigger>
         </TabsList>
         <TabsContent value="source">
           <SourceList

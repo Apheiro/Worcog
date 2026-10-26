@@ -1,8 +1,9 @@
 'use client';
+import { useDates } from '../i18n/use-dates';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { IconArrowUpRight, IconTrash } from '@tabler/icons-react';
 import { Button, Card, Empty } from './core';
-import { formatDate } from '../domain/dates';
 
 export type ResourceListItem = {
   id: string;
@@ -27,6 +28,8 @@ export function ResourceList({
   emptyTitle: string;
   emptyDescription: string;
 }) {
+  const { formatDate } = useDates();
+  const tr = useTranslations('ui');
   if (!items.length) return <Empty title={emptyTitle}>{emptyDescription}</Empty>;
   return (
     <Card asChild>
@@ -66,12 +69,16 @@ export function ResourceList({
               <span className="text-xs [color:var(--muted)]">{formatDate(item.date)}</span>
               <Button
                 size="sm"
-                aria-label={`View details of ${item.title}`}
+                aria-label={tr('view_details_of_value0', { value0: item.title })}
                 onClick={item.onDetails}
               >
                 <IconArrowUpRight size={17} />
               </Button>
-              <Button size="sm" aria-label={`Delete ${item.title}`} onClick={item.onDelete}>
+              <Button
+                size="sm"
+                aria-label={tr('delete_value0', { value0: item.title })}
+                onClick={item.onDelete}
+              >
                 <IconTrash size={16} />
               </Button>
             </div>

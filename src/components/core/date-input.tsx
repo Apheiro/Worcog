@@ -1,8 +1,10 @@
 'use client';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { useState, type ComponentPropsWithoutRef } from 'react';
 import { DatePicker, DateTimePicker } from '@kalyx/react/headless';
 import dayjs from 'dayjs';
+import 'dayjs/locale/es';
 import { DayjsAdapter } from '@kalyx/adapter-dayjs';
 import { IconCalendar } from '@tabler/icons-react';
 import { cva } from 'cva';
@@ -33,6 +35,8 @@ export function DateInput({
   withTime = false,
   ...props
 }: DateInputProps) {
+  const tr = useTranslations('ui');
+  const locale = useLocale();
   const [internalValue, setInternalValue] = useState(defaultValue);
   const date = value ?? internalValue;
   const Picker = withTime ? DateTimePicker : DatePicker;
@@ -46,6 +50,7 @@ export function DateInput({
     <div className="relative min-w-0 w-full">
       <Picker
         adapter={DayjsAdapter}
+        locale={locale}
         value={iso}
         onChange={(iso) => {
           const next = iso
@@ -69,7 +74,7 @@ export function DateInput({
         />
         <DatePicker.Trigger
           disabled={disabled || readOnly}
-          aria-label={withTime ? 'Open calendar and time' : 'Open calendar'}
+          aria-label={withTime ? tr('open_calendar_and_time') : tr('open_calendar')}
           className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded border-0 bg-transparent [color:var(--muted)] hover:[background:var(--hover)] focus-visible:[outline:2px_solid_var(--focus)]"
         >
           <IconCalendar size={16} aria-hidden="true" />
@@ -94,12 +99,12 @@ export function DateInput({
           {withTime && (
             <div className="mt-3 grid grid-cols-2 gap-3 pt-3 [border-top:1px_solid_var(--border)]">
               <div className="flex min-w-0 flex-col gap-2">
-                <span className="text-xs [color:var(--muted)]">Hours</span>
-                <DateTimePicker.HourList aria-label="Hours" classNames={timeClasses} />
+                <span className="text-xs [color:var(--muted)]"> {tr('hours')} </span>
+                <DateTimePicker.HourList aria-label={tr('hours')} classNames={timeClasses} />
               </div>
               <div className="flex min-w-0 flex-col gap-2">
-                <span className="text-xs [color:var(--muted)]">Minutes</span>
-                <DateTimePicker.MinuteList aria-label="Minutes" classNames={timeClasses} />
+                <span className="text-xs [color:var(--muted)]"> {tr('minutes')} </span>
+                <DateTimePicker.MinuteList aria-label={tr('minutes')} classNames={timeClasses} />
               </div>
             </div>
           )}

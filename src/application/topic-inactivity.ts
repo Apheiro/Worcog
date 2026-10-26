@@ -86,7 +86,12 @@ export function topicInactivity(
   };
 }
 
-export function deadlineIndicator(createdAt: string, deadline: string | null, settings: TopicInactivitySettings, now = dayjs()) {
+export function deadlineIndicator(
+  createdAt: string,
+  deadline: string | null,
+  settings: TopicInactivitySettings,
+  now = dayjs(),
+) {
   if (deadline) {
     const start = dayjs(createdAt);
     const end = dayjs(deadline).endOf('day');
@@ -98,6 +103,9 @@ export function deadlineIndicator(createdAt: string, deadline: string | null, se
           ? Math.max(0, Math.min(1, now.diff(start) / duration))
           : 0;
       return {
+        kind: 'deadline' as const,
+        date: end.format('YYYY-MM-DD'),
+        progress,
         color: indicatorColor(progress, settings),
         label: `Deadline: ${end.format('MMM D, YYYY')}. ${progress === 1 ? 'Deadline passed.' : `${Math.round(progress * 100)}% of the available time elapsed.`}`,
       };
@@ -111,10 +119,19 @@ export function topicIndicator(
   settings: TopicInactivitySettings,
   now = dayjs(),
 ) {
-  const deadline = deadlineIndicator(topic.startDate ?? topic.createdAt, topic.targetDate, settings, now);
+  const deadline = deadlineIndicator(
+    topic.startDate ?? topic.createdAt,
+    topic.targetDate,
+    settings,
+    now,
+  );
   if (deadline) return deadline;
   const inactivity = topicInactivity(topic.updatedAt, settings, now);
   return {
+    kind: 'inactivity' as const,
+    days: inactivity.days,
+    threshold: settings.days,
+    excludesWeekdays: settings.excludedWeekdays.length > 0,
     color: inactivity.color,
     label: `${inactivity.days} ${settings.excludedWeekdays.length ? 'counted ' : ''}${inactivity.days === 1 ? 'day' : 'days'} since last activity. Inactivity threshold: ${settings.days} days.${settings.excludedWeekdays.length ? ' Excluded weekdays do not count.' : ''}`,
   };

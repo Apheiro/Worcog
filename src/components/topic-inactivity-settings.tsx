@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import {
@@ -15,6 +16,7 @@ export function TopicInactivitySettingsForm({
   settings: TopicInactivitySettings;
   onSave: (settings: TopicInactivitySettings) => void;
 }) {
+  const tr = useTranslations('ui');
   const [error, setError] = useState('');
   const [excludedWeekdays, setExcludedWeekdays] = useState(settings.excludedWeekdays);
   const [colors, setColors] = useState({
@@ -23,18 +25,18 @@ export function TopicInactivitySettingsForm({
     extremeColor: settings.extremeColor,
   });
   const points = [
-    { key: 'initialColor', label: 'Initial', position: '0%', align: 'start' },
-    { key: 'midpointColor', label: 'Midpoint', position: '50%', align: 'center' },
-    { key: 'extremeColor', label: 'Final', position: '100%', align: 'end' },
+    { key: 'initialColor', label: tr('initial'), position: '0%', align: 'start' },
+    { key: 'midpointColor', label: tr('midpoint'), position: '50%', align: 'center' },
+    { key: 'extremeColor', label: tr('final'), position: '100%', align: 'end' },
   ] as const;
   const weekdays = [
-    { value: 1, label: 'Monday', short: 'Mon' },
-    { value: 2, label: 'Tuesday', short: 'Tue' },
-    { value: 3, label: 'Wednesday', short: 'Wed' },
-    { value: 4, label: 'Thursday', short: 'Thu' },
-    { value: 5, label: 'Friday', short: 'Fri' },
-    { value: 6, label: 'Saturday', short: 'Sat' },
-    { value: 0, label: 'Sunday', short: 'Sun' },
+    { value: 1, label: tr('monday'), short: tr('short_mon') },
+    { value: 2, label: tr('tuesday'), short: tr('short_tue') },
+    { value: 3, label: tr('wednesday'), short: tr('short_wed') },
+    { value: 4, label: tr('thursday'), short: tr('short_thu') },
+    { value: 5, label: tr('friday'), short: tr('short_fri') },
+    { value: 6, label: tr('saturday'), short: tr('short_sat') },
+    { value: 0, label: tr('sunday'), short: tr('short_sun') },
   ];
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,26 +47,27 @@ export function TopicInactivitySettingsForm({
       ...colors,
     });
     if (!result.success) {
-      setError('Enter a positive whole number of days and valid colors.');
+      setError(tr('enter_a_positive_whole_number_of_days_and_valid_colors'));
       return;
     }
     onSave(result.data);
     setError('');
-    notifications.success('Topic inactivity settings saved.');
+    notifications.success(tr('topic_inactivity_settings_saved'));
   }
   return (
     <Card>
       <CardHeader>
-        <h2>Topic inactivity</h2>
+        <h2> {tr('topic_inactivity')} </h2>
       </CardHeader>
       <CardContent>
         <p className="text-sm [color:var(--muted)] mb-4">
-          Indicators transition through three colors as a topic approaches the inactivity period.
-          Select a marker to adjust its color. Settings are saved on this device.
+          {tr(
+            'indicators_transition_through_three_colors_as_a_topic_approaches_the_inactivity_period_select_a_mark',
+          )}{' '}
         </p>
         <form onSubmit={submit}>
           <div className="flex flex-wrap items-start gap-4">
-            <Field label="Inactivity period (days)">
+            <Field label={tr('inactivity_period_days')}>
               <Input
                 name="days"
                 type="number"
@@ -75,7 +78,10 @@ export function TopicInactivitySettingsForm({
               />
             </Field>
             <div className="min-w-0 flex-1 [flex-basis:260px] mb-4">
-              <p className="text-xs [color:var(--secondary)] font-medium mb-3">Inactivity colors</p>
+              <p className="text-xs [color:var(--secondary)] font-medium mb-3">
+                {' '}
+                {tr('inactivity_colors')}{' '}
+              </p>
               <div className="px-6 pt-6 pb-2">
                 <div
                   className="relative h-2 rounded-full [border:1px_solid_var(--border)]"
@@ -88,7 +94,10 @@ export function TopicInactivitySettingsForm({
                       <Popover.Trigger asChild>
                         <button
                           type="button"
-                          aria-label={`${point.label} inactivity color: ${colors[point.key]}`}
+                          aria-label={tr('value0_inactivity_color_value1', {
+                            value0: point.label,
+                            value1: colors[point.key],
+                          })}
                           className="group absolute top-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded [background:transparent] [border:0] cursor-pointer focus-visible:[outline:2px_solid_var(--focus)] focus-visible:[outline-offset:2px]"
                           style={{ left: point.position }}
                         >
@@ -110,7 +119,7 @@ export function TopicInactivitySettingsForm({
                           align={point.align}
                           sideOffset={8}
                           collisionPadding={12}
-                          aria-label={`${point.label} color`}
+                          aria-label={tr('value0_color', { value0: point.label })}
                           className="z-50 rounded-md [border:1px_solid_var(--border)] [background:var(--surface)] [color:var(--ink)] p-3 [box-shadow:0_4px_16px_#0002]"
                         >
                           <label className="flex items-center gap-3 text-xs">
@@ -119,11 +128,16 @@ export function TopicInactivitySettingsForm({
                               type="color"
                               value={colors[point.key]}
                               onChange={(event) =>
-                                setColors((current) => ({ ...current, [point.key]: event.target.value }))
+                                setColors((current) => ({
+                                  ...current,
+                                  [point.key]: event.target.value,
+                                }))
                               }
                               className="h-8 w-8 cursor-pointer [&[type=color]]:[padding:2px]"
                             />
-                            <span className="font-mono [color:var(--muted)]">{colors[point.key]}</span>
+                            <span className="font-mono [color:var(--muted)]">
+                              {colors[point.key]}
+                            </span>
                           </label>
                           <Popover.Arrow className="[fill:var(--surface)]" />
                         </Popover.Content>
@@ -131,14 +145,25 @@ export function TopicInactivitySettingsForm({
                     </Popover.Root>
                   ))}
                 </div>
-                <div className="mt-3 flex justify-between text-[10px] [color:var(--muted)]" aria-hidden="true">
-                  <span>0%</span><span>50%</span><span>100%</span>
+                <div
+                  className="mt-3 flex justify-between text-[10px] [color:var(--muted)]"
+                  aria-hidden="true"
+                >
+                  <span>0%</span>
+                  <span>50%</span>
+                  <span>100%</span>
                 </div>
               </div>
             </div>
           </div>
-          <fieldset className="m-0 mb-4 flex min-w-0 flex-col gap-2 border-0 p-0" aria-describedby="inactivity-weekdays-hint">
-            <legend className="mb-2 text-xs font-medium [color:var(--secondary)]">Pause inactivity on</legend>
+          <fieldset
+            className="m-0 mb-4 flex min-w-0 flex-col gap-2 border-0 p-0"
+            aria-describedby="inactivity-weekdays-hint"
+          >
+            <legend className="mb-2 text-xs font-medium [color:var(--secondary)]">
+              {' '}
+              {tr('pause_inactivity_on')}{' '}
+            </legend>
             <div className="flex flex-wrap gap-1.5">
               {weekdays.map(({ value, label, short }) => (
                 <Button
@@ -150,15 +175,24 @@ export function TopicInactivitySettingsForm({
                   aria-pressed={excludedWeekdays.includes(value)}
                   title={label}
                   className="min-w-10"
-                  onClick={() => setExcludedWeekdays((current) => current.includes(value)
-                    ? current.filter((day) => day !== value)
-                    : [...current, value].sort((a, b) => a - b))}
+                  onClick={() =>
+                    setExcludedWeekdays((current) =>
+                      current.includes(value)
+                        ? current.filter((day) => day !== value)
+                        : [...current, value].sort((a, b) => a - b),
+                    )
+                  }
                 >
                   {short}
                 </Button>
               ))}
             </div>
-            <p id="inactivity-weekdays-hint" className="text-xs [color:var(--muted)]">Selected weekdays do not count, using local time. All days count by default. Deadlines are unaffected.</p>
+            <p id="inactivity-weekdays-hint" className="text-xs [color:var(--muted)]">
+              {' '}
+              {tr(
+                'selected_weekdays_do_not_count_using_local_time_all_days_count_by_default_deadlines_are_unaffected',
+              )}{' '}
+            </p>
           </fieldset>
           {error && (
             <p role="alert" className="text-xs [color:var(--danger-ink)] mb-3">
@@ -166,7 +200,7 @@ export function TopicInactivitySettingsForm({
             </p>
           )}
           <Button type="submit" size="sm" tone="primary">
-            Save inactivity settings
+            {tr('save_inactivity_settings')}{' '}
           </Button>
         </form>
       </CardContent>

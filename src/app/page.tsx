@@ -1,16 +1,22 @@
 'use client';
+import { useLabels } from '../i18n/use-labels';
+import { useDates } from '../i18n/use-dates';
+import { useTranslations } from 'next-intl';
 import { TopicInactivityIndicator } from '../components/topic-inactivity-indicator';
 import { topicInactivity } from '../application/topic-inactivity';
 import { Card, CardHeader } from '../components/core/card';
 import { IconArrowRight, IconClock, IconFlag, IconLock, IconProgress } from '@tabler/icons-react';
 import dayjs from 'dayjs';
-import { compareTimestamps, formatTimestamp, isOpen, isOverdue, today } from '../domain/dates';
+import { compareTimestamps, isOpen, isOverdue, today } from '../domain/dates';
 import { Badge, Button, Empty } from '../components/core';
 import { human } from '../domain/options';
 import { TopicTable } from '../components/work-lists';
 import { useWorcog } from '../providers/worcog';
 
 export default function Page() {
+  const localize = useLabels();
+  const { formatTimestamp } = useDates();
+  const tr = useTranslations('ui');
   const {
     w,
     openTopic,
@@ -49,53 +55,54 @@ export default function Page() {
       <div className="page-heading flex items-start justify-between [gap:24px] [margin-bottom:29px] [&_h1_+_p]:[margin-top:9px] [&_h1_+_p]:[font-size:13px] [&_>_.button]:[margin-top:22px] [@media(max-width:1150px)]:[&_h1]:[font-size:27px] [@media(max-width:800px)]:flex-wrap [@media(max-width:800px)]:[gap:15px] [@media(max-width:800px)]:[&_>_.button]:[margin-top:0] [@media(max-width:800px)]:[&_h1]:[font-size:26px]">
         <div>
           <p className="eyebrow [font-size:11px] [letter-spacing:1.1px] uppercase [color:var(--muted)] [font-weight:600] [margin-bottom:10px]">
-            Your operational workspace
+            {tr('your_operational_workspace')}{' '}
           </p>
-          <h1>Overview</h1>
+          <h1> {tr('overview')} </h1>
           <p className="muted [color:var(--muted)]">
-            What needs your attention, and where things stand.
+            {tr('what_needs_your_attention_and_where_things_stand')}{' '}
           </p>
         </div>
         <Button tone="primary" disabled={!enabled} onClick={newTopic}>
-          New topic <IconArrowRight size={16} />
+          {tr('new_topic')} <IconArrowRight size={16} />
         </Button>
       </div>
       {!topics.length && !w.topics.length && (
         <Empty
-          title="Give your work a place to live"
+          title={tr('give_your_work_a_place_to_live')}
           action={
             <Button tone="primary" disabled={!enabled} onClick={newTopic}>
-              Create your first topic
+              {tr('create_your_first_topic')}{' '}
             </Button>
           }
         >
-          Start with a project, incident or request. Add its references, decisions and next steps as
-          the story develops.
+          {tr(
+            'start_with_a_project_incident_or_request_add_its_references_decisions_and_next_steps_as_the_story_de',
+          )}{' '}
         </Empty>
       )}
       <Card asChild tone="soft">
         <div className="metrics grid [grid-template-columns:repeat(4,_minmax(0,_1fr))] [margin:25px_0_28px] [@media(max-width:800px)]:[grid-template-columns:1fr_1fr]">
           {[
             {
-              title: 'Open tasks',
+              title: tr('open_tasks'),
               value: tasks.length,
               icon: IconClock,
               onClick: () => showTasks('open'),
             },
             {
-              title: 'Overdue',
+              title: tr('overdue_2'),
               value: overdue.length,
               icon: IconFlag,
               onClick: () => showTasks('overdue'),
             },
             {
-              title: 'Blocked tasks',
+              title: tr('blocked_tasks'),
               value: blocked.length,
               icon: IconLock,
               onClick: () => showTasks('blocked'),
             },
             {
-              title: 'Topics in progress',
+              title: tr('topics_in_progress'),
               value: active.length,
               icon: IconProgress,
               onClick: () => {
@@ -109,7 +116,10 @@ export default function Page() {
               tone="ghost"
               size="auto"
               onClick={metric.onClick}
-              aria-label={`${metric.title}: ${metric.value}. View results`}
+              aria-label={tr('value0_value1_view_results', {
+                value0: metric.title,
+                value1: metric.value,
+              })}
               className="metric [&.button]:block [&.button]:rounded-none [&.button]:text-left [padding:19px_23px] [border-right:1px_solid_var(--border)] [font-size:12px] [color:var(--muted)] [&:last-child]:[border:none] [&_svg]:[color:var(--muted)] [&_strong]:block [&_strong]:[color:var(--ink)] [&_strong]:[font-size:30px] [&_strong]:[font-weight:550] [&_strong]:[line-height:1.2] [&_strong]:[margin-top:11px] [&_strong]:[letter-spacing:-0.7px] [@media(max-width:1150px)]:[padding:15px] [@media(max-width:800px)]:[&:nth-child(2)]:[border-right:0] [@media(max-width:800px)]:[&:nth-child(-n_+_2)]:[border-bottom:1px_solid_var(--border)]"
               key={metric.title}
             >
@@ -124,7 +134,7 @@ export default function Page() {
       </Card>
       <Card>
         <CardHeader>
-          <h2>Needs attention</h2>
+          <h2> {tr('needs_attention')} </h2>
           <Badge>{new Set([...overdue, ...blocked, ...dueSoon]).size}</Badge>
         </CardHeader>
         {[...new Set([...overdue, ...blocked, ...dueSoon])].slice(0, 8).map((task) => (
@@ -136,20 +146,26 @@ export default function Page() {
               </span>
             </span>
             <Badge tone={isOverdue(task) ? 'danger' : 'warning'}>
-              {isOverdue(task) ? 'Overdue' : task.status === 'blocked' ? 'Blocked' : 'Due soon'}
+              {isOverdue(task)
+                ? tr('overdue_2')
+                : task.status === 'blocked'
+                  ? tr('blocked')
+                  : tr('due_soon')}
             </Badge>
           </Button>
         ))}
         {!overdue.length && !blocked.length && !dueSoon.length && (
           <p className="section-empty [padding:30px_22px] [color:var(--muted)] [font-size:13px]">
-            No blocked or overdue tasks. Upcoming deadlines will appear here.
+            {tr('no_blocked_or_overdue_tasks_upcoming_deadlines_will_appear_here')}{' '}
           </p>
         )}
       </Card>
       <Card className="mt-7">
         <CardHeader>
-          <h2>Recently updated topics</h2>
-          <span className="muted [color:var(--muted)] text-sm">{topics.length} active topics</span>
+          <h2> {tr('recently_updated_topics')} </h2>
+          <span className="muted [color:var(--muted)] text-sm">
+            {topics.length} {tr('active_topics')}{' '}
+          </span>
         </CardHeader>
         <TopicTable
           topics={[...topics]
@@ -161,7 +177,7 @@ export default function Page() {
       <div className="dashboard-grid grid [grid-template-columns:minmax(0,_1.2fr)_minmax(0,_1fr)] [gap:25px] [@media(max-width:1150px)]:[gap:18px] [@media(max-width:800px)]:[grid-template-columns:1fr] mt-7">
         <Card>
           <CardHeader>
-            <h2>Recent activity</h2>
+            <h2> {tr('recent_activity')} </h2>
           </CardHeader>
           {recent.length ? (
             recent.map((activity) => (
@@ -179,7 +195,7 @@ export default function Page() {
               >
                 <span className="min-w-0 w-full text-left">
                   <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere]">
-                    {formatTimestamp(activity.eventAt)} · {human(activity.kind)}
+                    {formatTimestamp(activity.eventAt)} · {localize(human(activity.kind))}
                   </span>
                   <span className="line-clamp-2">{activity.text}</span>
                 </span>
@@ -187,13 +203,13 @@ export default function Page() {
             ))
           ) : (
             <p className="section-empty [padding:30px_22px] [color:var(--muted)] [font-size:13px]">
-              Recorded events across your topics will appear here.
+              {tr('recorded_events_across_your_topics_will_appear_here')}{' '}
             </p>
           )}
         </Card>
         <Card>
           <CardHeader>
-            <h2>Waiting for an update</h2>
+            <h2> {tr('waiting_for_an_update')} </h2>
             <Badge>{stale.length}</Badge>
           </CardHeader>
           {stale.length ? (
@@ -208,13 +224,14 @@ export default function Page() {
                 <TopicInactivityIndicator topic={topic} edge />
                 <strong>{topic.title}</strong>
                 <span className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere] ml-auto">
-                  {inactivitySettings.days}+ days without activity
+                  {inactivitySettings.days} {tr('days_without_activity')}{' '}
                 </span>
               </Button>
             ))
           ) : (
             <p className="section-empty [padding:30px_22px] [color:var(--muted)] [font-size:13px]">
-              No open topics have reached {inactivitySettings.days} days without an update.
+              {tr('no_open_topics_have_reached')} {inactivitySettings.days}{' '}
+              {tr('days_without_an_update')}{' '}
             </p>
           )}
         </Card>

@@ -1,6 +1,9 @@
 'use client';
+import { useLabels } from '../i18n/use-labels';
+import { useDates } from '../i18n/use-dates';
+import { useTranslations } from 'next-intl';
 import { IconArrowUpRight } from '@tabler/icons-react';
-import { formatTimestamp } from '../domain/dates';
+
 import type { Attachment, Source, Workspace } from '../domain/model';
 import { sourceTopicIds } from '../domain/relationships';
 import type { Workbench } from '../infrastructure/use-workspace';
@@ -35,6 +38,9 @@ export function SourceDetail({
   openFile: (id: string) => void;
   manageFile: (id: string) => void;
 }) {
+  const localize = useLabels();
+  const { formatTimestamp } = useDates();
+  const tr = useTranslations('ui');
   const topicIds = sourceTopicIds(w, source);
   return (
     <Modal title={source.title} onClose={close} wide>
@@ -47,55 +53,62 @@ export function SourceDetail({
         </p>
       )}
       <div className="flex items-center gap-2 flex-wrap mb-5">
-        <Badge><SourceIcon kind={source.kind} size={14} />{sourceKindLabel(source.kind)}</Badge>
+        <Badge>
+          <SourceIcon kind={source.kind} size={14} />
+          {localize(sourceKindLabel(source.kind))}
+        </Badge>
         <span className="muted [color:var(--muted)]">{source.platform}</span>
         <Button className="ml-auto" onClick={edit}>
-          Edit metadata
+          {tr('edit_metadata')}{' '}
         </Button>
         <Button tone="danger" onClick={onDelete}>
-          Delete source
+          {tr('delete_source')}{' '}
         </Button>
         {source.url && (
           <Button tone="primary" onClick={openOriginal}>
-            Open original <IconArrowUpRight size={16} />
+            {tr('open_original')} <IconArrowUpRight size={16} />
           </Button>
         )}
       </div>
       <dl className="metadata grid [grid-template-columns:100px_minmax(0,_1fr)] [font-size:12px] [gap:10px_15px] [&_dt]:[color:var(--muted)] [&_dd]:m-0">
         {sourceType(source.kind) === 'mail' && source.subject && (
           <>
-            <dt>Subject</dt>
+            <dt> {tr('subject')} </dt>
             <dd>{source.subject}</dd>
           </>
         )}
-        {sourceType(source.kind) !== 'url' && <>
-        <dt>Identifier</dt>
-        <dd>{source.identifier || 'Not provided'}</dd>
-        <dt>Event</dt>
-        <dd>{formatTimestamp(source.eventAt)}</dd>
-        <dt>{sourceParticipantLabel(source)}</dt>
-        <dd>{source.participants || 'Not provided'}</dd>
-        </>}
-        <dt>Original link</dt>
+        {sourceType(source.kind) !== 'url' && (
+          <>
+            <dt>{tr('identifier')}</dt>
+            <dd>{source.identifier || tr('not_provided')}</dd>
+            <dt>{tr('event')}</dt>
+            <dd>{formatTimestamp(source.eventAt)}</dd>
+            <dt>{localize(sourceParticipantLabel(source))}</dt>
+            <dd>{source.participants || tr('not_provided')}</dd>
+          </>
+        )}
+        <dt> {tr('original_link')} </dt>
         <dd className="break-all">
-          {source.url || 'No link provided — use the saved metadata to locate the original.'}
+          {source.url || tr('no_link_provided_use_the_saved_metadata_to_locate_the_original')}
         </dd>
-        <dt>Recorded</dt>
+        <dt> {tr('recorded')} </dt>
         <dd>{formatTimestamp(source.createdAt)}</dd>
       </dl>
       <p className="whitespace-pre-wrap my-5">{source.notes}</p>
-      <h3>Related topics</h3>
+      <h3> {tr('related_topics')} </h3>
       <div className="flex gap-2 flex-wrap my-3">
         {topicIds.map((id) => (
           <Button size="sm" key={id} onClick={() => openTopic(id)}>
             {w.topics.find((t) => t.id === id)?.title}
           </Button>
         ))}
-        {!topicIds.length && <p className="muted [color:var(--muted)]">No linked topics.</p>}
+        {!topicIds.length && (
+          <p className="muted [color:var(--muted)]"> {tr('no_linked_topics')} </p>
+        )}
       </div>
-      <h3 className="mt-5">Linked tasks</h3>
+      <h3 className="mt-5"> {tr('linked_tasks')} </h3>
       <ResourceTasks sourceId={source.id} />
-      <h3 className="mt-5">Files</h3>
+      <h3 className="mt-5"> {tr('files')} </h3>
       <FileList
         onDelete={deleteFile}
         files={w.attachments.filter((f) => f.sourceIds.includes(source.id))}
@@ -116,22 +129,33 @@ export function FileDetail({
   close: () => void;
   onDelete: () => void;
 }) {
+  const { formatTimestamp } = useDates();
+  const tr = useTranslations('ui');
   return (
-    <Modal title={file.originalName} onClose={close} footer={
-      <>
-        <Button tone="danger" disabled={wb.busy} onClick={onDelete}>Delete file</Button>
-        <Button onClick={close}>Close</Button>
-      </>
-    }>
+    <Modal
+      title={file.originalName}
+      onClose={close}
+      footer={
+        <>
+          <Button tone="danger" disabled={wb.busy} onClick={onDelete}>
+            {' '}
+            {tr('delete_file')}{' '}
+          </Button>
+          <Button onClick={close}> {tr('close')} </Button>
+        </>
+      }
+    >
       <p className="text-xs [color:var(--muted)] mb-4">
-        {(file.size / 1024).toFixed(1)} KB · {file.mime} · Added {formatTimestamp(file.addedAt)}
+        {(file.size / 1024).toFixed(1)} {tr('kb')} {file.mime} {tr('added')}{' '}
+        {formatTimestamp(file.addedAt)}
         <AttachmentStatus id={file.id} />
       </p>
-      <h3 className="text-sm">Linked topics and tasks</h3>
+      <h3 className="text-sm"> {tr('linked_topics_and_tasks')} </h3>
       <ResourceTasks fileId={file.id} />
       <p className="text-xs [color:var(--muted)] mt-4">
-        Manage task resources from the task editor and general files from the topic. Unlinking a saved file preserves its
-        managed copy.
+        {tr(
+          'manage_task_resources_from_the_task_editor_and_general_files_from_the_topic_unlinking_a_saved_file_p',
+        )}{' '}
       </p>
       {wb.error && (
         <p role="alert" className="text-xs [color:var(--danger-ink)] mt-4">

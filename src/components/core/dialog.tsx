@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import * as Dialog from '@radix-ui/react-dialog';
 import { IconX } from '@tabler/icons-react';
@@ -39,6 +40,7 @@ export function Modal({
   wide?: boolean;
   className?: string;
 }) {
+  const tr = useTranslations('ui');
   const descriptionId = useId();
   return (
     <Dialog.Root
@@ -61,12 +63,12 @@ export function Modal({
           <div className="modal-header flex shrink-0 items-center justify-between [gap:15px] [margin-bottom:22px] [&_h2]:[font-size:19px] [&_h2]:[font-weight:600] [&_h2]:[overflow-wrap:anywhere] [&_.button]:border-0">
             <Dialog.Title>{title}</Dialog.Title>
             <Dialog.Close asChild>
-              <Button tone="ghost" size="icon" aria-label="Close dialog">
+              <Button tone="ghost" size="icon" aria-label={tr('close_dialog')}>
                 <IconX size={18} />
               </Button>
             </Dialog.Close>
           </div>
-          <ScrollArea label={`${title} content`} className="min-h-0">
+          <ScrollArea label={tr('value0_content', { value0: title })} className="min-h-0">
             <div className="pr-3">
               {description && (
                 <Dialog.Description id={descriptionId} className="muted [color:var(--muted)] mb-5">
@@ -93,7 +95,7 @@ export function Confirm({
   onCancel,
   busy,
   error,
-  confirmLabel = 'Confirm',
+  confirmLabel,
   children,
 }: {
   title: string;
@@ -105,27 +107,30 @@ export function Confirm({
   confirmLabel?: string;
   children?: ReactNode;
 }) {
+  const tr = useTranslations('ui');
   return (
     <AlertDialog.Root open>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="overlay fixed [inset:0] [background:var(--overlay)] [z-index:40]" />
         <AlertDialog.Content className="modal fixed grid [grid-template-rows:auto_minmax(0,_1fr)_auto] [top:50%] [left:50%] [transform:translate(-50%,_-50%)] [max-height:88dvh] overflow-hidden [background:var(--surface)] [width:min(520px,_calc(100vw_-_40px))] [border-radius:8px] [padding:24px] [z-index:50] [border:1px_solid_var(--border)] [box-shadow:0_15px_55px_#0002] [@media(max-width:800px)]:[padding:20px]">
           <AlertDialog.Title className="shrink-0">{title}</AlertDialog.Title>
-          <ScrollArea label={`${title} content`} className="min-h-0">
+          <ScrollArea label={tr('value0_content', { value0: title })} className="min-h-0">
             <div className="pr-3">
               <AlertDialog.Description className="my-5 whitespace-pre-wrap">
                 {description}
               </AlertDialog.Description>
               {children}
-              {error && <p className="overdue [color:var(--danger-ink)] [font-weight:550]">{error}</p>}
+              {error && (
+                <p className="overdue [color:var(--danger-ink)] [font-weight:550]">{error}</p>
+              )}
             </div>
           </ScrollArea>
           <div className="form-footer flex shrink-0 [justify-content:flex-end] [gap:9px] [margin-top:24px] [padding-top:18px] [border-top:1px_solid_var(--border)]">
             <Button onClick={onCancel} disabled={busy}>
-              Cancel
+              {tr('cancel')}{' '}
             </Button>
             <Button tone="danger" onClick={onConfirm} disabled={busy}>
-              {busy ? 'Working…' : confirmLabel}
+              {busy ? tr('working') : (confirmLabel ?? tr('confirm'))}
             </Button>
           </div>
         </AlertDialog.Content>

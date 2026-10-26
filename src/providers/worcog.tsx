@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { useDebouncedValue, useLocalStorage } from '@mantine/hooks';
 import {
   IconArchive,
@@ -12,7 +13,14 @@ import {
   IconBook2,
 } from '@tabler/icons-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { createContext, useContext, useState, useEffect, useEffectEvent, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useEffectEvent,
+  type ReactNode,
+} from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { deleteEntity, deletionPreview, type DeletionTarget } from '../application/deletion';
 import {
@@ -43,7 +51,16 @@ import { reminderApi } from '../infrastructure/reminders';
 import { desktopAvailable } from '../infrastructure/native';
 import { errorMessage } from '../infrastructure/native';
 import type { Editor } from '../components/editors';
-type Page = 'overview' | 'topics' | 'tasks' | 'resources' | 'contacts' | 'search' | 'archive' | 'documentation' | 'settings';
+type Page =
+  | 'overview'
+  | 'topics'
+  | 'tasks'
+  | 'resources'
+  | 'contacts'
+  | 'search'
+  | 'archive'
+  | 'documentation'
+  | 'settings';
 type Confirmation = {
   title: string;
   description: string;
@@ -64,6 +81,7 @@ export const navigation = [
 ] as const;
 
 function useWorcogController() {
+  const tr = useTranslations('ui');
   const wb = useWorkspace();
   const reminders = useReminders();
   const updates = useUpdates();
@@ -76,7 +94,7 @@ function useWorcogController() {
   const [documentEditorEnabled, setDocumentEditorEnabled] = useLocalStorage<boolean>({
     key: 'worcog.document-editor-enabled',
     defaultValue: true,
-    deserialize: (value) => value === undefined ? true : value === 'true',
+    deserialize: (value) => (value === undefined ? true : value === 'true'),
   });
   const router = useRouter();
   const pathname = usePathname();
@@ -90,31 +108,61 @@ function useWorcogController() {
   }
   const [editor, setEditor] = useState<Editor | null>(null);
   const taskFileDrop = useTaskFileDrop(wb, editor !== null || !!relations.source);
-  const exitGuard = editor !== null || documents.windows.length > 0 || wb.busy || reminders.busy || taskFileDrop.pendingId !== null;
+  const exitGuard =
+    editor !== null ||
+    documents.windows.length > 0 ||
+    wb.busy ||
+    reminders.busy ||
+    taskFileDrop.pendingId !== null;
   useEffect(() => {
     if (!desktopAvailable()) return;
-    void reminderApi.setExitGuard(exitGuard).catch((cause) => notifications.error(errorMessage(cause)));
+    void reminderApi
+      .setExitGuard(exitGuard)
+      .catch((cause) => notifications.error(errorMessage(cause)));
   }, [exitGuard]);
   const openReminder = useEffectEvent(async (id: string) => {
     if (editor || wb.busy) {
-      notifications.warning('Save or close the current form and finish the current operation before opening the reminder task.');
+      notifications.warning(
+        tr(
+          'save_or_close_the_current_form_and_finish_the_current_operation_before_opening_the_reminder_task',
+        ),
+      );
       return;
     }
     await wb.refresh();
     setEditor({ kind: 'task', id });
   });
-  const reminderDismissed = useEffectEvent(() => { void wb.refresh(); });
+  const reminderDismissed = useEffectEvent(() => {
+    void wb.refresh();
+  });
   useEffect(() => {
     if (!desktopAvailable()) return;
     let disposed = false;
     const stops: (() => void)[] = [];
     const subscribe = (promise: Promise<() => void>) => {
-      void promise.then((stop) => { if (disposed) stop(); else stops.push(stop); })
-        .catch((cause) => { if (!disposed) notifications.error(errorMessage(cause)); });
+      void promise
+        .then((stop) => {
+          if (disposed) stop();
+          else stops.push(stop);
+        })
+        .catch((cause) => {
+          if (!disposed) notifications.error(errorMessage(cause));
+        });
     };
-    subscribe(listen<string>('open-reminder-task', ({ payload }) => { if (!disposed) void openReminder(payload); }));
-    subscribe(listen('reminder-dismissed', () => { if (!disposed) reminderDismissed(); }));
-    return () => { disposed = true; stops.forEach((stop) => stop()); };
+    subscribe(
+      listen<string>('open-reminder-task', ({ payload }) => {
+        if (!disposed) void openReminder(payload);
+      }),
+    );
+    subscribe(
+      listen('reminder-dismissed', () => {
+        if (!disposed) reminderDismissed();
+      }),
+    );
+    return () => {
+      disposed = true;
+      stops.forEach((stop) => stop());
+    };
   }, []);
   const [sourceId, setSourceId] = useState('');
   const [fileId, setFileId] = useState('');
@@ -185,7 +233,9 @@ function useWorcogController() {
       const file = w.attachments.find((attachment) => attachment.id === id);
       const status = await attachmentAccess.check(id);
       if (status !== 'available') {
-        notifications.warning(`${status === 'missing' ? 'File not found' : 'File inaccessible'}: ${file?.originalName ?? 'Attachment'}`);
+        notifications.warning(
+          `${status === 'missing' ? 'File not found' : 'File inaccessible'}: ${file?.originalName ?? 'Attachment'}`,
+        );
         return;
       }
       if (documentEditorEnabled && file && documentFormat(file.originalName)) documents.open(file);
@@ -196,9 +246,10 @@ function useWorcogController() {
     const topic = w.topics.find((item) => item.id === id);
     if (!topic || wb.busy) return;
     setConfirmation({
-      title: topic.archived ? 'Restore topic from archive?' : 'Archive this topic?',
-      description:
-        'The full history, tasks, sources and attachments are preserved. Archived topics are available from Archive.',
+      title: topic.archived ? tr('restore_topic_from_archive') : tr('archive_this_topic'),
+      description: tr(
+        'the_full_history_tasks_sources_and_attachments_are_preserved_archived_topics_are_available_from_arch',
+      ),
       action: async () => {
         if (
           await wb.update((current) =>
@@ -206,7 +257,8 @@ function useWorcogController() {
           )
         ) {
           setConfirmation(null);
-          if (page === 'archive' && topic.archived && selectedTopic?.id === topic.id) setTopicId('');
+          if (page === 'archive' && topic.archived && selectedTopic?.id === topic.id)
+            setTopicId('');
         }
       },
     });
@@ -225,15 +277,28 @@ function useWorcogController() {
     const revision = w.revision;
     wb.setError('');
     setConfirmation({
-      title: 'Permanently delete task?',
-      confirmLabel: 'Delete permanently',
-      description: `Delete “${task.title}” permanently?\n\n${plan.taskIds.length} task(s), including affected subtasks.\n${plan.activityIds.length} linked history record(s), including previous corrections.\n${titles}${plan.taskIds.length > 5 ? '\n…' : ''}${plan.includesRecurrence ? '\n\nThis removes the entire recurring series and its existing instances so they cannot be generated again.' : ''}${plan.sharedActivityCount ? `\n\n${plan.sharedActivityCount} history record(s) are also shared with other tasks or topics. Those records will be deleted in full.` : ''}\n\nNo recycle bin or deletion history is kept. Sources and managed files remain; their links to deleted records are removed. Existing backups and exports are unchanged. This cannot be undone.`,
+      title: tr('permanently_delete_task'),
+      confirmLabel: tr('delete_permanently'),
+      description: tr(
+        'delete_value0_permanently_value1_task_s_including_affected_subtasks_value2_linked_history_record_s_i',
+        {
+          value0: task.title,
+          value1: plan.taskIds.length,
+          value2: plan.activityIds.length,
+          value3: titles,
+          value4: plan.taskIds.length > 5 ? '\n…' : '',
+          value5: plan.includesRecurrence ? tr('remove_recurring_series') : '',
+          value6: plan.sharedActivityCount
+            ? tr('shared_history_delete', { count: plan.sharedActivityCount })
+            : '',
+        },
+      ),
       action: async () => {
         if (
           await wb.update(
             (current) => {
               if (current.revision !== revision)
-                throw new Error('The workspace changed. Cancel and review the deletion again.');
+                throw new Error(tr('the_workspace_changed_cancel_and_review_the_deletion_again'));
               return deleteTask(current, id);
             },
             {},
@@ -253,10 +318,14 @@ function useWorcogController() {
     const revision = w.revision;
     const label =
       target.kind === 'activity'
-        ? 'activity record'
+        ? tr('activity_lower')
         : target.kind === 'attachment'
-          ? 'file'
-          : target.kind;
+          ? tr('file_lower')
+          : target.kind === 'topic'
+            ? tr('topic_lower')
+            : target.kind === 'source'
+              ? tr('source_lower')
+              : 'workspace';
     const item =
       target.kind === 'workspace'
         ? undefined
@@ -280,21 +349,39 @@ function useWorcogController() {
     setConfirmation({
       title:
         target.kind === 'workspace'
-          ? 'Permanently delete all workspace data?'
-          : `Permanently delete ${label}?`,
-      confirmLabel: 'Delete permanently',
+          ? tr('permanently_delete_all_workspace_data')
+          : tr('permanently_delete_value0', { value0: label }),
+      confirmLabel: tr('delete_permanently'),
       includeBackups: target.kind === 'workspace',
-      description: `${name ? `Delete “${name}”?\n\n` : ''}This removes: ${preview.description}.
-
-${target.kind === 'workspace' ? 'All records, previous corrections and managed files, including orphaned copies, will be removed.' : target.kind === 'topic' ? 'Tasks and their linked activity records are deleted in full, including records shared elsewhere. Other shared activity records, sources and files are preserved with their remaining relationships.' : target.kind === 'source' ? 'References to this source are removed from tasks and activity records; their text remains. Files exclusive to this source are deleted.' : target.kind === 'activity' ? 'The activity record and all previous corrections are removed, along with files exclusive to it.' : 'The managed copy is physically deleted from disk and removed from all workspace views. The original file outside Worcog is untouched.'}
-
-No recycle bin or deletion history is kept. Existing exports outside Worcog are unchanged. This cannot be undone.`,
+      description: tr(
+        'value0_this_removes_value1_value2_no_recycle_bin_or_deletion_history_is_kept_existing_exports_outsid',
+        {
+          value0: name ? tr('delete_named_item', { name }) : '',
+          value1: tr('deletion_counts', {
+            topics: preview.counts.topics,
+            tasks: preview.counts.tasks,
+            activities: preview.counts.annotations,
+            sources: preview.counts.sources,
+            files: preview.counts.files,
+          }),
+          value2:
+            target.kind === 'workspace'
+              ? tr('delete_workspace_details')
+              : target.kind === 'topic'
+                ? tr('delete_topic_details')
+                : target.kind === 'source'
+                  ? tr('delete_source_details')
+                  : target.kind === 'activity'
+                    ? tr('delete_activity_details')
+                    : tr('delete_file_details'),
+        },
+      ),
       action: async (includeBackups) => {
         if (
           await wb.update(
             (current) => {
               if (current.revision !== revision)
-                throw new Error('The workspace changed. Cancel and review the deletion again.');
+                throw new Error(tr('the_workspace_changed_cancel_and_review_the_deletion_again'));
               return deleteEntity(current, target);
             },
             target.kind === 'workspace'
@@ -318,11 +405,14 @@ No recycle bin or deletion history is kept. Existing exports outside Worcog are 
   }
   async function inspectImport() {
     const inspection = await wb.run(() => native.inspect());
-    if (inspection === null) notifications.info('Import canceled.');
+    if (inspection === null) notifications.info(tr('import_canceled'));
     if (inspection)
       setConfirmation({
-        title: 'Replace workspace from archive?',
-        description: `${inspection.summary}\n\nThis replaces the current workspace. A complete safety backup is created first. Import does not merge records.`,
+        title: tr('replace_workspace_from_archive'),
+        description: tr(
+          'value0_this_replaces_the_current_workspace_a_complete_safety_backup_is_created_first_import_does_not',
+          { value0: inspection.summary },
+        ),
         action: async () => {
           await wb.run(async () => {
             const { repository } = await import('../infrastructure/native');
@@ -335,7 +425,7 @@ No recycle bin or deletion history is kept. Existing exports outside Worcog are 
   }
   const heading = navigation.find((item) => item.id === page)?.label ?? '';
   const addForPage = () => setEditor({ kind: 'topic' });
-  const newItemName = 'topic';
+  const newItemName = tr('topic_lower');
   function editTask(id: string) {
     setSourceId('');
     setFileId('');

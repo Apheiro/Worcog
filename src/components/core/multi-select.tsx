@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import * as Popover from '@radix-ui/react-popover';
 import { Command } from 'cmdk';
@@ -25,6 +26,7 @@ export function MultiSelect({
   disabled?: boolean;
   multiple?: boolean;
 }) {
+  const tr = useTranslations('ui');
   const id = useId();
   const search = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -39,7 +41,7 @@ export function MultiSelect({
   const canCreate = !!name && !exact;
   const summary = value.length
     ? value.slice(0, 2).join(', ') + (value.length > 2 ? ` +${value.length - 2}` : '')
-    : `Select ${label.toLowerCase()}…`;
+    : tr('select_label', { label: label.toLowerCase() });
 
   function toggle(option: string) {
     onValueChange(
@@ -124,20 +126,22 @@ export function MultiSelect({
                   value={query}
                   onValueChange={setQuery}
                   maxLength={500}
-                  placeholder="Search or create…"
-                  aria-label={`Search ${label.toLowerCase()}`}
+                  placeholder={tr('search_or_create')}
+                  aria-label={tr('search_value0', { value0: label.toLowerCase() })}
                   className="min-w-0 w-full border-0 bg-transparent py-3 text-xs [color:var(--ink)] [&:focus]:[outline:none] [&:focus-visible]:[outline:none]"
                 />
               </div>
               <Command.List
                 className="max-h-60 overflow-y-auto overscroll-contain p-1"
-                aria-label={`${label} results`}
+                aria-label={tr('value0_results', { value0: label })}
               >
                 {!filtered.length && (
                   <p className="px-2 py-3 text-xs [color:var(--muted)]">
                     {term
-                      ? `No matching ${label.toLowerCase()}.`
-                      : `No ${label.toLowerCase()} yet. Type a name to create one.`}
+                      ? tr('no_matching_value0', { value0: label.toLowerCase() })
+                      : tr('no_value0_yet_type_a_name_to_create_one', {
+                          value0: label.toLowerCase(),
+                        })}
                   </p>
                 )}
                 {matches.map((option) => (
@@ -161,8 +165,8 @@ export function MultiSelect({
                         type="button"
                         tone="ghost"
                         size="icon"
-                        aria-label={`Delete ${option}`}
-                        title={`Delete ${option}`}
+                        aria-label={tr('delete_value0', { value0: option })}
+                        title={tr('delete_value0', { value0: option })}
                         disabled={disabled}
                         className="[color:var(--muted)] hover:[color:var(--danger-ink)]"
                         onKeyDown={(event) => {
@@ -188,17 +192,20 @@ export function MultiSelect({
                       className="w-full justify-start gap-2 rounded px-2 py-2 text-xs text-left whitespace-normal [overflow-wrap:anywhere] [&[data-selected=true]]:[background:var(--selected)]"
                     >
                       <IconPlus size={15} className="shrink-0" aria-hidden="true" />
-                      <span>Create “{name}”</span>
+                      <span>{tr('create_named', { name })}</span>
                     </Button>
                   </Command.Item>
                 )}
               </Command.List>
               <div className="px-3 py-2 text-xs [color:var(--muted)] [border-top:1px_solid_var(--border)]">
-                <span role="status">{value.length} selected</span>
+                <span role="status">
+                  {value.length} {tr('selected')}{' '}
+                </span>
                 {filtered.length > matches.length && (
                   <span>
                     {' '}
-                    · Showing {matches.length} of {filtered.length}. Refine your search.
+                    {tr('showing')} {matches.length} {tr('of')} {filtered.length}{' '}
+                    {tr('refine_your_search')}{' '}
                   </span>
                 )}
               </div>

@@ -1,4 +1,5 @@
 'use client';
+import { useLabels } from '../../i18n/use-labels';
 
 import * as Dropdown from '@radix-ui/react-dropdown-menu';
 import * as Context from '@radix-ui/react-context-menu';
@@ -33,6 +34,7 @@ export function ActionMenu({
   disabled?: boolean;
   items: ActionMenuItem[];
 }) {
+  const localize = useLabels();
   const [open, setOpen] = useState(false);
   const pointerOpened = useRef(false);
   const opensDialog = useRef(false);
@@ -94,7 +96,7 @@ export function ActionMenu({
         >
           {items.map((item) => (
             <Dropdown.Item
-              key={item.label}
+              key={localize(item.label)}
               disabled={item.disabled}
               onSelect={() => {
                 cancelClose();
@@ -104,7 +106,7 @@ export function ActionMenu({
               className={menuItem({ destructive: item.destructive })}
             >
               {item.icon}
-              {item.label}
+              {localize(item.label)}
             </Dropdown.Item>
           ))}
         </Dropdown.Content>
@@ -113,20 +115,31 @@ export function ActionMenu({
   );
 }
 
-export function ContextMenu({ label, items, disabled, children, shortcut = 'Shift+F10' }: {
+export function ContextMenu({
+  label,
+  items,
+  disabled,
+  children,
+  shortcut = 'Shift+F10',
+}: {
   label: string;
   items: ActionMenuItem[];
   disabled?: boolean;
   children: ReactElement;
   shortcut?: string;
 }) {
+  const localize = useLabels();
   const [open, setOpen] = useState(false);
   const opensDialog = useRef(false);
   return (
-    <Context.Root modal={false} open={open && !disabled} onOpenChange={(next) => {
-      if (next) opensDialog.current = false;
-      setOpen(next);
-    }}>
+    <Context.Root
+      modal={false}
+      open={open && !disabled}
+      onOpenChange={(next) => {
+        if (next) opensDialog.current = false;
+        setOpen(next);
+      }}
+    >
       <Context.Trigger
         asChild
         disabled={disabled}
@@ -134,17 +147,35 @@ export function ContextMenu({ label, items, disabled, children, shortcut = 'Shif
         aria-haspopup={disabled ? undefined : 'menu'}
         className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus)]"
         onKeyDown={(event) => {
-          if (disabled || event.defaultPrevented || event.repeat || event.target instanceof Element && event.target.closest('[data-shortcut-recorder]')) return;
+          if (
+            disabled ||
+            event.defaultPrevented ||
+            event.repeat ||
+            (event.target instanceof Element && event.target.closest('[data-shortcut-recorder]'))
+          )
+            return;
           let matched = event.key === 'ContextMenu';
-          if (shortcut) getHotkeyHandler([[shortcut, () => { matched = true; }, { preventDefault: false, usePhysicalKeys: true }]])(event);
+          if (shortcut)
+            getHotkeyHandler([
+              [
+                shortcut,
+                () => {
+                  matched = true;
+                },
+                { preventDefault: false, usePhysicalKeys: true },
+              ],
+            ])(event);
           if (!matched) return;
           event.preventDefault();
           const bounds = event.currentTarget.getBoundingClientRect();
-          event.currentTarget.dispatchEvent(new MouseEvent('contextmenu', {
-            bubbles: true, cancelable: true,
-            clientX: bounds.left + Math.min(24, bounds.width),
-            clientY: bounds.top + Math.min(24, bounds.height),
-          }));
+          event.currentTarget.dispatchEvent(
+            new MouseEvent('contextmenu', {
+              bubbles: true,
+              cancelable: true,
+              clientX: bounds.left + Math.min(24, bounds.width),
+              clientY: bounds.top + Math.min(24, bounds.height),
+            }),
+          );
         }}
       >
         {children}
@@ -153,12 +184,14 @@ export function ContextMenu({ label, items, disabled, children, shortcut = 'Shif
         <Context.Content
           aria-label={label}
           collisionPadding={8}
-          onCloseAutoFocus={(event) => { if (opensDialog.current) event.preventDefault(); }}
+          onCloseAutoFocus={(event) => {
+            if (opensDialog.current) event.preventDefault();
+          }}
           className={menuContent()}
         >
           {items.map((item) => (
             <Context.Item
-              key={item.label}
+              key={localize(item.label)}
               disabled={item.disabled}
               onSelect={() => {
                 opensDialog.current = !!item.opensDialog;
@@ -167,7 +200,7 @@ export function ContextMenu({ label, items, disabled, children, shortcut = 'Shif
               className={menuItem({ destructive: item.destructive })}
             >
               {item.icon}
-              {item.label}
+              {localize(item.label)}
             </Context.Item>
           ))}
         </Context.Content>

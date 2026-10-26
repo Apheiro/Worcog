@@ -1,4 +1,6 @@
 'use client';
+import { useLabels } from '../i18n/use-labels';
+import { useTranslations } from 'next-intl';
 import { IconTrash } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useId, useState, type FormEvent } from 'react';
@@ -17,7 +19,17 @@ import { ResponsiblePicker, useResponsibleDraft } from './responsible-picker';
 import { responsibleDirectory } from '../domain/responsibles';
 import { toTimestamp } from '../domain/dates';
 import type { Priority, Status, Workspace } from '../domain/model';
-import { Button, Confirm, DateInput, Field, Input, Modal, MultiSelect, Select, Textarea } from './core';
+import {
+  Button,
+  Confirm,
+  DateInput,
+  Field,
+  Input,
+  Modal,
+  MultiSelect,
+  Select,
+  Textarea,
+} from './core';
 import { selectOptions, priorities, statuses } from '../domain/options';
 export type Editor = {
   kind: 'topic' | 'task' | 'source';
@@ -49,6 +61,8 @@ function RecordEditor({
   onDelete,
   onSave,
 }: EntityEditorProps) {
+  const localize = useLabels();
+  const tr = useTranslations('ui');
   const formId = useId();
   const topic = w.topics.find((x) => x.id === editor.id);
   const source = w.sources.find((x) => x.id === editor.id);
@@ -72,11 +86,15 @@ function RecordEditor({
   const categoryUsage = w.topics.filter((topic) => topic.category === categoryToDelete).length;
   const categoryColor =
     categoryColors[category.trim()] ??
-    (removedCategories.includes(category.trim()) ? undefined : w.categoryColors?.[category.trim()]) ??
+    (removedCategories.includes(category.trim())
+      ? undefined
+      : w.categoryColors?.[category.trim()]) ??
     '#64748b';
   function removeCategory(name: string) {
     setRemovedCategories((names) => [...new Set([...names, name])]);
-    setCategoryColors((colors) => Object.fromEntries(Object.entries(colors).filter(([key]) => key !== name)));
+    setCategoryColors((colors) =>
+      Object.fromEntries(Object.entries(colors).filter(([key]) => key !== name)),
+    );
     if (category === name) setCategory('');
     setCategoryToDelete(null);
   }
@@ -85,7 +103,7 @@ function RecordEditor({
   const [targetDate, setTargetDate] = useState(topic?.targetDate ?? '');
   const elevatedPriority = priority === 'high' || priority === 'urgent';
   const targetDateField = (
-    <Field label={elevatedPriority ? 'Deadline' : 'Target date'}>
+    <Field label={elevatedPriority ? tr('deadline') : tr('target_date')}>
       <DateInput name="targetDate" value={targetDate} onValueChange={setTargetDate} />
     </Field>
   );
@@ -126,8 +144,9 @@ function RecordEditor({
       }
       if (editor.kind === 'source') {
         current = actions.deleteSourcePlatforms(current, removedPlatforms);
-        if (!isSourceType(sourceForm.kind)) throw new Error('Choose a source type.');
-        if (sourceForm.kind === 'url' && !/^https?:\/\//i.test(sourceForm.url.trim())) throw new Error('Enter an HTTP or HTTPS URL.');
+        if (!isSourceType(sourceForm.kind)) throw new Error(tr('choose_a_source_type'));
+        if (sourceForm.kind === 'url' && !/^https?:\/\//i.test(sourceForm.url.trim()))
+          throw new Error(tr('enter_an_http_or_https_url'));
         const input = {
           title: get('title'),
           ...sourceForm,
@@ -148,29 +167,50 @@ function RecordEditor({
               s.platform.toLowerCase() === input.platform.toLowerCase()) ||
               (input.url && s.url === input.url)),
         );
-        if (duplicate) throw new Error('A source with this identifier or link already exists.');
-        if (!editor.id) throw new Error('Create sources from a task.');
+        if (duplicate) throw new Error(tr('a_source_with_this_identifier_or_link_already_exists'));
+        if (!editor.id) throw new Error(tr('create_sources_from_a_task'));
         return actions.updateSource(current, editor.id, input);
       }
-      throw new Error('Unsupported editor.');
+      throw new Error(tr('unsupported_editor'));
     };
     if (await onSave(transform)) onClose();
   }
   return (
     <Modal
-      title={`${editor.id ? 'Edit' : 'New'} ${editor.kind}`}
+      title={
+        editor.kind === 'topic'
+          ? editor.id
+            ? tr('edit_topic')
+            : tr('new_topic')
+          : tr('edit_source')
+      }
       onClose={onClose}
       wide
       footer={
         <>
           {item && editor.id && (
-            <Button type="button" tone="danger" className="mr-auto" disabled={busy} onClick={() => onDelete(editor.kind, item.id)}>
-              <IconTrash size={16} /> Delete {editor.kind}
+            <Button
+              type="button"
+              tone="danger"
+              className="mr-auto"
+              disabled={busy}
+              onClick={() => onDelete(editor.kind, item.id)}
+            >
+              <IconTrash size={16} /> {tr('delete')}{' '}
+              {editor.kind === 'topic' ? tr('topic_lower') : tr('source_lower')}
             </Button>
           )}
-          <Button type="button" onClick={onClose} disabled={busy}>Cancel</Button>
-          <Button tone="primary" type="submit" form={formId} disabled={busy || (editor.kind === 'source' && !sourceForm.kind)}>
-            {busy ? 'Saving…' : 'Save'}
+          <Button type="button" onClick={onClose} disabled={busy}>
+            {' '}
+            {tr('cancel')}{' '}
+          </Button>
+          <Button
+            tone="primary"
+            type="submit"
+            form={formId}
+            disabled={busy || (editor.kind === 'source' && !sourceForm.kind)}
+          >
+            {busy ? tr('saving') : tr('save')}
           </Button>
         </>
       }
@@ -183,25 +223,22 @@ function RecordEditor({
         )}
         {
           <>
-            <Field label="Title">
-              <Input
-                name="title"
-                required
-                maxLength={500}
-                autoFocus
-                defaultValue={item?.title}
-              />
+            <Field label={tr('title')}>
+              <Input name="title" required maxLength={500} autoFocus defaultValue={item?.title} />
             </Field>
             {editor.kind === 'topic' && (
               <>
-                <Field label="Status">
+                <Field label={tr('status')}>
                   <Select
                     name="status"
                     defaultValue={
                       statuses.find((status) => status === topic?.status) ??
                       (topic?.status === 'canceled' ? 'completed' : 'in_progress')
                     }
-                    options={selectOptions(statuses)}
+                    options={selectOptions(statuses).map((option) => ({
+                      ...option,
+                      label: localize(option.label),
+                    }))}
                   />
                 </Field>
 
@@ -215,7 +252,7 @@ function RecordEditor({
                   disabled={busy}
                 />
                 <ResponsiblePicker
-                  label="Requester"
+                  label={tr('requester')}
                   multiple={false}
                   workspace={w}
                   names={assignees.names}
@@ -233,7 +270,7 @@ function RecordEditor({
                   <input type="hidden" name="category" value={category} />
                   <div className="min-w-0 flex-1 [&_>_div]:mb-0">
                     <MultiSelect
-                      label="Category"
+                      label={tr('category')}
                       options={[
                         ...new Set([
                           ...[
@@ -248,7 +285,8 @@ function RecordEditor({
                       onValueChange={(values) => setCategory(values[0] ?? '')}
                       onCreate={setCategory}
                       onDelete={(name) => {
-                        if (w.topics.some((topic) => topic.category === name)) setCategoryToDelete(name);
+                        if (w.topics.some((topic) => topic.category === name))
+                          setCategoryToDelete(name);
                         else removeCategory(name);
                       }}
                       multiple={false}
@@ -258,8 +296,8 @@ function RecordEditor({
                   <Input
                     type="color"
                     value={categoryColor}
-                    aria-label="Category color"
-                    title="Category color — shared by all topics in this category"
+                    aria-label={tr('category_color')}
+                    title={tr('category_color_shared_by_all_topics_in_this_category')}
                     disabled={busy || !category}
                     className="h-9 w-9 shrink-0 cursor-pointer overflow-hidden [&[type=color]]:p-0 [&[type=color]]:border-0 [&::-webkit-color-swatch-wrapper]:[padding:0px] [&::-webkit-color-swatch]:[border:0px] [&::-moz-color-swatch]:[border-style:none]"
                     onChange={(event) =>
@@ -271,16 +309,24 @@ function RecordEditor({
                   />
                 </div>
                 <details className="mb-4 text-xs rounded-lg [border:1px_solid_var(--border)] p-4">
-                  <summary className="cursor-pointer font-medium">Advanced fields</summary>
+                  <summary className="cursor-pointer font-medium">
+                    {' '}
+                    {tr('advanced_fields')}{' '}
+                  </summary>
                   <div className="pt-4">
-                    <Field label="Start date">
-                      <DateInput name="startDate" defaultValue={topic?.startDate ?? dayjs(topic?.createdAt).format('YYYY-MM-DD')} />
+                    <Field label={tr('start_date')}>
+                      <DateInput
+                        name="startDate"
+                        defaultValue={
+                          topic?.startDate ?? dayjs(topic?.createdAt).format('YYYY-MM-DD')
+                        }
+                      />
                     </Field>
                     {!elevatedPriority && targetDateField}
-                    <Field label="Summary">
+                    <Field label={tr('summary')}>
                       <Textarea name="summary" rows={4} defaultValue={topic?.summary} />
                     </Field>
-                    <Field label="Priority">
+                    <Field label={tr('priority')}>
                       <Select
                         name="priority"
                         value={priority}
@@ -288,7 +334,10 @@ function RecordEditor({
                           const selected = priorities.find((option) => option === value);
                           if (selected) setPriority(selected);
                         }}
-                        options={selectOptions(priorities)}
+                        options={selectOptions(priorities).map((option) => ({
+                          ...option,
+                          label: localize(option.label),
+                        }))}
                       />
                     </Field>
                   </div>
@@ -301,7 +350,9 @@ function RecordEditor({
                 value={sourceForm}
                 onChange={(patch) => setSourceForm((current) => ({ ...current, ...patch }))}
                 sources={clearSourcePlatforms(w.sources, removedPlatforms)}
-                onDeletePlatform={(platform) => setRemovedPlatforms((items) => [...items, platform])}
+                onDeletePlatform={(platform) =>
+                  setRemovedPlatforms((items) => [...items, platform])
+                }
                 disabled={busy}
               />
             )}
@@ -310,9 +361,12 @@ function RecordEditor({
       </form>
       {categoryToDelete !== null && (
         <Confirm
-          title={`Delete category “${categoryToDelete}”?`}
-          description={`This will remove the category from ${categoryUsage} topic(s), including archived topics, and delete its saved color. Topics and their contents will be preserved. Changes apply when you save this form.`}
-          confirmLabel="Delete category"
+          title={tr('delete_category_value0', { value0: categoryToDelete })}
+          description={tr(
+            'this_will_remove_the_category_from_value0_topic_s_including_archived_topics_and_delete_its_saved_col',
+            { value0: categoryUsage },
+          )}
+          confirmLabel={tr('delete_category')}
           busy={busy}
           onCancel={() => setCategoryToDelete(null)}
           onConfirm={() => removeCategory(categoryToDelete)}

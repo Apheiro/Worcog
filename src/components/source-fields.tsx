@@ -1,4 +1,6 @@
 'use client';
+import { useLabels } from '../i18n/use-labels';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import type { Source } from '../domain/model';
 import {
@@ -12,7 +14,7 @@ import {
   type SourceFormValues,
   type SourcePlatform,
 } from '../domain/sources';
-import { selectOptions, sourceKinds } from '../domain/options';
+import { human, selectOptions, sourceKinds } from '../domain/options';
 import { Confirm, DateInput, Field, Input, MultiSelect, Select, Textarea } from './core';
 
 /** Shared fields for task-owned source creation and source metadata editing. */
@@ -29,14 +31,26 @@ export function SourceFields({
   onDeletePlatform: (platform: SourcePlatform) => void;
   disabled?: boolean;
 }) {
+  const localize = useLabels();
+  const tr = useTranslations('ui');
   const [createdPlatforms, setCreatedPlatforms] = useState<SourcePlatform[]>([]);
   const [pending, setPending] = useState<SourcePlatform | null>(null);
-  const usage = pending ? sources.filter((source) => matchesSourcePlatform(source, pending)).length : 0;
+  const usage = pending
+    ? sources.filter((source) => matchesSourcePlatform(source, pending)).length
+    : 0;
   function remove(platform: SourcePlatform) {
     onDeletePlatform(platform);
-    setCreatedPlatforms((items) => items.filter((item) => item.kind !== platform.kind ||
-      item.name.toLocaleLowerCase() !== platform.name.toLocaleLowerCase()));
-    if (value.kind === platform.kind && value.platform.toLocaleLowerCase() === platform.name.toLocaleLowerCase())
+    setCreatedPlatforms((items) =>
+      items.filter(
+        (item) =>
+          item.kind !== platform.kind ||
+          item.name.toLocaleLowerCase() !== platform.name.toLocaleLowerCase(),
+      ),
+    );
+    if (
+      value.kind === platform.kind &&
+      value.platform.toLocaleLowerCase() === platform.name.toLocaleLowerCase()
+    )
       onChange({ platform: '' });
     setPending(null);
   }
@@ -45,7 +59,9 @@ export function SourceFields({
     ...sources
       .filter((source) => sourceType(source.kind) === value.kind)
       .map(initialSourcePlatform),
-    ...createdPlatforms.filter((platform) => platform.kind === value.kind).map((platform) => platform.name),
+    ...createdPlatforms
+      .filter((platform) => platform.kind === value.kind)
+      .map((platform) => platform.name),
     value.platform,
   ].filter(Boolean);
   const platforms = [
@@ -53,15 +69,18 @@ export function SourceFields({
   ].sort((a, b) => a.localeCompare(b));
   return (
     <fieldset disabled={disabled} className="min-w-0 m-0 p-0 border-0">
-      <Field label="Type">
+      <Field label={tr('type')}>
         <Select
           value={value.kind}
           onValueChange={(kind) => {
             if (isSourceType(kind)) onChange({ kind });
           }}
           options={[
-            { value: '', label: 'Choose a source type', disabled: true },
-            ...selectOptions(sourceKinds),
+            { value: '', label: tr('choose_a_source_type_2'), disabled: true },
+            ...selectOptions(sourceKinds).map((option) => ({
+              ...option,
+              label: localize(option.label),
+            })),
           ]}
           disabled={disabled}
         />
@@ -69,7 +88,7 @@ export function SourceFields({
       {fields && (
         <>
           <MultiSelect
-            label="System Platform"
+            label={tr('system_platform')}
             options={platforms}
             value={value.platform ? [value.platform] : []}
             onValueChange={(values) => onChange({ platform: values[0] ?? '' })}
@@ -80,14 +99,15 @@ export function SourceFields({
             onDelete={(name) => {
               if (!isSourceType(value.kind)) return;
               const platform = { kind: value.kind, name };
-              if (sources.some((source) => matchesSourcePlatform(source, platform))) setPending(platform);
+              if (sources.some((source) => matchesSourcePlatform(source, platform)))
+                setPending(platform);
               else remove(platform);
             }}
             multiple={false}
             disabled={disabled}
           />
           {value.kind === 'mail' && (
-            <Field label="Subject">
+            <Field label={tr('subject')}>
               <Input
                 value={value.subject}
                 maxLength={500}
@@ -96,7 +116,7 @@ export function SourceFields({
             </Field>
           )}
           {fields.identifier && (
-            <Field label={fields.identifier}>
+            <Field label={localize(fields.identifier)}>
               <Input
                 value={value.identifier}
                 maxLength={1000}
@@ -105,7 +125,14 @@ export function SourceFields({
             </Field>
           )}
           {fields.link && (
-            <Field label={fields.link} hint={value.kind === 'url' ? 'External HTTP or HTTPS link.' : 'Optional HTTP, HTTPS or Teams link.'}>
+            <Field
+              label={localize(fields.link)}
+              hint={
+                value.kind === 'url'
+                  ? tr('external_http_or_https_link')
+                  : tr('optional_http_https_or_teams_link')
+              }
+            >
               <Input
                 required={value.kind === 'url'}
                 type={value.kind === 'url' ? 'url' : 'text'}
@@ -118,7 +145,7 @@ export function SourceFields({
             </Field>
           )}
           {fields.date && (
-            <Field label={fields.date}>
+            <Field label={localize(fields.date)}>
               <DateInput
                 withTime
                 value={value.eventAt}
@@ -127,10 +154,13 @@ export function SourceFields({
             </Field>
           )}
           {value.kind === 'messaging' && (
-            <Field label="Identify conversation by">
+            <Field label={tr('identify_conversation_by')}>
               <Select
                 value={value.messageContext}
-                options={messagingContexts}
+                options={messagingContexts.map((option) => ({
+                  ...option,
+                  label: localize(option.label),
+                }))}
                 disabled={disabled}
                 onValueChange={(mode) => {
                   const option = messagingContexts.find((option) => option.value === mode);
@@ -139,18 +169,22 @@ export function SourceFields({
               />
             </Field>
           )}
-          {fields.participants && <Field
-            label={sourceParticipantLabel({
-              kind: value.kind || 'mail',
-              messageContext: value.messageContext,
-            })}
-          >
-            <Input
-              value={value.participants}
-              onChange={(event) => onChange({ participants: event.target.value })}
-            />
-          </Field>}
-          <Field label="Context">
+          {fields.participants && (
+            <Field
+              label={localize(
+                sourceParticipantLabel({
+                  kind: value.kind || 'mail',
+                  messageContext: value.messageContext,
+                }),
+              )}
+            >
+              <Input
+                value={value.participants}
+                onChange={(event) => onChange({ participants: event.target.value })}
+              />
+            </Field>
+          )}
+          <Field label={tr('context')}>
             <Textarea
               value={value.notes}
               rows={3}
@@ -161,9 +195,12 @@ export function SourceFields({
       )}
       {pending && (
         <Confirm
-          title={`Delete platform “${pending.name}”?`}
-          description={`This will clear the platform from ${usage} source(s) of type ${pending.kind}. Sources and their task links will be preserved. Changes apply when you save the form.`}
-          confirmLabel="Delete platform"
+          title={tr('delete_platform_value0', { value0: pending.name })}
+          description={tr(
+            'this_will_clear_the_platform_from_value0_source_s_of_type_value1_sources_and_their_task_links_will_b',
+            { value0: usage, value1: localize(human(pending.kind)) },
+          )}
+          confirmLabel={tr('delete_platform')}
           busy={!!disabled}
           onCancel={() => setPending(null)}
           onConfirm={() => remove(pending)}

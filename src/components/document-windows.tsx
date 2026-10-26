@@ -1,9 +1,15 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { IconFileSpreadsheet, IconFileText, IconFileTypePpt, IconFileWord } from '@tabler/icons-react';
+import {
+  IconFileSpreadsheet,
+  IconFileText,
+  IconFileTypePpt,
+  IconFileWord,
+} from '@tabler/icons-react';
 import { Button, Card } from './core';
 import { FloatingWindow } from './core/floating-window';
 import { useWorcog } from '../providers/worcog';
@@ -14,14 +20,16 @@ import { desktopAvailable, errorMessage, native } from '../infrastructure/native
 import { notifications } from '../infrastructure/notifications';
 
 function DocumentLoadingScreen({ filename }: { filename: string }) {
+  const tr = useTranslations('ui');
   const format = documentFormat(filename);
-  const { Icon, color } = format === 'docx'
-    ? { Icon: IconFileWord, color: '#3575cf' }
-    : format === 'pptx'
-      ? { Icon: IconFileTypePpt, color: '#d76a43' }
-      : format === 'xlsx' || format === 'csv'
-        ? { Icon: IconFileSpreadsheet, color: '#217346' }
-        : { Icon: IconFileText, color: '#888888' };
+  const { Icon, color } =
+    format === 'docx'
+      ? { Icon: IconFileWord, color: '#3575cf' }
+      : format === 'pptx'
+        ? { Icon: IconFileTypePpt, color: '#d76a43' }
+        : format === 'xlsx' || format === 'csv'
+          ? { Icon: IconFileSpreadsheet, color: '#217346' }
+          : { Icon: IconFileText, color: '#888888' };
   return (
     <div
       role="status"
@@ -29,40 +37,73 @@ function DocumentLoadingScreen({ filename }: { filename: string }) {
       style={{ background: `color-mix(in srgb, ${color} 10%, var(--surface))` }}
     >
       <Icon size={64} stroke={1.25} style={{ color }} aria-hidden="true" />
-      <span className="sr-only">Opening {filename}…</span>
+      <span className="sr-only">
+        {' '}
+        {tr('opening')} {filename}…
+      </span>
     </div>
   );
 }
 
-function DocumentInstance({ instance, active, nativeShortcuts }: { instance: DocumentWindow; active: boolean; nativeShortcuts: boolean }) {
+function DocumentInstance({
+  instance,
+  active,
+  nativeShortcuts,
+}: {
+  instance: DocumentWindow;
+  active: boolean;
+  nativeShortcuts: boolean;
+}) {
+  const tr = useTranslations('ui');
   const { documents, wb, shortcuts } = useWorcog();
   const [url] = useState(documentEditorUrl);
   const [confirmClose, setConfirmClose] = useState(false);
   const [checking, setChecking] = useState(false);
-  const persist = useCallback(async (version: string, bytes: ArrayBuffer) => {
-    let failure: unknown;
-    const saved = await wb.run(async () => {
-      try {
-        const result = await native.saveDocument(instance.file.id, version, bytes);
-        wb.accept(result.workspace);
-        if (result.cleanupWarning) notifications.warning(result.cleanupWarning);
-        return true;
-      } catch (cause) { failure = cause; throw cause; }
-    }, 'Document saved locally.');
-    if (saved !== true) throw new Error(failure ? errorMessage(failure) : 'Worcog is busy. Keep the document open and retry saving.');
-  }, [instance.file.id, wb.run, wb.accept]);
+  const persist = useCallback(
+    async (version: string, bytes: ArrayBuffer) => {
+      let failure: unknown;
+      const saved = await wb.run(async () => {
+        try {
+          const result = await native.saveDocument(instance.file.id, version, bytes);
+          wb.accept(result.workspace);
+          if (result.cleanupWarning) notifications.warning(result.cleanupWarning);
+          return true;
+        } catch (cause) {
+          failure = cause;
+          throw cause;
+        }
+      }, 'Document saved locally.');
+      if (saved !== true)
+        throw new Error(
+          failure
+            ? errorMessage(failure)
+            : tr('worcog_is_busy_keep_the_document_open_and_retry_saving'),
+        );
+    },
+    [instance.file.id, wb.run, wb.accept],
+  );
   const editor = useDocumentEditor(instance.file, persist);
   const busy = editor.phase === 'saving' || checking;
   const navigate = useEffectEvent((direction: -1 | 1) => {
-    if (busy || confirmClose || documents.activeId !== instance.id || documents.windows.length < 2) return false;
+    if (busy || confirmClose || documents.activeId !== instance.id || documents.windows.length < 2)
+      return false;
     documents.navigate(direction);
     return true;
   });
   useEffect(() => {
     if (!active) return;
     function keydown(event: KeyboardEvent) {
-      if (nativeShortcuts || event.defaultPrevented || event.target instanceof Element && event.target.closest('[data-shortcut-recorder]')) return;
-      const direction = shortcuts.matches(event, 'previousDocument') ? -1 : shortcuts.matches(event, 'nextDocument') ? 1 : null;
+      if (
+        nativeShortcuts ||
+        event.defaultPrevented ||
+        (event.target instanceof Element && event.target.closest('[data-shortcut-recorder]'))
+      )
+        return;
+      const direction = shortcuts.matches(event, 'previousDocument')
+        ? -1
+        : shortcuts.matches(event, 'nextDocument')
+          ? 1
+          : null;
       if (direction && navigate(direction)) {
         event.preventDefault();
         event.stopPropagation();
@@ -74,10 +115,18 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
     if (desktopAvailable()) {
       void listen<number>('document-window-navigate', ({ payload }) => {
         if (!disposed && (payload === -1 || payload === 1)) navigate(payload);
-      }).then((unlisten) => { if (disposed) unlisten(); else stop = unlisten; })
+      })
+        .then((unlisten) => {
+          if (disposed) unlisten();
+          else stop = unlisten;
+        })
         .catch((cause) => notifications.error(errorMessage(cause)));
     }
-    return () => { disposed = true; stop?.(); window.removeEventListener('keydown', keydown, true); };
+    return () => {
+      disposed = true;
+      stop?.();
+      window.removeEventListener('keydown', keydown, true);
+    };
   }, [active, nativeShortcuts, shortcuts.active]);
   async function close() {
     if (busy) return;
@@ -89,7 +138,9 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
       notifications.error(errorMessage(cause));
       // If the remote editor cannot confirm its state, never discard silently.
       setConfirmClose(true);
-    } finally { setChecking(false); }
+    } finally {
+      setChecking(false);
+    }
   }
   return (
     <FloatingWindow
@@ -108,9 +159,9 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
             <iframe
               ref={editor.frame}
               src={url}
-              title={`Edit ${instance.file.originalName}`}
+              title={tr('edit_value0', { value0: instance.file.originalName })}
               onLoad={editor.loaded}
-              onError={() => notifications.error('The document editor could not be loaded.')}
+              onError={() => notifications.error(tr('the_document_editor_could_not_be_loaded'))}
               sandbox="allow-scripts allow-same-origin allow-downloads allow-modals"
               allow="clipboard-read; clipboard-write"
               referrerPolicy="no-referrer"
@@ -120,29 +171,67 @@ function DocumentInstance({ instance, active, nativeShortcuts }: { instance: Doc
             />
             {showLoading && <DocumentLoadingScreen filename={instance.file.originalName} />}
             {editor.error && (
-              <div role="alert" className="absolute left-3 right-3 top-3 flex flex-wrap items-center gap-3 rounded-md p-3 text-xs [background:var(--surface)] [border:1px_solid_var(--border)]">
+              <div
+                role="alert"
+                className="absolute left-3 right-3 top-3 flex flex-wrap items-center gap-3 rounded-md p-3 text-xs [background:var(--surface)] [border:1px_solid_var(--border)]"
+              >
                 <span className="min-w-0 flex-1">{editor.error}</span>
-                <Button size="sm" disabled={wb.busy} onClick={() => void wb.run(() => native.openFile(instance.file.id))}>
-                  Open with default app
+                <Button
+                  size="sm"
+                  disabled={wb.busy}
+                  onClick={() => void wb.run(() => native.openFile(instance.file.id))}
+                >
+                  {tr('open_with_default_app')}{' '}
                 </Button>
               </div>
             )}
             {confirmClose && (
               <div className="absolute inset-0 flex items-center justify-center p-4 [background:var(--overlay)]">
-                <Card className="w-full max-w-md p-5" role="alertdialog" aria-modal="true" aria-labelledby={`${instance.id}-close-title`} aria-describedby={`${instance.id}-close-description`}>
-                  <h3 id={`${instance.id}-close-title`} className="mb-2 text-sm">Save before closing?</h3>
-                  <p id={`${instance.id}-close-description`} className="mb-4 text-xs [color:var(--muted)]">
-                    {instance.file.originalName} may contain unsaved changes. Saving updates the local attachment.
+                <Card
+                  className="w-full max-w-md p-5"
+                  role="alertdialog"
+                  aria-modal="true"
+                  aria-labelledby={`${instance.id}-close-title`}
+                  aria-describedby={`${instance.id}-close-description`}
+                >
+                  <h3 id={`${instance.id}-close-title`} className="mb-2 text-sm">
+                    {' '}
+                    {tr('save_before_closing')}{' '}
+                  </h3>
+                  <p
+                    id={`${instance.id}-close-description`}
+                    className="mb-4 text-xs [color:var(--muted)]"
+                  >
+                    {instance.file.originalName}{' '}
+                    {tr('may_contain_unsaved_changes_saving_updates_the_local_attachment')}{' '}
                   </p>
                   <div className="flex flex-wrap justify-end gap-2">
-                    <Button autoFocus size="sm" disabled={busy} onClick={() => setConfirmClose(false)}>Cancel</Button>
-                    <Button size="sm" disabled={busy} onClick={() => documents.close(instance.id)}>Discard</Button>
-                    <Button size="sm" tone="primary" disabled={busy} onClick={() => {
-                      void editor.save().then((saved) => {
-                        if (saved) documents.close(instance.id);
-                        else setConfirmClose(false);
-                      });
-                    }}>{editor.phase === 'saving' ? 'Saving…' : 'Save & close'}</Button>
+                    <Button
+                      autoFocus
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => setConfirmClose(false)}
+                    >
+                      {' '}
+                      {tr('cancel')}{' '}
+                    </Button>
+                    <Button size="sm" disabled={busy} onClick={() => documents.close(instance.id)}>
+                      {' '}
+                      {tr('discard')}{' '}
+                    </Button>
+                    <Button
+                      size="sm"
+                      tone="primary"
+                      disabled={busy}
+                      onClick={() => {
+                        void editor.save().then((saved) => {
+                          if (saved) documents.close(instance.id);
+                          else setConfirmClose(false);
+                        });
+                      }}
+                    >
+                      {editor.phase === 'saving' ? tr('saving') : tr('save_close')}
+                    </Button>
                   </div>
                 </Card>
               </div>
@@ -166,17 +255,37 @@ export function DocumentWindows() {
       previous: shortcuts.active.previousDocument || null,
       next: shortcuts.active.nextDocument || null,
     })
-      .then((enabled) => { if (!disposed) setNativeShortcuts(enabled); })
-      .catch((cause) => { if (!disposed) { setNativeShortcuts(false); notifications.error(errorMessage(cause)); } });
-    return () => { disposed = true; };
+      .then((enabled) => {
+        if (!disposed) setNativeShortcuts(enabled);
+      })
+      .catch((cause) => {
+        if (!disposed) {
+          setNativeShortcuts(false);
+          notifications.error(errorMessage(cause));
+        }
+      });
+    return () => {
+      disposed = true;
+    };
   }, [canNavigate, shortcuts.active.previousDocument, shortcuts.active.nextDocument]);
-  useEffect(() => () => {
-    if (desktopAvailable()) void invoke('set_document_shortcuts', { enabled: false, previous: null, next: null }).catch(() => {});
-  }, []);
+  useEffect(
+    () => () => {
+      if (desktopAvailable())
+        void invoke('set_document_shortcuts', { enabled: false, previous: null, next: null }).catch(
+          () => {},
+        );
+    },
+    [],
+  );
   return (
     <AnimatePresence>
       {documents.windows.map((instance) => (
-        <DocumentInstance key={instance.id} instance={instance} active={documents.activeId === instance.id} nativeShortcuts={nativeShortcuts} />
+        <DocumentInstance
+          key={instance.id}
+          instance={instance}
+          active={documents.activeId === instance.id}
+          nativeShortcuts={nativeShortcuts}
+        />
       ))}
     </AnimatePresence>
   );

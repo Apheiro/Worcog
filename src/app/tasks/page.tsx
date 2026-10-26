@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { filterTasks } from '../../application/queries';
 import { filterCompletedRootTasks } from '../../application/task-order';
 import { updateTask } from '../../application/workspace';
@@ -9,6 +10,7 @@ import { TaskList } from '../../components/work-lists';
 import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
 export default function Page() {
+  const tr = useTranslations('ui');
   const {
     wb,
     w,
@@ -43,13 +45,13 @@ export default function Page() {
                   aria-pressed={taskView === view}
                   onClick={() => setTaskView(view)}
                 >
-                  {view[0].toUpperCase() + view.slice(1)}
+                  {tr(`task_view_${view}`)}
                 </Button>
               ))}
             </div>
             <TaskOrder />
             <span className="muted [color:var(--muted)] text-sm ml-auto">
-              {tasks.length} tasks · tree view
+              {tasks.length} {tr('tasks_tree_view')}{' '}
             </span>
           </div>
           <TaskList
@@ -62,11 +64,14 @@ export default function Page() {
             busy={wb.busy}
             onEdit={(id) => setEditor({ kind: 'task', id })}
             onStatus={(id, status, blockReason) =>
-              wb.update((value) =>
-                updateTask(value, id, {
-                  status,
-                  ...(blockReason !== undefined ? { blockReason } : {}),
-                }), {}, status === 'blocked' ? 'Saved locally.' : false,
+              wb.update(
+                (value) =>
+                  updateTask(value, id, {
+                    status,
+                    ...(blockReason !== undefined ? { blockReason } : {}),
+                  }),
+                {},
+                status === 'blocked' ? 'Saved locally.' : false,
               )
             }
             onAddSubtask={(task) =>

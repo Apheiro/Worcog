@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { IconCopy, IconMinus, IconSquare, IconX } from '@tabler/icons-react';
 import { cva } from 'cva';
@@ -16,23 +17,24 @@ const captionButton = cva({
 });
 
 export function WindowFrame({ children }: { children: ReactNode }) {
+  const tr = useTranslations('ui');
   const { desktop, maximized, minimize, toggleMaximize, close } = useWindowControls();
   const controls = [
-    { label: 'Minimize window', icon: IconMinus, action: minimize, close: false },
+    { label: tr('minimize_window'), icon: IconMinus, action: minimize, close: false },
     {
-      label: maximized ? 'Restore window' : 'Maximize window',
+      label: maximized ? tr('restore_window') : tr('maximize_window'),
       icon: maximized ? IconCopy : IconSquare,
       action: toggleMaximize,
       close: false,
     },
-    { label: 'Close window', icon: IconX, action: close, close: true },
+    { label: tr('close_window'), icon: IconX, action: close, close: true },
   ];
   return (
     <div className="flex h-dvh min-h-0 flex-col overflow-hidden [background:var(--canvas)]">
       {desktop && (
         <header
           data-window-titlebar
-          aria-label="Window title bar"
+          aria-label={tr('window_title_bar')}
           className="relative z-80 pointer-events-auto flex h-8 shrink-0 select-none items-center [background:var(--surface)] [color:var(--muted)] [border-bottom:1px_solid_var(--border)]"
         >
           <div
@@ -47,9 +49,9 @@ export function WindowFrame({ children }: { children: ReactNode }) {
               draggable={false}
               className="pointer-events-none shrink-0"
             />
-            <span className="pointer-events-none truncate text-[11px]">Worcog</span>
+            <span className="pointer-events-none truncate text-[11px]"> {tr('worcog')} </span>
           </div>
-          <div className="flex h-full shrink-0" role="group" aria-label="Window controls">
+          <div className="flex h-full shrink-0" role="group" aria-label={tr('window_controls')}>
             {controls.map((control) => (
               <Button
                 key={control.label}

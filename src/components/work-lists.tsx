@@ -1,8 +1,20 @@
 'use client';
-import { IconActivity, IconArchive, IconArrowUpRight, IconEdit, IconFile, IconLink, IconPaperclip, IconTrash } from '@tabler/icons-react';
+import { useLabels } from '../i18n/use-labels';
+import { useDates } from '../i18n/use-dates';
+import { useTranslations } from 'next-intl';
+import {
+  IconActivity,
+  IconArchive,
+  IconArrowUpRight,
+  IconEdit,
+  IconFile,
+  IconLink,
+  IconPaperclip,
+  IconTrash,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 import { topicTimeline } from '../application/queries';
-import { formatDate, formatTimestamp, today } from '../domain/dates';
+import { today } from '../domain/dates';
 import type { ActivityKind, Attachment, Source, Topic, Workspace } from '../domain/model';
 import { ActionMenu, Badge, Button, ContextMenu, Empty, Select, type ActionMenuItem } from './core';
 import { useWorcog } from '../providers/worcog';
@@ -17,8 +29,20 @@ export { TaskList } from './task-list';
 import { AttachmentStatus } from './attachment-status';
 import { SourceIcon } from './source-icon';
 import { EntityLinks, EntityLinkTarget } from './entity-links';
-export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
-  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations, shortcuts } = useWorcog();
+export function TopicTable({
+  topics,
+  open,
+  showCategory = true,
+}: {
+  topics: Topic[];
+  open: (id: string) => void;
+  showCategory?: boolean;
+}) {
+  const localize = useLabels();
+  const { formatDate } = useDates();
+  const tr = useTranslations('ui');
+  const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations, shortcuts } =
+    useWorcog();
   const actionable = page === 'topics' || page === 'archive';
   const showActions = actionable && !taskContextMenu;
   return topics.length ? (
@@ -35,33 +59,41 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
         </colgroup>
         <thead>
           <tr>
-            <th>Topic</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Assignees</th>
-            <th>Target</th>
-            <th>Updated</th>
-            {showActions && <th scope="col"><span className="sr-only">Actions</span></th>}
+            <th> {tr('topic_2')} </th>
+            <th> {tr('status')} </th>
+            <th> {tr('priority')} </th>
+            <th> {tr('assignees')} </th>
+            <th> {tr('target')} </th>
+            <th> {tr('updated_2')} </th>
+            {showActions && (
+              <th scope="col">
+                <span className="sr-only"> {tr('actions')} </span>
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
           {topics.map((topic) => {
             const actions: ActionMenuItem[] = [
-              { label: 'Link…', icon: <IconLink size={15} />, onSelect: () => relations.start({ kind: 'topic', id: topic.id }) },
               {
-                label: 'Edit topic',
+                label: tr('link'),
+                icon: <IconLink size={15} />,
+                onSelect: () => relations.start({ kind: 'topic', id: topic.id }),
+              },
+              {
+                label: tr('edit_topic'),
                 icon: <IconEdit size={15} />,
                 opensDialog: true,
                 onSelect: () => setEditor({ kind: 'topic', id: topic.id }),
               },
               {
-                label: topic.archived ? 'Unarchive' : 'Archive',
+                label: topic.archived ? tr('unarchive') : tr('archive'),
                 icon: <IconArchive size={15} />,
                 opensDialog: true,
                 onSelect: () => askArchive(topic.id),
               },
               {
-                label: 'Delete topic',
+                label: tr('delete_topic'),
                 icon: <IconTrash size={15} />,
                 destructive: true,
                 opensDialog: true,
@@ -71,7 +103,7 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
             return (
               <ContextMenu
                 key={topic.id}
-                label={`Actions for ${topic.title}`}
+                label={tr('actions_for_value0', { value0: topic.title })}
                 shortcut={shortcuts.active.contextMenu}
                 disabled={!taskContextMenu || !actionable || wb.busy || !!relations.source}
                 items={actions}
@@ -84,7 +116,16 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
                         {topic.title}
                       </Button>
                       {relations.source && (
-                        <Button data-link-navigate tone="ghost" size="auto" aria-label={`Open ${topic.title} to choose a task`} title="Open topic to choose a task" onClick={() => open(topic.id)} className="ml-2 h-5 w-5 p-0" disabled={wb.busy}>
+                        <Button
+                          data-link-navigate
+                          tone="ghost"
+                          size="auto"
+                          aria-label={tr('open_value0_to_choose_a_task', { value0: topic.title })}
+                          title={tr('open_topic_to_choose_a_task')}
+                          onClick={() => open(topic.id)}
+                          className="ml-2 h-5 w-5 p-0"
+                          disabled={wb.busy}
+                        >
                           <IconArrowUpRight size={14} aria-hidden="true" />
                         </Button>
                       )}
@@ -97,15 +138,15 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
                     </td>
                     <td>
                       <Badge tone={topic.status === 'blocked' ? 'warning' : 'neutral'}>
-                        {human(topic.status)}
+                        {localize(human(topic.status))}
                       </Badge>
                     </td>
                     <td>
                       <Badge tone={topic.priority === 'urgent' ? 'danger' : 'neutral'}>
-                        {human(topic.priority)}
+                        {localize(human(topic.priority))}
                       </Badge>
                     </td>
-                    <td>{assignedNames(topic).join(', ') || 'Unassigned'}</td>
+                    <td>{assignedNames(topic).join(', ') || tr('unassigned')}</td>
                     <td
                       className={
                         topic.targetDate &&
@@ -123,7 +164,11 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
                     <td className="muted [color:var(--muted)]">{formatDate(topic.updatedAt)}</td>
                     {showActions && (
                       <td className="topic-actions [&.topic-actions]:p-2">
-                        <ActionMenu label={`Actions for ${topic.title}`} disabled={wb.busy || !!relations.source} items={actions} />
+                        <ActionMenu
+                          label={tr('actions_for_value0', { value0: topic.title })}
+                          disabled={wb.busy || !!relations.source}
+                          items={actions}
+                        />
                       </td>
                     )}
                   </tr>
@@ -135,7 +180,7 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
       </table>
     </div>
   ) : (
-    <Empty title="No matching topics">Create a topic or adjust the filters.</Empty>
+    <Empty title={tr('no_matching_topics')}> {tr('create_a_topic_or_adjust_the_filters')} </Empty>
   );
 }
 export function SourceList({
@@ -147,15 +192,17 @@ export function SourceList({
   onDelete: (id: string) => void;
   onOpen: (id: string) => void;
 }) {
+  const localize = useLabels();
+  const tr = useTranslations('ui');
   return (
     <ResourceList
-      emptyTitle="No references yet"
-      emptyDescription="Create a source from a task to see it here."
+      emptyTitle={tr('no_references_yet')}
+      emptyDescription={tr('create_a_source_from_a_task_to_see_it_here')}
       items={sources.map((source) => ({
         id: source.id,
         title: source.title,
         icon: <SourceIcon kind={source.kind} size={18} />,
-        metadata: `${sourceKindLabel(source.kind)} · ${source.platform || 'Manual reference'}${source.identifier ? ` · ${source.identifier}` : ''}`,
+        metadata: `${localize(sourceKindLabel(source.kind))} · ${source.platform || 'Manual reference'}${source.identifier ? ` · ${source.identifier}` : ''}`,
         description: source.notes,
         date: source.eventAt,
         tasks: <ResourceTasks sourceId={source.id} />,
@@ -177,6 +224,9 @@ export function Timeline({
   onDelete: (kind: 'source', id: string) => void;
   onSource: (id: string) => void;
 }) {
+  const localize = useLabels();
+  const { formatTimestamp } = useDates();
+  const tr = useTranslations('ui');
   const [kind, setKind] = useState<ActivityKind | ''>('');
   const [sourceId, setSourceId] = useState('');
   const entries = topicTimeline(w, topicId, { kind, sourceId });
@@ -187,31 +237,37 @@ export function Timeline({
           className="sr-only absolute [width:1px] [height:1px] p-0 overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0"
           htmlFor="timeline-kind"
         >
-          Activity type
+          {tr('activity_type')}{' '}
         </label>
         <Select
           id="timeline-kind"
           value={kind}
           onValueChange={(e) => setKind(e as ActivityKind | '')}
-          options={[{ value: '', label: 'All event types' }, ...selectOptions(activityKinds)]}
+          options={[
+            { value: '', label: tr('all_event_types') },
+            ...selectOptions(activityKinds).map((option) => ({
+              ...option,
+              label: localize(option.label),
+            })),
+          ]}
         />
         <label
           className="sr-only absolute [width:1px] [height:1px] p-0 overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0"
           htmlFor="timeline-source"
         >
-          Source
+          {tr('source')}{' '}
         </label>
         <Select
           id="timeline-source"
           value={sourceId}
           onValueChange={(e) => setSourceId(e)}
           options={[
-            { value: '', label: 'All sources' },
+            { value: '', label: tr('all_sources') },
             ...w.sources.map((s) => ({ value: s.id, label: s.title })),
           ]}
         />
         <span className="muted [color:var(--muted)] text-sm ml-auto">
-          Newest first · event date
+          {tr('newest_first_event_date')}{' '}
         </span>
       </div>
       {entries.length ? (
@@ -223,20 +279,38 @@ export function Timeline({
             return (
               <li key={`${entry.type}-${entry.id}`}>
                 <div className="timeline-dot [width:33px] [height:33px] grid [place-items:center] [border:1px_solid_var(--border)] [background:var(--surface-soft)] [border-radius:50%] [color:var(--muted)] shrink-0 [z-index:1]">
-                  {entry.type === 'source' ? <SourceIcon kind={w.sources.find((source) => source.id === entry.id)?.kind} size={16} /> : <IconActivity size={16} />}
+                  {entry.type === 'source' ? (
+                    <SourceIcon
+                      kind={w.sources.find((source) => source.id === entry.id)?.kind}
+                      size={16}
+                    />
+                  ) : (
+                    <IconActivity size={16} />
+                  )}
                 </div>
                 <div className="timeline-body [border:1px_solid_var(--border)] [background:var(--surface)] [border-radius:5px] flex-1 [padding:15px_18px] min-w-0 [&_time]:[font-size:12px] [&_time]:[font-weight:550] [&_time]:[color:var(--muted)] [&_p]:[font-size:13px] [&_p]:[overflow-wrap:anywhere]">
                   <div className="flex items-center gap-3 flex-wrap">
                     <time dateTime={entry.eventAt}>{formatTimestamp(entry.eventAt)}</time>
                     <Badge>
-                      {entry.type === 'source' ? 'External reference' : human(entry.title)}
+                      {entry.type === 'source'
+                        ? tr('external_reference')
+                        : localize(human(entry.title))}
                     </Badge>
                     {entry.type === 'source' && (
                       <>
-                        <Button size="sm" className="ml-auto" aria-label={`View ${entry.title}`} onClick={() => onSource(entry.id)}>
-                          View source
+                        <Button
+                          size="sm"
+                          className="ml-auto"
+                          aria-label={tr('view_value0', { value0: entry.title })}
+                          onClick={() => onSource(entry.id)}
+                        >
+                          {tr('view_source')}{' '}
                         </Button>
-                        <Button size="sm" aria-label={`Delete source ${entry.title}`} onClick={() => onDelete('source', entry.id)}>
+                        <Button
+                          size="sm"
+                          aria-label={tr('delete_source_value0', { value0: entry.title })}
+                          onClick={() => onDelete('source', entry.id)}
+                        >
                           <IconTrash size={16} />
                         </Button>
                       </>
@@ -259,13 +333,13 @@ export function Timeline({
                     })}
                     {!entry.sourceIds.length && (
                       <span className="muted [color:var(--muted)] text-xs">
-                        Origin: internal activity
+                        {tr('origin_internal_activity')}{' '}
                       </span>
                     )}
                   </div>
                   {activity && activity.taskIds.length > 0 && (
                     <p className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere] mt-2">
-                      Tasks:{' '}
+                      {tr('tasks')}{' '}
                       {activity.taskIds
                         .map((id) => w.tasks.find((t) => t.id === id)?.title)
                         .join(', ')}
@@ -273,13 +347,13 @@ export function Timeline({
                   )}
                   {entry.eventAt !== entry.createdAt && (
                     <p className="row-subtitle block [font-size:11px] [color:var(--muted)] [margin-top:3px] [line-height:1.5] [overflow-wrap:anywhere] mt-3">
-                      Recorded {formatTimestamp(entry.createdAt)}
+                      {tr('recorded')} {formatTimestamp(entry.createdAt)}
                     </p>
                   )}
                   {activity && activity.revisions.length > 0 && (
                     <details className="text-sm mt-3">
                       <summary>
-                        {activity.revisions.length} previous correction(s) · Updated{' '}
+                        {activity.revisions.length} {tr('previous_correction_s_updated')}{' '}
                         {formatTimestamp(activity.updatedAt)}
                       </summary>
                       {activity.revisions.map((revision, i) => (
@@ -288,7 +362,7 @@ export function Timeline({
                           className="revision [border-left:2px_solid_var(--border)] [margin:10px_0] [padding:6px_12px] [background:var(--surface-soft)] [font-size:12px]"
                         >
                           <span className="muted [color:var(--muted)]">
-                            Revised {formatTimestamp(revision.revisedAt)}
+                            {tr('revised')} {formatTimestamp(revision.revisedAt)}
                           </span>
                           <p className="whitespace-pre-wrap">{revision.text}</p>
                         </blockquote>
@@ -316,8 +390,8 @@ export function Timeline({
           })}
         </ol>
       ) : (
-        <Empty title="The story starts here">
-          Task updates, status changes and linked sources will appear here.
+        <Empty title={tr('the_story_starts_here')}>
+          {tr('task_updates_status_changes_and_linked_sources_will_appear_here')}{' '}
         </Empty>
       )}
     </>
@@ -334,10 +408,11 @@ export function FileList({
   open: (id: string) => void;
   manage: (id: string) => void;
 }) {
+  const tr = useTranslations('ui');
   return (
     <ResourceList
-      emptyTitle="No attached files"
-      emptyDescription="Attach files from a topic or task to keep managed copies here."
+      emptyTitle={tr('no_attached_files')}
+      emptyDescription={tr('attach_files_from_a_topic_or_task_to_keep_managed_copies_here')}
       items={files.map((file) => ({
         id: file.id,
         title: file.originalName,

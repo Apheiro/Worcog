@@ -595,6 +595,12 @@ an older backup may bring back records deleted since that backup.
 
 **Settings → General** contains:
 
+- **Language:** choose English or Español. English is the default. The interface,
+  shared selectors and displayed dates change immediately without navigation or
+  a reload. This device preference also applies to the reminder window. It does
+  not translate saved names, descriptions, notes or other user content. The
+  bundled user guide, external editor, native dialogs and technical diagnostics
+  retain their own language. Language is not included in workspace backups.
 - **Appearance:** Light, Dark or System theme. System follows the operating
   system. This preference is saved on the device.
 - **Texture overlay:** enable or disable the grain texture. Opacity adjusts its

@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { Button } from './core/button';
 import {
   IconAlertTriangle,
@@ -39,13 +40,14 @@ function NotificationIcon({ type, isLoading }: IconProps) {
   return <Icon size={21} aria-hidden="true" />;
 }
 function CloseNotification({ closeToast }: CloseButtonProps) {
+  const tr = useTranslations('ui');
   return (
     <Button
       tone="ghost"
       size="auto"
       type="button"
       className="toast-close absolute top-2 right-2 h-6 w-6 shrink-0 p-0 [color:inherit]"
-      aria-label="Dismiss notification"
+      aria-label={tr('dismiss_notification')}
       onClick={closeToast}
     >
       <IconX size={17} aria-hidden="true" />
@@ -53,6 +55,7 @@ function CloseNotification({ closeToast }: CloseButtonProps) {
   );
 }
 export function Notifications() {
+  const tr = useTranslations('ui');
   const { shortcuts } = useWorcog();
   return (
     <ToastContainer
@@ -68,8 +71,17 @@ export function Notifications() {
       transition={InstantTransition}
       icon={NotificationIcon}
       closeButton={CloseNotification}
-      hotKeys={(event) => !(event.target instanceof Element && event.target.closest('[data-shortcut-recorder]')) && shortcuts.matches(event, 'focusNotifications')}
-      aria-label={`Notifications${shortcuts.active.focusNotifications ? ` (${shortcutLabel(shortcuts.active.focusNotifications, shortcuts.platform)} to focus)` : ''}`}
+      hotKeys={(event) =>
+        !(event.target instanceof Element && event.target.closest('[data-shortcut-recorder]')) &&
+        shortcuts.matches(event, 'focusNotifications')
+      }
+      aria-label={tr('notifications_value0', {
+        value0: shortcuts.active.focusNotifications
+          ? tr('notification_focus', {
+              shortcut: shortcutLabel(shortcuts.active.focusNotifications, shortcuts.platform),
+            })
+          : '',
+      })}
     />
   );
 }

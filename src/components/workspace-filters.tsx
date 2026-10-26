@@ -1,11 +1,20 @@
 'use client';
+import { useLabels } from '../i18n/use-labels';
+import { useTranslations } from 'next-intl';
 import { Card } from './core/card';
 import { IconChevronDown, IconFilter, IconSearch } from '@tabler/icons-react';
 import { useId, useState } from 'react';
 import type { SearchFilter } from '../application/queries';
 import type { Priority, SourceKind, Status, Workspace } from '../domain/model';
 import { Button, DateInput, Field, Input, Select } from './core';
-import { selectOptions, priorities, taskPriorities, sourceKinds, statuses, statusFilter } from '../domain/options';
+import {
+  selectOptions,
+  priorities,
+  taskPriorities,
+  sourceKinds,
+  statuses,
+  statusFilter,
+} from '../domain/options';
 export function WorkspaceFilters({
   page,
   workspace: w,
@@ -19,22 +28,24 @@ export function WorkspaceFilters({
   onChange: (patch: Partial<SearchFilter>) => void;
   onClear: () => void;
 }) {
+  const localize = useLabels();
+  const tr = useTranslations('ui');
   const [expanded, setExpanded] = useState(false);
   const controlsId = useId();
   const activeCount = Object.entries(filter).filter(
     ([key, value]) => key !== 'query' && !(page === 'resources' && key === 'type') && value?.trim(),
   ).length;
   return (
-    <Card className="filters mb-6 [&.card]:overflow-visible" aria-label="Search and filters">
+    <Card className="filters mb-6 [&.card]:overflow-visible" aria-label={tr('search_and_filters')}>
       <div className="filters-header flex items-stretch">
         <div className="search-field flex flex-1 min-w-0 [gap:10px] items-center [padding:3px_15px] [color:var(--muted)] [&_>_svg]:shrink-0 [&_input]:border-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:[padding:10px_0] [&_input]:[background:none]">
           <IconSearch size={17} />
           <Input
-            aria-label="Search text"
+            aria-label={tr('search_text')}
             placeholder={
               page === 'resources'
-                ? 'Search resources, filenames, identifiers…'
-                : 'Search your work…'
+                ? tr('search_resources_filenames_identifiers')
+                : tr('search_your_work')
             }
             className="focus:outline-none"
             value={filter.query ?? ''}
@@ -48,10 +59,10 @@ export function WorkspaceFilters({
           onClick={() => setExpanded((open) => !open)}
         >
           <IconFilter size={17} aria-hidden="true" />
-          <span>Filters</span>
+          <span> {tr('filters')} </span>
           {activeCount > 0 && (
             <span className="badge inline-flex items-center [background:var(--surface-soft)] [color:var(--secondary)] [border:1px_solid_var(--border)] whitespace-nowrap [font-size:11px] [font-weight:550] [border-radius:4px] [padding:2px_7px] [line-height:1.6]">
-              {activeCount} active
+              {activeCount} {tr('active')}{' '}
             </span>
           )}
           <IconChevronDown className="filters-chevron" size={17} aria-hidden="true" />
@@ -63,7 +74,7 @@ export function WorkspaceFilters({
         hidden={!expanded}
       >
         {page === 'search' && (
-          <Field label="Entity">
+          <Field label={tr('entity')}>
             <Select
               value={filter.type ?? ''}
               onValueChange={(e) =>
@@ -72,84 +83,110 @@ export function WorkspaceFilters({
                 })
               }
               options={[
-                { value: '', label: 'All entities' },
-                ...selectOptions(['topic', 'task', 'activity', 'source', 'file']),
+                { value: '', label: tr('all_entities') },
+                ...selectOptions(['topic', 'task', 'activity', 'source', 'file']).map((option) => ({
+                  ...option,
+                  label: localize(option.label),
+                })),
               ]}
             />
           </Field>
         )}
-        <Field label="Category">
+        <Field label={tr('category')}>
           <Select
             value={filter.category ?? ''}
             onValueChange={(e) => setFilter({ category: e })}
             options={[
-              { value: '', label: 'All categories' },
-              ...[...new Set(w.topics.map((t) => t.category))].filter(Boolean).map((c) => ({ value: c, label: c })),
+              { value: '', label: tr('all_categories') },
+              ...[...new Set(w.topics.map((t) => t.category))]
+                .filter(Boolean)
+                .map((c) => ({ value: c, label: c })),
             ]}
           />
         </Field>
         {page !== 'resources' && (
           <>
-            <Field label="Status">
+            <Field label={tr('status')}>
               <Select
                 value={statusFilter(filter.status)}
                 onValueChange={(e) => setFilter({ status: e as Status | '' })}
-                options={[{ value: '', label: 'All statuses' }, ...selectOptions(statuses)]}
+                options={[
+                  { value: '', label: tr('all_statuses') },
+                  ...selectOptions(statuses).map((option) => ({
+                    ...option,
+                    label: localize(option.label),
+                  })),
+                ]}
               />
             </Field>
-            <Field label="Priority">
+            <Field label={tr('priority')}>
               <Select
-                value={page === 'tasks' && filter.priority === 'urgent' ? 'high' : filter.priority ?? ''}
+                value={
+                  page === 'tasks' && filter.priority === 'urgent'
+                    ? 'high'
+                    : (filter.priority ?? '')
+                }
                 onValueChange={(e) => setFilter({ priority: e as Priority | '' })}
-                options={[{ value: '', label: 'All priorities' }, ...selectOptions(page === 'tasks' ? taskPriorities : priorities)]}
+                options={[
+                  { value: '', label: tr('all_priorities') },
+                  ...selectOptions(page === 'tasks' ? taskPriorities : priorities).map(
+                    (option) => ({ ...option, label: localize(option.label) }),
+                  ),
+                ]}
               />
             </Field>
-            <Field label="Assignee">
+            <Field label={tr('assignee')}>
               <Input
                 value={filter.responsibleName ?? filter.owner ?? ''}
                 onChange={(e) => setFilter({ responsibleName: e.target.value, owner: '' })}
-                placeholder="Any owner"
+                placeholder={tr('any_owner')}
               />
             </Field>
           </>
         )}
         {(page === 'resources' || page === 'tasks' || page === 'search') && (
-          <Field label="Topic">
+          <Field label={tr('topic_2')}>
             <Select
               value={filter.topicId ?? ''}
               onValueChange={(e) => setFilter({ topicId: e })}
               options={[
-                { value: '', label: 'All topics' },
+                { value: '', label: tr('all_topics') },
                 ...w.topics.map((t) => ({ value: t.id, label: t.title })),
               ]}
             />
           </Field>
         )}
         {page === 'resources' && filter.type !== 'file' && (
-          <Field label="Source type">
+          <Field label={tr('source_type')}>
             <Select
               value={filter.sourceKind ?? ''}
               onValueChange={(e) => setFilter({ sourceKind: e as SourceKind | '' })}
-              options={[{ value: '', label: 'All types' }, ...selectOptions(sourceKinds)]}
+              options={[
+                { value: '', label: tr('all_types') },
+                ...selectOptions(sourceKinds).map((option) => ({
+                  ...option,
+                  label: localize(option.label),
+                })),
+              ]}
             />
           </Field>
         )}
         <Field
           label={
             page === 'topics' || page === 'archive'
-              ? 'Target from'
+              ? tr('target_from')
               : page === 'tasks'
-                ? 'Due from'
-                : 'Date from'
+                ? tr('due_from')
+                : tr('date_from')
           }
         >
           <DateInput value={filter.from ?? ''} onValueChange={(from) => setFilter({ from })} />
         </Field>
-        <Field label="To">
+        <Field label={tr('to')}>
           <DateInput value={filter.to ?? ''} onValueChange={(to) => setFilter({ to })} />
         </Field>
         <Button size="sm" onClick={onClear}>
-          Clear
+          {tr('clear')}{' '}
         </Button>
       </div>
     </Card>

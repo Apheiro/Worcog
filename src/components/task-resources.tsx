@@ -1,11 +1,17 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { useEffect, useImperativeHandle, useRef, useState, type DragEvent, type Ref } from 'react';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { IconFile, IconLink, IconUpload, IconX } from '@tabler/icons-react';
 import { mergeResourceDrafts, type TaskResourcesDraft } from '../application/task-resources';
 import type { Workspace } from '../domain/model';
 import { sourceSchema } from '../domain/validation';
-import { clearSourcePlatforms, emptySourceForm, isSourceType, type SourceFormValues } from '../domain/sources';
+import {
+  clearSourcePlatforms,
+  emptySourceForm,
+  isSourceType,
+  type SourceFormValues,
+} from '../domain/sources';
 import { SourceFields } from './source-fields';
 import { SourceIcon } from './source-icon';
 import { desktopAvailable, errorMessage, native } from '../infrastructure/native';
@@ -30,6 +36,7 @@ export function TaskResources({
   onBusyChange: (busy: boolean) => void;
   openFile: (id: string) => void;
 }) {
+  const tr = useTranslations('ui');
   const dropZone = useRef<HTMLElement>(null);
   const latest = useRef({ value, onChange, disabled, onBusyChange });
   latest.current = { value, onChange, disabled, onBusyChange };
@@ -45,18 +52,27 @@ export function TaskResources({
   const initialSource = useRef(source);
   useImperativeHandle(ref, () => ({
     prepareSave() {
-      const changed = (Object.keys(source) as (keyof typeof source)[])
-        .some((key) => source[key] !== initialSource.current[key]);
+      const changed = (Object.keys(source) as (keyof typeof source)[]).some(
+        (key) => source[key] !== initialSource.current[key],
+      );
       if (!creating && !changed) return true;
       setCreating(true);
-      setError('This resource has not been added yet. Add it to the task or discard the draft before saving.');
+      setError(
+        tr(
+          'this_resource_has_not_been_added_yet_add_it_to_the_task_or_discard_the_draft_before_saving',
+        ),
+      );
       dropZone.current?.scrollIntoView({ block: 'nearest' });
       return false;
     },
   }));
   const savedSources = clearSourcePlatforms(w.sources, value.removedSourcePlatforms ?? []);
-  const sources = mergeResourceDrafts(savedSources, value.sources).filter((s) => value.sourceIds.includes(s.id));
-  const files = mergeResourceDrafts(w.attachments, value.files).filter((f) => value.fileIds.includes(f.id));
+  const sources = mergeResourceDrafts(savedSources, value.sources).filter((s) =>
+    value.sourceIds.includes(s.id),
+  );
+  const files = mergeResourceDrafts(w.attachments, value.files).filter((f) =>
+    value.fileIds.includes(f.id),
+  );
   const savedFileIds = new Set(w.attachments.map((file) => file.id));
   const term = query.trim().toLocaleLowerCase();
   // Existing resources appear only after an explicit search, never as an unfiltered catalogue.
@@ -71,7 +87,12 @@ export function TaskResources({
                   .toLocaleLowerCase()
                   .includes(term),
             )
-            .map((s) => ({ id: s.id, title: s.title, kind: 'source' as const, sourceKind: s.kind })),
+            .map((s) => ({
+              id: s.id,
+              title: s.title,
+              kind: 'source' as const,
+              sourceKind: s.kind,
+            })),
           ...w.attachments
             .filter(
               (f) =>
@@ -142,17 +163,17 @@ export function TaskResources({
 
   function addSource(input = source) {
     if (!isSourceType(input.kind)) {
-      setError('Choose a source type.');
+      setError(tr('choose_a_source_type'));
       return;
     }
     if (input.kind === 'url' && !/^https?:\/\//i.test(input.url.trim())) {
-      setError('Enter an HTTP or HTTPS URL.');
+      setError(tr('enter_an_http_or_https_url'));
       return;
     }
     const now = new Date().toISOString();
     const date = input.eventAt ? new Date(input.eventAt) : new Date(now);
     if (Number.isNaN(date.getTime())) {
-      setError('Enter a valid source date.');
+      setError(tr('enter_a_valid_source_date'));
       return;
     }
     const parsed = sourceSchema.safeParse({
@@ -166,7 +187,7 @@ export function TaskResources({
       topicIds: [],
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Check the source fields.');
+      setError(parsed.error.issues[0]?.message ?? tr('check_the_source_fields'));
       return;
     }
     const duplicate = [...savedSources, ...value.sources].find(
@@ -200,15 +221,20 @@ export function TaskResources({
       try {
         const url = new URL(text);
         if (!['https:', 'http:', 'msteams:'].includes(url.protocol))
-          throw new Error('Unsupported link.');
-        setSource({ ...emptySourceForm(), kind: url.protocol === 'msteams:' ? 'messaging' : 'url', title: url.hostname || text, url: text });
+          throw new Error(tr('unsupported_link'));
+        setSource({
+          ...emptySourceForm(),
+          kind: url.protocol === 'msteams:' ? 'messaging' : 'url',
+          title: url.hostname || text,
+          url: text,
+        });
         setCreating(true);
         setError('');
       } catch {
-        setError('Drop a valid HTTP, HTTPS or Teams link.');
+        setError(tr('drop_a_valid_http_https_or_teams_link'));
       }
     } else if (!desktopAvailable() && event.dataTransfer.files.length)
-      setError('Open the desktop application to import files.');
+      setError(tr('open_the_desktop_application_to_import_files'));
   }
   async function removeFile(id: string) {
     const draft = savedFileIds.has(id) ? undefined : value.files.find((file) => file.id === id);
@@ -232,7 +258,7 @@ export function TaskResources({
   return (
     <section
       ref={dropZone}
-      aria-label="Resources"
+      aria-label={tr('resources')}
       onDragOver={(e) => {
         e.preventDefault();
         if (!disabled) setDragging(true);
@@ -241,10 +267,11 @@ export function TaskResources({
       onDrop={drop}
       className={`mb-5 rounded-lg border border-solid [border-color:var(--border)] p-4 ${dragging ? '[background:var(--selected)]' : '[background:var(--surface-soft)]'}`}
     >
-      <h3 className="text-sm font-medium mb-2">Resources</h3>
+      <h3 className="text-sm font-medium mb-2"> {tr('resources')} </h3>
       <p className="text-xs [color:var(--muted)] mb-3">
-        Drop files or a source link here, or add a resource below. Changes are applied when you save
-        the task.
+        {tr(
+          'drop_files_or_a_source_link_here_or_add_a_resource_below_changes_are_applied_when_you_save_the_task',
+        )}{' '}
       </p>
       <fieldset disabled={disabled} className="min-w-0 border-0 p-0 m-0">
         <div className="flex flex-wrap gap-2 mb-3">
@@ -254,10 +281,10 @@ export function TaskResources({
             onClick={() => setCreating((open) => !open)}
             aria-expanded={creating}
           >
-            <IconLink size={15} /> Create source
+            <IconLink size={15} /> {tr('create_source')}{' '}
           </Button>
           <Button type="button" size="sm" onClick={() => void importFiles()}>
-            <IconUpload size={15} /> Upload file
+            <IconUpload size={15} /> {tr('upload_file')}{' '}
           </Button>
         </div>
         {(sources.length > 0 || files.length > 0) && (
@@ -287,7 +314,7 @@ export function TaskResources({
                   tone="ghost"
                   size="icon"
                   className="ml-auto shrink-0"
-                  aria-label={`Unlink ${s.title}`}
+                  aria-label={tr('unlink_value0', { value0: s.title })}
                   onClick={() =>
                     onChange({ ...value, sourceIds: value.sourceIds.filter((id) => id !== s.id) })
                   }
@@ -301,7 +328,8 @@ export function TaskResources({
                 <IconFile size={15} className="shrink-0" />
                 {!savedFileIds.has(f.id) ? (
                   <span className="break-words">
-                    {f.originalName} <span className="[color:var(--muted)]">· Pending save</span>
+                    {f.originalName}{' '}
+                    <span className="[color:var(--muted)]"> {tr('pending_save')} </span>
                   </span>
                 ) : (
                   <Button
@@ -319,7 +347,7 @@ export function TaskResources({
                   tone="ghost"
                   size="icon"
                   className="ml-auto shrink-0"
-                  aria-label={`Unlink ${f.originalName}`}
+                  aria-label={tr('unlink_value0', { value0: f.originalName })}
                   onClick={() => void removeFile(f.id)}
                 >
                   <IconX size={14} />
@@ -329,8 +357,8 @@ export function TaskResources({
           </ul>
         )}
         <Field
-          label="Find an existing resource"
-          hint="Type at least two characters to link a specific saved resource."
+          label={tr('find_an_existing_resource')}
+          hint={tr('type_at_least_two_characters_to_link_a_specific_saved_resource')}
         >
           <Input
             value={query}
@@ -338,7 +366,7 @@ export function TaskResources({
               if (event.key === 'Enter') event.preventDefault();
             }}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, identifier or link…"
+            placeholder={tr('search_by_name_identifier_or_link')}
           />
         </Field>
         {term.length >= 2 && (
@@ -357,12 +385,16 @@ export function TaskResources({
                   setQuery('');
                 }}
               >
-                {match.kind === 'source' ? <SourceIcon kind={match.sourceKind} size={14} /> : <IconFile size={14} />}{' '}
+                {match.kind === 'source' ? (
+                  <SourceIcon kind={match.sourceKind} size={14} />
+                ) : (
+                  <IconFile size={14} />
+                )}{' '}
                 {match.title}
               </Button>
             ))}
             {!matches.length && (
-              <p className="text-xs [color:var(--muted)]">No matching resources.</p>
+              <p className="text-xs [color:var(--muted)]"> {tr('no_matching_resources')} </p>
             )}
           </div>
         )}
@@ -380,7 +412,7 @@ export function TaskResources({
             }}
             className="border-0 border-t border-solid [border-color:var(--border)] pt-4"
           >
-            <Field label="Source title">
+            <Field label={tr('source_title')}>
               <Input
                 value={source.title}
                 maxLength={500}
@@ -391,23 +423,39 @@ export function TaskResources({
               value={source}
               onChange={(patch) => setSource((current) => ({ ...current, ...patch }))}
               sources={[...savedSources, ...value.sources]}
-              onDeletePlatform={(platform) => onChange({
-                ...value,
-                removedSourcePlatforms: [...(value.removedSourcePlatforms ?? []), platform],
-                sources: clearSourcePlatforms(value.sources, [platform], new Date().toISOString()),
-              })}
+              onDeletePlatform={(platform) =>
+                onChange({
+                  ...value,
+                  removedSourcePlatforms: [...(value.removedSourcePlatforms ?? []), platform],
+                  sources: clearSourcePlatforms(
+                    value.sources,
+                    [platform],
+                    new Date().toISOString(),
+                  ),
+                })
+              }
               disabled={disabled}
             />
             <div className="flex flex-wrap gap-2">
-              <Button type="button" size="sm" onClick={() => addSource()} disabled={!source.title.trim() || !source.kind}>
-                Add source to task
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => addSource()}
+                disabled={!source.title.trim() || !source.kind}
+              >
+                {tr('add_source_to_task')}{' '}
               </Button>
-              <Button type="button" size="sm" tone="ghost" onClick={() => {
-                setSource({ ...emptySourceForm(), title: '' });
-                setCreating(false);
-                setError('');
-              }}>
-                Discard draft
+              <Button
+                type="button"
+                size="sm"
+                tone="ghost"
+                onClick={() => {
+                  setSource({ ...emptySourceForm(), title: '' });
+                  setCreating(false);
+                  setError('');
+                }}
+              >
+                {tr('discard_draft')}{' '}
               </Button>
             </div>
           </div>
