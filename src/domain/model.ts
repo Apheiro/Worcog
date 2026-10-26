@@ -2,7 +2,7 @@ export type Status = 'pending' | 'in_progress' | 'blocked' | 'completed' | 'canc
 export type Priority = 'low' | 'normal' | 'high' | 'urgent';
 export type ActivityKind =
   'note' | 'progress' | 'decision' | 'blocker' | 'meeting' | 'outcome' | 'status' | 'milestone';
-export type SourceType = 'mail' | 'ticketing' | 'meeting' | 'messaging';
+export type SourceType = 'mail' | 'ticketing' | 'meeting' | 'messaging' | 'url';
 export type SourceKind =
   | SourceType
   | 'email'

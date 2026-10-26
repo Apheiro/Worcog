@@ -34,6 +34,7 @@ import { useDocumentWindows } from '../infrastructure/use-document-windows';
 import { documentFormat } from '../infrastructure/document-editor';
 import { useAttachmentAccess } from '../infrastructure/use-attachment-access';
 import { useAttachmentExport } from '../infrastructure/use-attachment-export';
+import { useTaskFileDrop } from '../infrastructure/use-task-file-drop';
 import { useEntityLinks } from '../infrastructure/use-entity-links';
 import { useShortcuts } from '../infrastructure/use-shortcuts';
 import type { EntityRef } from '../domain/model';
@@ -87,7 +88,8 @@ function useWorcogController() {
     else if (page === 'topics') router.push('/topics');
   }
   const [editor, setEditor] = useState<Editor | null>(null);
-  const exitGuard = editor !== null || documents.windows.length > 0 || wb.busy || reminders.busy;
+  const taskFileDrop = useTaskFileDrop(wb, editor !== null || !!relations.source);
+  const exitGuard = editor !== null || documents.windows.length > 0 || wb.busy || reminders.busy || taskFileDrop.pendingId !== null;
   useEffect(() => {
     if (!desktopAvailable()) return;
     void reminderApi.setExitGuard(exitGuard).catch((cause) => notifications.error(errorMessage(cause)));
@@ -398,6 +400,7 @@ No recycle bin or deletion history is kept. Existing exports outside Worcog are 
     openFile,
     attachmentAccess,
     attachmentExport,
+    taskFileDrop,
     documents,
     documentEditorEnabled,
     setDocumentEditorEnabled,

@@ -5,7 +5,7 @@ export const statusFilter = (value: string | undefined) =>
   statuses.find((status) => status === value) ?? '';
 export const priorities = ['low', 'normal', 'high', 'urgent'] as const;
 export const taskPriorities = ['low', 'normal', 'high'] as const;
-export const taskPriority = (value: Priority) => value === 'urgent' ? 'high' : value;
+export const taskPriority = (value: Priority) => (value === 'urgent' ? 'high' : value);
 export const activityKinds = [
   'note',
   'progress',
@@ -16,7 +16,8 @@ export const activityKinds = [
   'status',
   'milestone',
 ] as const;
-export const sourceKinds = ['mail', 'ticketing', 'meeting', 'messaging'] as const;
-export const human = (s: string) => s.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase());
+export const sourceKinds = ['mail', 'ticketing', 'meeting', 'messaging', 'url'] as const;
+export const human = (s: string) =>
+  s === 'url' ? 'URL' : s.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase());
 export const selectOptions = (values: readonly string[]) =>
   values.map((value) => ({ value, label: human(value) }));

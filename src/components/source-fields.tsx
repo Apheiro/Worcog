@@ -105,8 +105,11 @@ export function SourceFields({
             </Field>
           )}
           {fields.link && (
-            <Field label={fields.link} hint="Optional HTTP, HTTPS or Teams link.">
+            <Field label={fields.link} hint={value.kind === 'url' ? 'External HTTP or HTTPS link.' : 'Optional HTTP, HTTPS or Teams link.'}>
               <Input
+                required={value.kind === 'url'}
+                type={value.kind === 'url' ? 'url' : 'text'}
+                pattern={value.kind === 'url' ? 'https?://.+' : undefined}
                 value={value.url}
                 maxLength={4096}
                 placeholder="https://…"
@@ -136,7 +139,7 @@ export function SourceFields({
               />
             </Field>
           )}
-          <Field
+          {fields.participants && <Field
             label={sourceParticipantLabel({
               kind: value.kind || 'mail',
               messageContext: value.messageContext,
@@ -146,7 +149,7 @@ export function SourceFields({
               value={value.participants}
               onChange={(event) => onChange({ participants: event.target.value })}
             />
-          </Field>
+          </Field>}
           <Field label="Context">
             <Textarea
               value={value.notes}

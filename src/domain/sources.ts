@@ -22,9 +22,10 @@ export const sourceFields: Record<
     identifier?: string;
     link?: string;
     date?: string;
-    participants: string;
+    participants?: string;
   }
 > = {
+  url: { link: 'URL' },
   mail: {
     date: 'Date',
     participants: 'Sender / recipients',
@@ -83,14 +84,28 @@ export interface SourcePlatform {
 }
 
 export function matchesSourcePlatform(source: Source, platform: SourcePlatform): boolean {
-  return sourceType(source.kind) === platform.kind &&
-    initialSourcePlatform(source).trim().toLocaleLowerCase() === platform.name.trim().toLocaleLowerCase();
+  return (
+    sourceType(source.kind) === platform.kind &&
+    initialSourcePlatform(source).trim().toLocaleLowerCase() ===
+      platform.name.trim().toLocaleLowerCase()
+  );
 }
 
-export function clearSourcePlatforms(sources: Source[], removed: SourcePlatform[], now?: string): Source[] {
-  return sources.map((source) => removed.some((platform) => matchesSourcePlatform(source, platform))
-    ? { ...source, kind: sourceType(source.kind) ?? source.kind, platform: '', updatedAt: now ?? source.updatedAt }
-    : source);
+export function clearSourcePlatforms(
+  sources: Source[],
+  removed: SourcePlatform[],
+  now?: string,
+): Source[] {
+  return sources.map((source) =>
+    removed.some((platform) => matchesSourcePlatform(source, platform))
+      ? {
+          ...source,
+          kind: sourceType(source.kind) ?? source.kind,
+          platform: '',
+          updatedAt: now ?? source.updatedAt,
+        }
+      : source,
+  );
 }
 
 export const messagingContexts = [
@@ -106,5 +121,5 @@ export function sourceParticipantLabel(source: Pick<Source, 'kind' | 'messageCon
         ?.label ?? 'Participants'
     );
   const type = sourceType(source.kind);
-  return type ? sourceFields[type].participants : 'Participants';
+  return (type ? sourceFields[type].participants : undefined) ?? 'Participants';
 }

@@ -127,6 +127,7 @@ function RecordEditor({
       if (editor.kind === 'source') {
         current = actions.deleteSourcePlatforms(current, removedPlatforms);
         if (!isSourceType(sourceForm.kind)) throw new Error('Choose a source type.');
+        if (sourceForm.kind === 'url' && !/^https?:\/\//i.test(sourceForm.url.trim())) throw new Error('Enter an HTTP or HTTPS URL.');
         const input = {
           title: get('title'),
           ...sourceForm,

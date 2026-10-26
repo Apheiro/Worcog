@@ -145,6 +145,10 @@ export function TaskResources({
       setError('Choose a source type.');
       return;
     }
+    if (input.kind === 'url' && !/^https?:\/\//i.test(input.url.trim())) {
+      setError('Enter an HTTP or HTTPS URL.');
+      return;
+    }
     const now = new Date().toISOString();
     const date = input.eventAt ? new Date(input.eventAt) : new Date(now);
     if (Number.isNaN(date.getTime())) {
@@ -197,7 +201,7 @@ export function TaskResources({
         const url = new URL(text);
         if (!['https:', 'http:', 'msteams:'].includes(url.protocol))
           throw new Error('Unsupported link.');
-        setSource({ ...emptySourceForm(), kind: '', title: url.hostname || text, url: text });
+        setSource({ ...emptySourceForm(), kind: url.protocol === 'msteams:' ? 'messaging' : 'url', title: url.hostname || text, url: text });
         setCreating(true);
         setError('');
       } catch {

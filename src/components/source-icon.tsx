@@ -3,6 +3,7 @@ import type { SourceKind, SourceType } from '../domain/model';
 import { sourceKindLabel, sourceType } from '../domain/sources';
 
 const icons = {
+  url: IconLink,
   mail: IconMail,
   ticketing: IconTicket,
   meeting: IconCalendarEvent,

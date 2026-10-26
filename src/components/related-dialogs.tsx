@@ -68,12 +68,14 @@ export function SourceDetail({
             <dd>{source.subject}</dd>
           </>
         )}
+        {sourceType(source.kind) !== 'url' && <>
         <dt>Identifier</dt>
         <dd>{source.identifier || 'Not provided'}</dd>
         <dt>Event</dt>
         <dd>{formatTimestamp(source.eventAt)}</dd>
         <dt>{sourceParticipantLabel(source)}</dt>
         <dd>{source.participants || 'Not provided'}</dd>
+        </>}
         <dt>Original link</dt>
         <dd className="break-all">
           {source.url || 'No link provided — use the saved metadata to locate the original.'}

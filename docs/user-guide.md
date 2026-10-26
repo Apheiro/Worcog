@@ -385,15 +385,18 @@ Platforms are listed for the selected source type.
 | Ticketing | Ticket identifier, Ticket link, Requester / contacts and Context |
 | Meeting | Meeting / recording link, Meeting date and time, Attendees and Context |
 | Messaging | Message / conversation link, Date/Time, one conversation identity and Context |
+| URL | Required external HTTP/HTTPS URL and optional Context; no ticket, event or participant fields |
 
 For Messaging, **Identify conversation by** switches between Sender,
 Participants and Group Name. Only the selected identity field is shown.
 Date/time inputs include local time controls when the field supports time.
-Source links may use HTTP, HTTPS or Teams links.
+Source links may use HTTP, HTTPS or Teams links. The URL type requires HTTP or
+HTTPS. Dropping a web link into Resources preselects URL; dropping a Teams link
+preselects Messaging. Enter a title and add the source before saving the task.
 
 Source icons identify their type throughout resource lists, task attachments,
 forms, details and timelines: an envelope for Mail, a ticket for Ticketing, a
-calendar for Meeting and conversation bubbles for Messaging. Older references
+calendar for Meeting, conversation bubbles for Messaging and a link for URL. Older references
 without a recognized type retain the general link icon.
 
 Finish adding the source before saving the task. If a resource form has a
@@ -423,6 +426,14 @@ uploaded files become saved resources.
 File copying, availability checks and document reads and saves run in the
 background so they do not block the application window. Wait for an attachment
 to finish copying before saving its form.
+
+In the desktop application, you can also drop one or more files directly onto
+any visible task card, including a subtask. The highlighted card is the
+destination. Worcog copies and attaches the files automatically to that task;
+no form is required. This adds resources without moving tasks or changing their
+hierarchy. If copying or saving fails, unsaved copies are discarded and an error
+is shown. While a form or confirmation covers a task, drop files in the task
+form's Resources area instead, or close the dialog first.
 
 Supported attachments include PDF, text, Markdown, CSV, JSON, logs, common
 images, DOCX, XLSX, PPTX, ODT, ODS and ODP. Each file may be at most **100 MiB**.

@@ -77,7 +77,8 @@ export function TaskRow({
   cardRef,
   dropTarget,
 }: TaskRowProps) {
-  const { inactivitySettings, attachmentExport, taskContextMenu, relations, showTaskRelations, shortcuts } = useWorcog();
+  const { inactivitySettings, attachmentExport, taskContextMenu, relations, showTaskRelations, shortcuts, taskFileDrop } = useWorcog();
+  const receivingFile = taskFileDrop.targetId === task.id || taskFileDrop.pendingId === task.id;
   const entity = { kind: 'task' as const, id: task.id };
   const linkTarget = useLinkTarget(entity);
   const parent = w.tasks.find((t) => t.id === task.parentId);
@@ -154,13 +155,14 @@ export function TaskRow({
           <Card
             {...linkTarget.props}
             ref={cardRef}
+            data-task-file-drop={task.id}
             className={taskRow({
               completed: task.status === 'completed',
-              className: `relative z-10 [&.card[data-link-source=true]]:[border-color:var(--ink)] [&.card[data-link-source=true]]:[background:var(--selected)] [&.card[data-link-target=true]]:cursor-crosshair [&.card[data-link-target=true]:hover]:[border-color:var(--ink)] [&.card[data-linked-highlight=true]]:[border-color:var(--secondary)] ${dropTarget ? '[&.card]:[border-color:var(--ink)] [&.card]:[background:var(--selected)]' : ''}`,
+              className: `relative z-10 [&.card[data-link-source=true]]:[border-color:var(--ink)] [&.card[data-link-source=true]]:[background:var(--selected)] [&.card[data-link-target=true]]:cursor-crosshair [&.card[data-link-target=true]:hover]:[border-color:var(--ink)] [&.card[data-linked-highlight=true]]:[border-color:var(--secondary)] ${dropTarget || receivingFile ? '[&.card]:[border-color:var(--ink)] [&.card]:[background:var(--selected)]' : ''}`,
             })}
             role="group"
             aria-label={task.title}
-            aria-busy={busy}
+            aria-busy={busy || taskFileDrop.pendingId === task.id}
           >
             <div className="flex shrink-0 flex-col items-center gap-1.5">
               <Checkbox
@@ -276,6 +278,7 @@ export function TaskRow({
                 </ul>
               )}
               {showTaskRelations && <EntityLinks entity={entity} />}
+              {taskFileDrop.pendingId === task.id && <span role="status" className="text-xs [color:var(--muted)]">Attaching…</span>}
             </div>
             <div className="task-actions ml-auto flex flex-col items-end gap-2">
               <div className="flex items-center gap-2">
