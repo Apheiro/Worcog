@@ -105,6 +105,11 @@ touch devices support a long press. Left-clicking the title still opens the topi
 When Context menus is off, each topic row shows a **…** button at the far right
 with those same actions. Both modes work in grouped and ungrouped lists.
 
+The **Archive** menu supports the same row actions and context-menu preference.
+Open an archived topic and choose **Unarchive**, or use **Unarchive** in its row
+menu. Confirm to return it to Topics with its contents preserved. Restoring from
+the Archive detail returns to the archived-topic list.
+
 ### Topic color indicator
 
 The slim color bar uses the Initial, Midpoint and Final colors configured in
@@ -597,7 +602,7 @@ an older backup may bring back records deleted since that backup.
 - **Open documents in Worcog:** switch between the integrated document editor
   and opening attachments with the system's default application.
 - **Context menus:** replace task three-dot buttons with a right-click menu
-  and enable Edit, Archive/Unarchive and Delete on rows in the Topics list.
+  and enable Edit, Archive/Unarchive and Delete on rows in Topics and Archive.
   Disabled by default and saved on this device.
 - **Topic inactivity:** set a positive number of days and Initial, Midpoint and
   Final colors. Click the markers on the horizontal gradient to adjust colors,

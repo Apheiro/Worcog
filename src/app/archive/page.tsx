@@ -4,9 +4,11 @@ import { Select } from '../../components/core';
 import { TopicTable } from '../../components/work-lists';
 import { useWorcog } from '../../providers/worcog';
 import { WorkspaceSection } from '../../components/workspace-section';
+import { TopicDetail } from '../../components/topic-detail';
 export default function Page() {
-  const { w, page, sort, setSort, effective, openTopic } = useWorcog();
+  const { w, page, sort, setSort, effective, openTopic, selectedTopic, wb, setEditor, setSourceId, setTopicId, askArchive, setFileId, openFile, askDeleteTask, askDelete } = useWorcog();
   const topics = filterTopics(w, effective, sort, page === 'archive');
+  if (selectedTopic) return <TopicDetail topic={selectedTopic} wb={wb} edit={setEditor} openSource={setSourceId} back={() => setTopicId('')} archive={() => askArchive(selectedTopic.id)} manageFile={setFileId} openFile={openFile} deleteTask={askDeleteTask} onDelete={askDelete} />;
   return (
     <WorkspaceSection>
       {

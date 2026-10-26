@@ -82,10 +82,11 @@ function useWorcogController() {
   const pathname = usePathname();
   const params = useSearchParams();
   const page = (pathname.split('/')[1] || 'overview') as Page;
-  const topicId = page === 'topics' ? (params.get('topic') ?? '') : '';
+  const topicId = page === 'topics' || page === 'archive' ? (params.get('topic') ?? '') : '';
   function setTopicId(id: string) {
-    if (id) router.push('/topics?topic=' + encodeURIComponent(id));
-    else if (page === 'topics') router.push('/topics');
+    const route = page === 'archive' ? '/archive' : '/topics';
+    if (id) router.push(route + '?topic=' + encodeURIComponent(id));
+    else if (page === 'topics' || page === 'archive') router.push(route);
   }
   const [editor, setEditor] = useState<Editor | null>(null);
   const taskFileDrop = useTaskFileDrop(wb, editor !== null || !!relations.source);
@@ -203,8 +204,10 @@ function useWorcogController() {
           await wb.update((current) =>
             updateTopic(current, topic.id, { archived: !topic.archived }),
           )
-        )
+        ) {
           setConfirmation(null);
+          if (page === 'archive' && topic.archived && selectedTopic?.id === topic.id) setTopicId('');
+        }
       },
     });
   }

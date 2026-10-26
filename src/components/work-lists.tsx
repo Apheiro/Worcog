@@ -19,7 +19,8 @@ import { SourceIcon } from './source-icon';
 import { EntityLinks, EntityLinkTarget } from './entity-links';
 export function TopicTable({ topics, open, showCategory = true }: { topics: Topic[]; open: (id: string) => void; showCategory?: boolean }) {
   const { taskContextMenu, page, wb, setEditor, askDelete, askArchive, relations, shortcuts } = useWorcog();
-  const showActions = page === 'topics' && !taskContextMenu;
+  const actionable = page === 'topics' || page === 'archive';
+  const showActions = actionable && !taskContextMenu;
   return topics.length ? (
     <div className="table-wrap overflow-auto [border:1px_solid_var(--border)] [border-radius:4px] [background:var(--surface)]">
       <table className="data-table table-fixed [border-collapse:collapse] w-full [min-width:760px] text-left [font-size:12px] [&_th]:[padding:10px_15px] [&_th]:[font-size:10px] [&_th]:[font-weight:600] [&_th]:[color:var(--muted)] [&_th]:[background:var(--surface-soft)] [&_th]:[letter-spacing:0.4px] [&_th]:uppercase [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:whitespace-nowrap [&_td]:[padding:15px] [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_td]:[overflow-wrap:anywhere] [&_td:nth-child(5)]:whitespace-nowrap [&_td:nth-child(6)]:whitespace-nowrap [&_tr:last-child_td]:[border-bottom:none] [&_tbody_tr:hover]:[background:var(--surface-soft)]">
@@ -72,7 +73,7 @@ export function TopicTable({ topics, open, showCategory = true }: { topics: Topi
                 key={topic.id}
                 label={`Actions for ${topic.title}`}
                 shortcut={shortcuts.active.contextMenu}
-                disabled={!taskContextMenu || page !== 'topics' || wb.busy || !!relations.source}
+                disabled={!taskContextMenu || !actionable || wb.busy || !!relations.source}
                 items={actions}
               >
                 <EntityLinkTarget entity={{ kind: 'topic', id: topic.id }}>
