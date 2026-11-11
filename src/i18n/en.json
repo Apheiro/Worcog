@@ -123,7 +123,7 @@
     "dismiss": "Dismiss",
     "tray_reminders": "Tray & reminders",
     "tray_icon": "Tray icon",
-    "minimize_or_close_the_window_to_keep_worcog_running_in_the_tray_use_its_menu_to_exit": "Minimize or close the window to keep Worcog running in the tray. Use its menu to exit.",
+    "close_window_to_keep_running_in_tray": "Close the window to keep Worcog running in the tray. Minimizing keeps it in the taskbar or Dock. Use the tray menu to exit.",
     "reminder_notifications": "Reminder notifications",
     "persistent_worcog_alerts_with_repeating_sound_until_dismissed_enable_tray_icon_first_turning_it_off_": "Persistent Worcog alerts with repeating sound until dismissed. Enable Tray icon first. Turning it off pauses reminders without deleting them.",
     "reminder_sound": "Reminder sound",

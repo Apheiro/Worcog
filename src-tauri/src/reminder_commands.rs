@@ -147,5 +147,5 @@ pub async fn open_reminder_task(id: String, app: tauri::AppHandle, webview: taur
 pub async fn minimize_workspace(app: tauri::AppHandle, webview: tauri::Webview) -> Result<()> {
     main_only(&webview)?;
     let window = app.get_webview_window("main").ok_or("Main window is unavailable.")?;
-    if app.tray_by_id("worcog").is_some() { window.hide() } else { window.minimize() }.map_err(|error| error.to_string())
+    window.minimize().map_err(|error| error.to_string())
 }

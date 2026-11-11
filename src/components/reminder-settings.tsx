@@ -34,9 +34,7 @@ export function ReminderSettings() {
             </p>
             <p id="tray-setting-help" className="text-xs [color:var(--muted)]">
               {' '}
-              {tr(
-                'minimize_or_close_the_window_to_keep_worcog_running_in_the_tray_use_its_menu_to_exit',
-              )}{' '}
+              {tr('close_window_to_keep_running_in_tray')}{' '}
             </p>
           </div>
           <Switch

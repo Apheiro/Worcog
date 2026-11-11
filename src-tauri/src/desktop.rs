@@ -348,11 +348,6 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if window.label() == "main" && matches!(event, tauri::WindowEvent::Resized(_))
-                && window.app_handle().tray_by_id("worcog").is_some()
-                && window.is_minimized().unwrap_or(false) {
-                let _ = window.hide();
-            }
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
                 if window.label() == "main" {

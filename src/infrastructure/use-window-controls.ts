@@ -4,11 +4,13 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/core';
 import { desktopAvailable, errorMessage } from './native';
 import { notifications } from './notifications';
+import { useOs } from '@mantine/hooks';
 
 const subscribe = () => () => {};
 const serverAvailable = () => false;
 
 export function useWindowControls() {
+  const platform = useOs();
   const desktop = useSyncExternalStore(subscribe, desktopAvailable, serverAvailable);
   const [maximized, setMaximized] = useState(false);
 
@@ -56,6 +58,7 @@ export function useWindowControls() {
     }
   }
   return {
+    platform,
     desktop,
     maximized,
     minimize: () => {

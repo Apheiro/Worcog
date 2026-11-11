@@ -357,12 +357,21 @@ recordatorios vencidos que no se hayan descartado.
 
 ### Bandeja y permanencia de la aplicación
 
-Con Icono en la bandeja activado, minimizar **o cerrar** la ventana principal
-la oculta mientras Worcog sigue ejecutándose. Hacé clic en el icono o elegí
-**Open Worcog** en su menú para restaurarla. **Exit** cierra por completo y pide
-confirmación si hay un formulario, documento u operación abiertos; guardá los
-cambios antes. Desactivar la bandeja restaura la ventana principal. Con la
-función desactivada, se mantiene el comportamiento normal de minimizar y cerrar.
+Los controles se adaptan al sistema operativo detectado. En Windows, minimizar,
+maximizar/restaurar y cerrar permanecen a la derecha. En macOS aparecen a la
+izquierda, en el orden cerrar, minimizar y maximizar/restaurar. Los círculos de
+macOS son grises en reposo; al pasar el cursor o enfocar un botón se ilumina en
+rojo, amarillo o verde, respectivamente.
+
+Minimizar conserva Worcog en la barra de tareas o el Dock del sistema, incluso
+con Icono en la bandeja activado. No oculta la ventana en la bandeja. Con la
+opción activada, **cerrar con el botón ×** oculta la ventana principal mientras
+Worcog sigue ejecutándose. Hacé clic en el icono o elegí **Open Worcog** en su
+menú para restaurarla. **Exit** cierra por completo y pide confirmación si hay
+un formulario, documento u operación abiertos; guardá los cambios antes.
+Desactivar la bandeja restaura la ventana principal. Con la función desactivada,
+cerrar termina la aplicación y conserva la confirmación por trabajo sin guardar
+cuando corresponde.
 
 Solo se ejecuta un proceso para esta identidad de aplicación. Abrirla de nuevo
 restaura la instancia existente y evita motores de recordatorios duplicados.

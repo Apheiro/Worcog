@@ -322,11 +322,19 @@ unacknowledged overdue reminders eligible again.
 
 ### Tray behavior and app lifetime
 
-With Tray icon enabled, minimizing **or closing** the main window hides it
-while Worcog continues running. Click the tray icon or choose **Open Worcog**
-from its menu to restore it. **Exit** fully quits and asks for confirmation
-when a form, document or operation is open; save your changes first. Turning the tray off restores the main
-window. With the feature off, normal minimize/close behavior applies.
+Window controls adapt to the detected operating system. Windows keeps minimize,
+maximize/restore and close on the right. On macOS they appear on the left in
+close, minimize and maximize/restore order. The macOS circles are gray at rest;
+hovering or focusing a button lights it red, yellow or green, respectively.
+
+Minimizing keeps Worcog in the operating system's taskbar or Dock, even with
+Tray icon enabled. It does not hide the window in the tray. With Tray icon
+enabled, **closing with the × button** hides the main window while Worcog
+continues running. Click the tray icon or choose **Open Worcog** from its menu
+to restore it. **Exit** fully quits and asks for confirmation when a form,
+document or operation is open; save your changes first. Turning the tray off
+restores the main window. With the feature off, closing exits the application
+with the existing unsaved-work confirmation when applicable.
 
 Only one Worcog process runs for this application identity. Starting it again
 restores the existing instance, preventing duplicate reminder engines.

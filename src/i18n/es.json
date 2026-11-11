@@ -123,7 +123,7 @@
     "dismiss": "Descartar",
     "tray_reminders": "Bandeja y recordatorios",
     "tray_icon": "Icono en la bandeja",
-    "minimize_or_close_the_window_to_keep_worcog_running_in_the_tray_use_its_menu_to_exit": "Minimizá o cerrá la ventana para mantener Worcog en la bandeja. Usá su menú para salir.",
+    "close_window_to_keep_running_in_tray": "Cerrá la ventana para mantener Worcog en la bandeja. Minimizar la conserva en la barra de tareas o el Dock. Usá el menú de la bandeja para salir.",
     "reminder_notifications": "Notificaciones de recordatorios",
     "persistent_worcog_alerts_with_repeating_sound_until_dismissed_enable_tray_icon_first_turning_it_off_": "Alertas persistentes de Worcog con sonido continuo hasta que las descartes. Activá primero el icono en la bandeja. Desactivar esta opción pausa los recordatorios sin eliminarlos.",
     "reminder_sound": "Sonido del recordatorio",
