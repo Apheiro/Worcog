@@ -357,16 +357,16 @@ recordatorios vencidos que no se hayan descartado.
 
 ### Bandeja y permanencia de la aplicación
 
-Los controles se adaptan al sistema operativo detectado. En Windows, minimizar,
-maximizar/restaurar y cerrar permanecen a la derecha. En macOS aparecen a la
-izquierda, en el orden cerrar, minimizar y maximizar/restaurar. Los círculos de
-macOS son grises en reposo; al pasar el cursor o enfocar un botón se ilumina en
-rojo, amarillo o verde, respectivamente.
+En macOS, Worcog usa los controles nativos de ventana a la izquierda, con
+espacio reservado en la cabecera personalizada. macOS gestiona su apariencia,
+animaciones, tema y comportamiento, incluido Liquid Glass cuando lo ofrece el
+sistema. Windows y Linux conservan los botones personalizados de minimizar,
+maximizar/restaurar y cerrar a la derecha.
 
 Minimizar conserva Worcog en la barra de tareas o el Dock del sistema, incluso
 con Icono en la bandeja activado. No oculta la ventana en la bandeja. Con la
-opción activada, **cerrar con el botón ×** oculta la ventana principal mientras
-Worcog sigue ejecutándose. Hacé clic en el icono o elegí **Open Worcog** en su
+opción activada, **usar el botón de cerrar la ventana** oculta la ventana
+principal mientras Worcog sigue ejecutándose. Hacé clic en el icono o elegí **Open Worcog** en su
 menú para restaurarla. **Exit** cierra por completo y pide confirmación si hay
 un formulario, documento u operación abiertos; guardá los cambios antes.
 Desactivar la bandeja restaura la ventana principal. Con la función desactivada,

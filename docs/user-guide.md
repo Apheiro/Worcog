@@ -322,14 +322,15 @@ unacknowledged overdue reminders eligible again.
 
 ### Tray behavior and app lifetime
 
-Window controls adapt to the detected operating system. Windows keeps minimize,
-maximize/restore and close on the right. On macOS they appear on the left in
-close, minimize and maximize/restore order. The macOS circles are gray at rest;
-hovering or focusing a button lights it red, yellow or green, respectively.
+On macOS, Worcog uses the native window controls on the left, with space
+reserved in the custom header. macOS manages their appearance, animations,
+theme and behavior, including Liquid Glass when provided by the system.
+Windows and Linux keep the custom minimize, maximize/restore and close buttons
+on the right.
 
 Minimizing keeps Worcog in the operating system's taskbar or Dock, even with
 Tray icon enabled. It does not hide the window in the tray. With Tray icon
-enabled, **closing with the × button** hides the main window while Worcog
+enabled, **using the window's close button** hides the main window while Worcog
 continues running. Click the tray icon or choose **Open Worcog** from its menu
 to restore it. **Exit** fully quits and asks for confirmation when a form,
 document or operation is open; save your changes first. Turning the tray off
