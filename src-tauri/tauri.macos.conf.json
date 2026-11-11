@@ -5,7 +5,7 @@
       {
         "title": "Worcog",
         "decorations": true,
-        "titleBarStyle": "overlay",
+        "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "resizable": true,
         "width": 1320,
