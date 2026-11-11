@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/Apheiro/Worcog/compare/v0.9.0...v0.10.0) (2026-10-26)
+
+
+### Features
+
+* **docs:** add an offline Spanish user guide ([2e473e7](https://github.com/Apheiro/Worcog/commit/2e473e7564e310bee8cbaca187422a858f2d928a))
+* **i18n:** add Spanish interface and language settings ([a339a42](https://github.com/Apheiro/Worcog/commit/a339a4215bfac66baa65b209fb7bcb67727f1ecc))
+* **resources:** add URL sources and file drops on tasks ([afd3982](https://github.com/Apheiro/Worcog/commit/afd398250b488dca5fa2813b5a1a06df09f075b6))
+
+
+### Bug Fixes
+
+* **archive:** restore topics and enable archived row actions ([5464d3f](https://github.com/Apheiro/Worcog/commit/5464d3f73dc4f9bf713985f1ae6cfd6cabdbc2ab))
+* **storage:** keep file operations off the main thread ([c8912b7](https://github.com/Apheiro/Worcog/commit/c8912b7a4667bfa9d24af46afb8552d7011c3cbb))
+
 ## [0.9.0](https://github.com/Apheiro/Worcog/compare/v0.8.0...v0.9.0) (2026-10-24)
 
 
