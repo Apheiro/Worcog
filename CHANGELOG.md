@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/Apheiro/Worcog/compare/v0.10.0...v0.11.0) (2026-11-11)
+
+
+### Features
+
+* **desktop:** adapt window controls and minimize behavior ([2cca2ee](https://github.com/Apheiro/Worcog/commit/2cca2ee17284dde7cc475ed93049683215470f17))
+* **macos:** use native window controls ([adc1e20](https://github.com/Apheiro/Worcog/commit/adc1e209da35720f50b1b081eacd941d2dc5394e))
+
+
+### Bug Fixes
+
+* **tasks:** hide completed subtasks in task views ([1fa197e](https://github.com/Apheiro/Worcog/commit/1fa197ed255e189113a909e3d1b7c7aff59c4695))
+
 ## [0.10.0](https://github.com/Apheiro/Worcog/compare/v0.9.0...v0.10.0) (2026-10-26)
 
 
