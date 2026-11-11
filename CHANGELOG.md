@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/Apheiro/Worcog/compare/v0.11.0...v0.11.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **macos:** use valid native title bar style ([e588b8f](https://github.com/Apheiro/Worcog/commit/e588b8f6d1e8edde1c3c913d5bcccd2df35c8e25))
+
 ## [0.11.0](https://github.com/Apheiro/Worcog/compare/v0.10.0...v0.11.0) (2026-11-11)
 
 
