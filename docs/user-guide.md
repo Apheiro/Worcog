@@ -204,7 +204,8 @@ For keyboard dragging, focus a task's grip and press **Space** or **Enter**.
 Use the arrow keys to move over a destination, then Space or Enter to drop;
 **Escape** cancels. The highlighted destination describes the pending action.
 
-**Hide completed** hides only completed main tasks. Children remain eligible
+**Hide completed** hides completed tasks at every level, including subtasks,
+in the Tasks page and a topic's Tasks tab. Incomplete children remain eligible
 to appear even when their completed parent is hidden. Other active filters
 still apply. The Tasks page offers Open, All, Overdue and Blocked views.
 

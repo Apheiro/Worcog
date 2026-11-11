@@ -16,7 +16,7 @@ import {
 } from '@tabler/icons-react';
 import type { DeletionTarget } from '../application/deletion';
 import { updateTask } from '../application/workspace';
-import { filterCompletedRootTasks } from '../application/task-order';
+import { filterCompletedTasks } from '../application/task-order';
 import { TaskOrder } from './task-order';
 import { useWorcog } from '../providers/worcog';
 import { isOpen } from '../domain/dates';
@@ -59,7 +59,7 @@ export function TopicDetail({
   const w = wb.workspace;
   const { taskSort, hideCompletedRootTasks, relations, page } = useWorcog();
   const tasks = w.tasks.filter((t) => t.topicId === topic.id);
-  const visibleTasks = filterCompletedRootTasks(tasks, hideCompletedRootTasks);
+  const visibleTasks = filterCompletedTasks(tasks, hideCompletedRootTasks);
   const sources = w.sources.filter((s) => sourceTopicIds(w, s).includes(topic.id));
   const files = w.attachments.filter((f) => attachmentTopicIds(w, f).includes(topic.id));
   const generalFiles = files.filter((file) => file.topicIds.includes(topic.id));

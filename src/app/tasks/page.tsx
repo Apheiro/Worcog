@@ -1,7 +1,7 @@
 'use client';
 import { useTranslations } from 'next-intl';
 import { filterTasks } from '../../application/queries';
-import { filterCompletedRootTasks } from '../../application/task-order';
+import { filterCompletedTasks } from '../../application/task-order';
 import { updateTask } from '../../application/workspace';
 import { TaskOrder } from '../../components/task-order';
 import type { Status } from '../../domain/model';
@@ -30,7 +30,7 @@ export default function Page() {
     overdueOnly: taskView === 'overdue',
     status: taskView === 'blocked' ? ('blocked' as Status) : effective.status,
   };
-  const tasks = filterCompletedRootTasks(filterTasks(w, taskFilter), hideCompletedRootTasks);
+  const tasks = filterCompletedTasks(filterTasks(w, taskFilter), hideCompletedRootTasks);
   return (
     <WorkspaceSection>
       {

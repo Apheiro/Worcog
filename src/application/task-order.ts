@@ -10,8 +10,8 @@ export const taskSortOptions = [
 ] as const;
 export type TaskSort = typeof taskSortOptions[number]['value'];
 
-export function filterCompletedRootTasks(tasks: Task[], hideCompleted: boolean): Task[] {
-  return tasks.filter((task) => !hideCompleted || !!task.parentId || task.status !== 'completed');
+export function filterCompletedTasks(tasks: Task[], hideCompleted: boolean): Task[] {
+  return tasks.filter((task) => !hideCompleted || task.status !== 'completed');
 }
 
 export function compareTaskOrder(a: Task, b: Task, sort: TaskSort = 'created') {

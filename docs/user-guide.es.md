@@ -228,10 +228,11 @@ Para arrastrar con el teclado, enfocá el control y presioná **Espacio** o
 **Enter**. Usá las flechas para moverte sobre un destino y Espacio o Enter para
 soltar. **Escape** cancela. El destino resaltado describe la acción pendiente.
 
-**Ocultar completadas** oculta únicamente las tareas principales completadas.
-Las subtareas pueden seguir apareciendo aunque se oculte su principal
-completada. Los demás filtros activos siguen aplicándose. La página Tareas
-ofrece las vistas Abiertas, Todas, Vencidas y Bloqueadas.
+**Ocultar completadas** oculta las tareas completadas de todos los niveles,
+incluidas las subtareas, en la página Tareas y la pestaña Tareas de un tema.
+Las subtareas pendientes pueden seguir apareciendo aunque se oculte su
+principal completada. Los demás filtros activos siguen aplicándose. La página
+Tareas ofrece las vistas Abiertas, Todas, Vencidas y Bloqueadas.
 
 ### Tareas recurrentes
 
